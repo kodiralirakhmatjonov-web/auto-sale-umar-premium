@@ -1,0 +1,224 @@
+.shell {
+  min-height: 100svh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(216, 134, 50, 0.14), transparent 30rem),
+    radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.07), transparent 26rem),
+    #080808;
+  color: #f7f4ee;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.card {
+  width: min(100%, 540px);
+  padding: clamp(24px, 6vw, 44px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 32px;
+  background: rgba(18, 18, 18, 0.88);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(24px);
+}
+
+.brand {
+  margin-bottom: 34px;
+}
+
+.brand strong {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 8vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.brand span {
+  display: block;
+  margin-top: 10px;
+  color: #9d9d9d;
+  font-size: 0.66rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+}
+
+.kicker {
+  margin: 0 0 12px;
+  color: #d88632;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 7vw, 3.2rem);
+  font-weight: 400;
+  line-height: 1.03;
+}
+
+.description {
+  margin: 16px 0 28px;
+  color: #a9a9a9;
+  line-height: 1.65;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  color: #b8b8b8;
+  font-size: 0.78rem;
+}
+
+.field input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 17px;
+  outline: none;
+  color: #f7f4ee;
+  background: #141414;
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus {
+  border-color: rgba(216, 134, 50, 0.8);
+  box-shadow: 0 0 0 4px rgba(216, 134, 50, 0.12);
+}
+
+.button {
+  min-height: 58px;
+  margin-top: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  color: white;
+  background: linear-gradient(135deg, #f0a64f, #b86419);
+  box-shadow: 0 16px 44px rgba(216, 134, 50, 0.24);
+  font: inherit;
+  font-weight: 700;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.secondaryButton {
+  min-height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 17px;
+  color: #f7f4ee;
+  background: #181818;
+  font: inherit;
+}
+
+.message,
+.error,
+.success {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  border-radius: 15px;
+  line-height: 1.5;
+  font-size: 0.84rem;
+}
+
+.message {
+  color: #b8b8b8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.error {
+  color: #ffb4a9;
+  background: rgba(176, 45, 28, 0.16);
+  border: 1px solid rgba(255, 115, 95, 0.24);
+}
+
+.success {
+  color: #baf0c8;
+  background: rgba(37, 137, 67, 0.16);
+  border: 1px solid rgba(87, 205, 119, 0.24);
+}
+
+.linkRow {
+  margin-top: 22px;
+  color: #9d9d9d;
+  text-align: center;
+  font-size: 0.84rem;
+}
+
+.linkRow a {
+  color: #f0a64f;
+}
+
+.dashboard {
+  width: min(100%, 900px);
+  display: grid;
+  gap: 18px;
+}
+
+.dashboardHeader,
+.panel {
+  padding: clamp(22px, 5vw, 36px);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 28px;
+  background: rgba(18, 18, 18, 0.9);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+}
+
+.dashboardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.dashboardHeader h1,
+.panel h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.dashboardHeader p,
+.panel p {
+  margin: 10px 0 0;
+  color: #a9a9a9;
+  line-height: 1.6;
+}
+
+.badge {
+  display: inline-flex;
+  margin-top: 14px;
+  padding: 8px 11px;
+  border: 1px solid rgba(216, 134, 50, 0.32);
+  border-radius: 999px;
+  color: #f0a64f;
+  background: rgba(216, 134, 50, 0.1);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 620px) {
+  .shell {
+    padding: 12px;
+  }
+
+  .card {
+    border-radius: 26px;
+  }
+
+  .dashboardHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
