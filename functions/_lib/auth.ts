@@ -24,7 +24,7 @@ export interface SessionPayload {
 const encoder = new TextEncoder();
 const SESSION_COOKIE = "asu_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
-const PASSWORD_ITERATIONS = 150_000;
+const PASSWORD_ITERATIONS = 100_000;
 
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = "";
