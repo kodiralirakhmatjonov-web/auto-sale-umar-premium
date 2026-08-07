@@ -1,25 +1,28 @@
 .page {
-  --bg: #15191d;
-  --surface: #1c2126;
-  --surface-2: #23292f;
+  --bg: #161a1e;
+  --surface: #1d2227;
+  --surface-2: #242a30;
   --surface-3: #2b3239;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.14);
-  --text: #f5f2ec;
-  --secondary: #b7bbc0;
-  --muted: #7f868d;
-  --orange: #d77b26;
-  --orange-bright: #ee9a45;
-  --orange-soft: rgba(215, 123, 38, 0.14);
+  --surface-4: #333b43;
+  --line: rgba(255, 255, 255, 0.095);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text: #f6f2eb;
+  --secondary: #b9bdc2;
+  --muted: #858c93;
+  --orange: #d97922;
+  --orange-bright: #f0a04c;
+  --orange-deep: #b85c14;
+  --orange-soft: rgba(217, 121, 34, 0.15);
   --green: #79b894;
+  --danger: #e37664;
 
   min-height: 100svh;
   position: relative;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 82% -8%, rgba(215, 123, 38, 0.13), transparent 31rem),
-    radial-gradient(circle at -12% 55%, rgba(255, 255, 255, 0.035), transparent 28rem),
-    var(--bg);
+    radial-gradient(circle at 86% -8%, rgba(217, 121, 34, 0.15), transparent 36rem),
+    radial-gradient(circle at -10% 64%, rgba(255, 255, 255, 0.045), transparent 30rem),
+    linear-gradient(180deg, #1a1d20 0%, var(--bg) 46%, #13171a 100%);
   color: var(--text);
   color-scheme: dark;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
@@ -31,52 +34,64 @@
   box-sizing: border-box;
 }
 
+.page button,
+.page input {
+  font: inherit;
+}
+
 .ambient {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 22rem);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 24rem),
+    radial-gradient(circle at 50% 100%, rgba(217, 121, 34, 0.045), transparent 34rem);
 }
 
 .topbar {
   position: sticky;
   z-index: 20;
   top: 0;
-  min-height: 78px;
+  min-height: 92px;
   display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  grid-template-columns: 50px 1fr 50px;
   align-items: center;
-  gap: 12px;
-  padding: max(14px, env(safe-area-inset-top)) 18px 14px;
-  background: rgba(21, 25, 29, 0.82);
+  gap: 14px;
+  padding: max(14px, env(safe-area-inset-top)) 24px 14px;
+  background: rgba(22, 26, 30, 0.79);
   border-bottom: 1px solid var(--line);
-  -webkit-backdrop-filter: blur(24px) saturate(125%);
-  backdrop-filter: blur(24px) saturate(125%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  backdrop-filter: blur(26px) saturate(135%);
 }
 
 .backButton {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line-strong);
-  border-radius: 15px;
-  background: rgba(255, 255, 255, 0.035);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.038);
   color: var(--text);
   text-decoration: none;
-  font-size: 24px;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  font-size: 25px;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .backButton:active {
-  transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.07);
+  transform: scale(0.95);
 }
 
 .brand {
   min-width: 0;
+  justify-self: center;
+  color: inherit;
   text-align: center;
   line-height: 1;
+  text-decoration: none;
 }
 
 .brand span,
@@ -86,87 +101,96 @@
 
 .brand span {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 17px;
-  letter-spacing: 0.02em;
+  font-size: clamp(22px, 2.4vw, 30px);
+  letter-spacing: -0.025em;
 }
 
 .brand small {
-  margin-top: 7px;
-  color: var(--muted);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.28em;
+  margin-top: 8px;
+  color: var(--orange-bright);
+  font-size: clamp(8px, 0.8vw, 10px);
+  font-weight: 750;
+  letter-spacing: 0.34em;
 }
 
 .topbarSpacer {
-  width: 44px;
+  width: 46px;
 }
 
 .content {
-  width: min(1120px, 100%);
+  width: min(1280px, 100%);
   margin: 0 auto;
-  padding: 38px 18px max(52px, env(safe-area-inset-bottom));
+  padding: 52px 28px max(120px, calc(env(safe-area-inset-bottom) + 70px));
 }
 
 .heroRow {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 26px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 34px;
+  margin-bottom: 34px;
+  animation: heroIn 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.heroCopy {
+  min-width: 0;
 }
 
 .eyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   color: var(--orange-bright);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.22em;
+  font-size: 11px;
+  font-weight: 780;
+  letter-spacing: 0.25em;
 }
 
 .heroRow h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(42px, 7vw, 70px);
+  font-size: clamp(54px, 7vw, 88px);
   font-weight: 500;
-  letter-spacing: -0.045em;
-  line-height: 0.98;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
 }
 
 .subtitle {
-  max-width: 560px;
-  margin: 14px 0 0;
+  max-width: 720px;
+  margin: 19px 0 0;
   color: var(--secondary);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.6;
 }
 
 .addButton {
-  flex: 0 0 auto;
-  min-height: 52px;
+  min-height: 58px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 0 18px;
-  border: 1px solid rgba(238, 154, 69, 0.38);
-  border-radius: 17px;
-  background: linear-gradient(135deg, #ec9c4b, #c86b1b);
-  box-shadow: 0 12px 34px rgba(200, 107, 27, 0.18);
+  gap: 11px;
+  padding: 0 23px;
+  border: 1px solid rgba(240, 160, 76, 0.43);
+  border-radius: 19px;
+  background: linear-gradient(135deg, #efa04d 0%, #d27621 54%, #bd5f14 100%);
+  box-shadow:
+    0 18px 46px rgba(184, 92, 20, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   color: #fff8ef;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 760;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms ease,
+    filter 180ms ease;
 }
 
-.addButton:disabled {
-  opacity: 0.76;
-  cursor: default;
+.addButton:active {
+  transform: scale(0.985);
 }
 
 .addIcon {
-  margin-top: -1px;
-  font-size: 23px;
+  margin-top: -2px;
+  font-size: 25px;
   font-weight: 300;
   line-height: 1;
 }
@@ -175,21 +199,30 @@
 .loadingGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 15px;
 }
 
 .metricCard,
 .skeletonMetric {
-  min-height: 128px;
+  min-height: 146px;
   border: 1px solid var(--line);
-  border-radius: 24px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  border-radius: 27px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.056), rgba(255, 255, 255, 0.018)),
+    var(--surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 20px 60px rgba(0, 0, 0, 0.11);
 }
 
 .metricCard {
-  padding: 19px;
+  padding: 23px;
+  animation: cardIn 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+.metricCard:nth-child(2) { animation-delay: 60ms; }
+.metricCard:nth-child(3) { animation-delay: 120ms; }
+.metricCard:nth-child(4) { animation-delay: 180ms; }
 
 .metricCard span,
 .metricCard small,
@@ -199,20 +232,20 @@
 
 .metricCard span {
   color: var(--secondary);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .metricCard strong {
-  margin: 13px 0 7px;
+  margin: 16px 0 8px;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 34px;
+  font-size: 40px;
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
 }
 
 .metricCard small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .skeletonMetric {
@@ -225,58 +258,52 @@
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.075), transparent);
   animation: shimmer 1.35s infinite;
 }
 
-@keyframes shimmer {
-  to {
-    transform: translateX(100%);
-  }
-}
-
 .errorCard {
-  min-height: 126px;
+  min-height: 136px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 22px;
-  border: 1px solid rgba(222, 110, 91, 0.32);
-  border-radius: 24px;
-  background: rgba(111, 43, 32, 0.2);
+  padding: 24px;
+  border: 1px solid rgba(227, 118, 100, 0.34);
+  border-radius: 26px;
+  background: rgba(111, 43, 32, 0.22);
 }
 
 .errorCard p {
   margin: 0 0 7px;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .errorCard span {
-  color: #d9aaa1;
+  color: #dfaaa1;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .errorCard button {
-  min-height: 42px;
-  padding: 0 15px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 13px;
+  min-height: 44px;
+  padding: 0 17px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
-  font: inherit;
 }
 
 .staffSection {
-  margin-top: 16px;
-  padding: 20px;
+  margin-top: 18px;
+  padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 28px;
-  background: rgba(28, 33, 38, 0.76);
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.18);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  border-radius: 31px;
+  background: rgba(29, 34, 39, 0.81);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.17);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  animation: sectionIn 620ms 140ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .sectionHeading {
@@ -284,8 +311,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 15px;
-  padding: 1px 2px 14px;
+  margin-bottom: 18px;
+  padding: 2px 4px 17px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -295,32 +322,32 @@
 }
 
 .sectionHeading p {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 760;
 }
 
 .sectionHeading > div > span {
   display: block;
-  margin-top: 5px;
+  margin-top: 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .liveBadge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   color: var(--muted);
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.16em;
 }
 
 .liveBadge i,
 .activeBadge i,
 .blockedBadge i {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   display: inline-block;
   border-radius: 50%;
 }
@@ -328,36 +355,43 @@
 .liveBadge i,
 .activeBadge i {
   background: var(--green);
-  box-shadow: 0 0 0 4px rgba(121, 184, 148, 0.09);
+  box-shadow: 0 0 0 5px rgba(121, 184, 148, 0.09);
 }
 
 .staffList {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .staffCard {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 16px;
-  padding: 17px;
+  grid-template-columns: 66px minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: linear-gradient(135deg, var(--surface-2), rgba(35, 41, 47, 0.62));
-  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+  border-radius: 25px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.025), transparent 42%),
+    var(--surface-2);
+  animation: staffIn 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--staff-index, 0) * 55ms + 170ms);
+  transition:
+    border-color 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 180ms ease;
 }
 
 .avatar {
-  width: 58px;
-  height: 58px;
+  width: 66px;
+  height: 66px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(238, 154, 69, 0.3);
-  border-radius: 18px;
-  background: var(--orange-soft);
-  color: #f2a95f;
+  border: 1px solid rgba(240, 160, 76, 0.32);
+  border-radius: 21px;
+  background: linear-gradient(145deg, rgba(240, 160, 76, 0.18), rgba(184, 92, 20, 0.1));
+  color: #f2aa61;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 21px;
+  font-size: 24px;
 }
 
 .memberMain {
@@ -368,32 +402,32 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
 }
 
 .nameLine {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
 }
 
 .nameLine h2 {
   overflow: hidden;
-  margin: 1px 0 0;
+  margin: 2px 0 0;
   color: var(--text);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 500;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .youBadge {
   flex: 0 0 auto;
-  padding: 4px 7px;
-  border: 1px solid rgba(238, 154, 69, 0.22);
+  padding: 4px 8px;
+  border: 1px solid rgba(240, 160, 76, 0.25);
   border-radius: 999px;
   background: var(--orange-soft);
   color: var(--orange-bright);
@@ -404,84 +438,84 @@
 
 .memberHeading p {
   overflow: hidden;
-  margin: 6px 0 0;
+  margin: 7px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .moreButton {
-  width: 38px;
-  height: 34px;
+  width: 42px;
+  height: 38px;
   flex: 0 0 auto;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.028);
   color: var(--secondary);
-  font-size: 17px;
+  font-size: 18px;
   letter-spacing: 0.08em;
 }
 
 .moreButton:disabled {
-  opacity: 0.58;
+  opacity: 0.5;
 }
 
 .badgeRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .roleBadge,
 .activeBadge,
 .blockedBadge {
-  min-height: 27px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 0 10px;
+  padding: 0 11px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 720;
 }
 
 .roleBadge {
-  border: 1px solid rgba(238, 154, 69, 0.22);
+  border: 1px solid rgba(240, 160, 76, 0.24);
   background: var(--orange-soft);
-  color: #eda45a;
+  color: #efa85f;
 }
 
 .activeBadge {
-  border: 1px solid rgba(121, 184, 148, 0.17);
-  background: rgba(121, 184, 148, 0.08);
-  color: #a5cfb7;
+  border: 1px solid rgba(121, 184, 148, 0.19);
+  background: rgba(121, 184, 148, 0.085);
+  color: #a7d0b8;
 }
 
 .blockedBadge {
-  border: 1px solid rgba(214, 105, 88, 0.2);
-  background: rgba(214, 105, 88, 0.09);
-  color: #e0a097;
+  border: 1px solid rgba(227, 118, 100, 0.22);
+  background: rgba(227, 118, 100, 0.09);
+  color: #e4a297;
 }
 
 .blockedBadge i {
-  background: #d66958;
+  background: var(--danger);
 }
 
 .memberMeta {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px;
-  margin-top: 15px;
+  gap: 11px;
+  margin-top: 17px;
 }
 
 .memberMeta > div {
   min-width: 0;
-  padding: 11px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.055);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.08);
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.09);
 }
 
 .memberMeta span,
@@ -490,24 +524,24 @@
 }
 
 .memberMeta span {
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   color: var(--muted);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .memberMeta strong {
   overflow: hidden;
   color: var(--secondary);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 630;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .emptyState {
-  padding: 42px 20px;
+  padding: 50px 20px;
   text-align: center;
 }
 
@@ -518,41 +552,459 @@
 
 .emptyState strong {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 21px;
+  font-size: 23px;
   font-weight: 500;
 }
 
 .emptyState span {
-  margin-top: 8px;
+  margin-top: 9px;
   color: var(--muted);
+  font-size: 13px;
+}
+
+.modalLayer {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: end center;
+  padding: 24px;
+  background: rgba(6, 8, 10, 0.68);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  animation: veilIn 220ms ease both;
+}
+
+.modalGlow {
+  position: absolute;
+  width: min(760px, 82vw);
+  height: 280px;
+  bottom: -100px;
+  border-radius: 50%;
+  background: rgba(217, 121, 34, 0.2);
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+.modal {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(860px, calc(100svh - 44px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 30px;
+  border: 1px solid var(--line-strong);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(217, 121, 34, 0.11), transparent 18rem),
+    #20262b;
+  box-shadow:
+    0 38px 120px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  animation: modalIn 430ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modalHandle {
+  display: none;
+  width: 44px;
+  height: 5px;
+  margin: -14px auto 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.modalEyebrow {
+  margin: 0 0 9px;
+  color: var(--orange-bright);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.23em;
+}
+
+.modalHeader h2,
+.successView h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 5vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.modalHeader > div > p:last-child,
+.modalLead {
+  max-width: 560px;
+  margin: 13px 0 0;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.closeButton {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--secondary);
+  cursor: pointer;
+  font-size: 27px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.staffForm {
+  margin-top: 28px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 0.72fr;
+  gap: 13px;
+  margin-top: 14px;
+}
+
+.field {
+  display: block;
+}
+
+.field > span,
+.rolePicker legend {
+  display: block;
+  margin: 0 0 9px;
+  color: var(--secondary);
   font-size: 12px;
+  font-weight: 650;
+}
+
+.field input {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  outline: none;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: #191e22;
+  color: var(--text);
+  font-size: 15px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.field input::placeholder {
+  color: #697178;
+}
+
+.field input:focus {
+  border-color: rgba(240, 160, 76, 0.54);
+  background: #1b2025;
+  box-shadow: 0 0 0 4px rgba(217, 121, 34, 0.09);
+}
+
+.rolePicker {
+  min-width: 0;
+  margin: 23px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.rolePicker > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.roleOption {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 14px;
+  min-height: 92px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+  transition:
+    transform 170ms ease,
+    border-color 170ms ease,
+    background 170ms ease;
+}
+
+.roleOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.roleOption span {
+  min-width: 0;
+}
+
+.roleOption strong,
+.roleOption small {
+  display: block;
+}
+
+.roleOption strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.roleOption small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.roleOption i {
+  width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+}
+
+.roleOptionActive {
+  border-color: rgba(240, 160, 76, 0.42);
+  background: var(--orange-soft);
+}
+
+.roleOptionActive i {
+  border: 5px solid var(--orange-bright);
+  background: #20262b;
+}
+
+.formError {
+  margin-top: 16px;
+  padding: 13px 15px;
+  border: 1px solid rgba(227, 118, 100, 0.28);
+  border-radius: 15px;
+  background: rgba(125, 46, 35, 0.18);
+  color: #edaa9f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.modalActions,
+.successActions {
+  display: grid;
+  grid-template-columns: 0.68fr 1.32fr;
+  gap: 11px;
+  margin-top: 25px;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 54px;
+  border-radius: 17px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid rgba(240, 160, 76, 0.42);
+  background: linear-gradient(135deg, #efa04d, #c86718);
+  color: #fff8ef;
+  box-shadow: 0 15px 38px rgba(184, 92, 20, 0.18);
+}
+
+.secondaryButton {
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.closeButton:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.spinner {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(255, 255, 255, 0.36);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 720ms linear infinite;
+}
+
+.successView {
+  padding: 4px 0 0;
+}
+
+.successIcon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 22px;
+  border: 1px solid rgba(121, 184, 148, 0.28);
+  border-radius: 18px;
+  background: rgba(121, 184, 148, 0.1);
+  color: #a7d0b8;
+  font-size: 24px;
+}
+
+.credentialCard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.credentialCard > div {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #191e22;
+}
+
+.credentialCard span,
+.credentialCard strong {
+  display: block;
+}
+
+.credentialCard span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+
+.credentialCard strong {
+  overflow-wrap: anywhere;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.passwordValue {
+  color: var(--orange-bright) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.025em;
+}
+
+.securityNote {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes sectionIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes staffIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(26px) scale(0.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes veilIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (hover: hover) {
-  .backButton:hover {
-    border-color: rgba(238, 154, 69, 0.3);
-    background: rgba(238, 154, 69, 0.07);
+  .backButton:hover,
+  .closeButton:hover,
+  .secondaryButton:hover {
+    border-color: rgba(240, 160, 76, 0.31);
+    background: rgba(240, 160, 76, 0.07);
+  }
+
+  .addButton:hover,
+  .primaryButton:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.035);
+    box-shadow:
+      0 22px 52px rgba(184, 92, 20, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
   }
 
   .staffCard:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.145);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 42%),
+      var(--surface-3);
+  }
+
+  .roleOption:hover {
     transform: translateY(-1px);
-    border-color: rgba(255, 255, 255, 0.13);
-    background: linear-gradient(135deg, var(--surface-3), rgba(35, 41, 47, 0.7));
+    border-color: rgba(240, 160, 76, 0.28);
   }
 }
 
-@media (max-width: 760px) {
+@media (min-width: 1000px) {
+  .staffList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .staffCard {
+    min-height: 218px;
+  }
+}
+
+@media (max-width: 900px) {
   .content {
-    padding-top: 30px;
+    padding-top: 42px;
   }
 
   .heroRow {
-    display: block;
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
 
   .addButton {
     width: 100%;
-    margin-top: 22px;
   }
 
   .metrics,
@@ -560,62 +1012,170 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .metricCard,
-  .skeletonMetric {
-    min-height: 116px;
+  .modal {
+    width: min(680px, 100%);
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 620px) {
   .topbar {
+    min-height: 82px;
+    grid-template-columns: 44px 1fr 44px;
     padding-inline: 14px;
+  }
+
+  .backButton {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .brand span {
+    font-size: 20px;
+  }
+
+  .brand small {
+    margin-top: 6px;
+    font-size: 7px;
+    letter-spacing: 0.29em;
   }
 
   .content {
-    padding-inline: 14px;
+    padding: 34px 14px max(132px, calc(env(safe-area-inset-bottom) + 94px));
+  }
+
+  .eyebrow {
+    font-size: 10px;
   }
 
   .heroRow h1 {
-    font-size: 48px;
+    font-size: 52px;
   }
 
   .subtitle {
+    margin-top: 15px;
     font-size: 14px;
   }
 
+  .addButton {
+    min-height: 56px;
+    border-radius: 18px;
+  }
+
+  .metricCard,
+  .skeletonMetric {
+    min-height: 120px;
+    border-radius: 23px;
+  }
+
   .metricCard {
-    padding: 16px;
+    padding: 17px;
   }
 
   .metricCard strong {
-    font-size: 31px;
+    font-size: 33px;
   }
 
   .staffSection {
     padding: 14px;
-    border-radius: 24px;
+    border-radius: 25px;
+  }
+
+  .sectionHeading {
+    padding-inline: 2px;
   }
 
   .staffCard {
-    grid-template-columns: 50px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 13px;
     padding: 14px;
-    border-radius: 20px;
+    border-radius: 21px;
   }
 
   .avatar {
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     border-radius: 16px;
-    font-size: 18px;
+    font-size: 19px;
   }
 
   .nameLine h2 {
-    font-size: 18px;
+    font-size: 19px;
+  }
+
+  .memberHeading p {
+    font-size: 12px;
   }
 
   .memberMeta {
     grid-template-columns: 1fr;
+  }
+
+  .modalLayer {
+    place-items: end stretch;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100svh - max(14px, env(safe-area-inset-top)));
+    padding: 24px 18px max(24px, calc(env(safe-area-inset-bottom) + 18px));
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 30px 30px 0 0;
+  }
+
+  .modalHandle {
+    display: block;
+  }
+
+  .modalHeader h2,
+  .successView h2 {
+    font-size: 38px;
+  }
+
+  .formGrid,
+  .rolePicker > div,
+  .credentialCard,
+  .modalActions,
+  .successActions {
+    grid-template-columns: 1fr;
+  }
+
+  .roleOption {
+    min-height: 82px;
+  }
+
+  .modalActions .primaryButton {
+    grid-row: 1;
+  }
+
+  .successActions .primaryButton {
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 390px) {
+  .heroRow h1 {
+    font-size: 46px;
+  }
+
+  .metrics,
+  .loadingGrid {
+    gap: 10px;
+  }
+
+  .metricCard {
+    padding: 15px;
+  }
+
+  .metricCard span {
+    font-size: 12px;
+  }
+
+  .metricCard small {
+    font-size: 10px;
   }
 }
 
