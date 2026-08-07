@@ -189,9 +189,9 @@ export default function StaffPage() {
 
   const subtitle = useMemo(() => {
     if (scope === "sales_managers") {
-      return "Управление менеджерами и их доступом к экосистеме AutoSale Umar";
+      return "Управление менеджерами и их доступом к экосистеме Auto Sale Umar";
     }
-    return "Управление всей командой AutoSale Umar, ролями и доступом к системе";
+    return "Управление всей командой Auto Sale Umar, ролями и доступом к системе";
   }, [scope]);
 
   const roleOptions = useMemo(() => {
@@ -306,9 +306,10 @@ export default function StaffPage() {
           <span aria-hidden="true">←</span>
         </a>
 
-        <a className={styles.brand} href="/admin/" aria-label="AutoSale Umar Control System">
-          <span>AutoSale Umar</span>
-          <small>CONTROL SYSTEM</small>
+        <a className={styles.brand} href="/admin/" aria-label="Auto Sale Umar Control System">
+          <span className={styles.brandWordmark}>Auto Sale Umar</span>
+          <small className={styles.brandSystem}>CONTROL SYSTEM</small>
+          <i className={styles.brandShine} aria-hidden="true" />
         </a>
 
         <div className={styles.topbarSpacer} aria-hidden="true" />
@@ -373,7 +374,7 @@ export default function StaffPage() {
             <section className={styles.staffSection}>
               <div className={styles.sectionHeading}>
                 <div>
-                  <p>Команда AutoSale Umar</p>
+                  <p>Команда Auto Sale Umar</p>
                   <span>{summary.total === 1 ? "1 профиль" : `${summary.total} профилей`}</span>
                 </div>
                 <span className={styles.liveBadge}>
@@ -470,7 +471,7 @@ export default function StaffPage() {
                 <p className={styles.modalEyebrow}>ДОСТУП СОЗДАН</p>
                 <h2 id="create-staff-title">{createdMember.fullName}</h2>
                 <p className={styles.modalLead}>
-                  Профиль добавлен в AutoSale Umar Control System. Передайте сотруднику логин и временный пароль.
+                  Профиль добавлен в Auto Sale Umar Control System. Передайте сотруднику логин и временный пароль.
                 </p>
 
                 <div className={styles.credentialCard}>
@@ -503,7 +504,7 @@ export default function StaffPage() {
                   <div>
                     <p className={styles.modalEyebrow}>НОВЫЙ ДОСТУП</p>
                     <h2 id="create-staff-title">Добавить сотрудника</h2>
-                    <p>Создайте защищённый профиль для команды AutoSale Umar.</p>
+                    <p>Создайте защищённый профиль для команды Auto Sale Umar.</p>
                   </div>
                   <button
                     className={styles.closeButton}
