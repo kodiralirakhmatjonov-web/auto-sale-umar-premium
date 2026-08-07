@@ -105,7 +105,14 @@ export function validatePassword(password: string): string | null {
 }
 
 export function isValidSetupKey(candidate: string, expected: string): boolean {
-  return Boolean(candidate && expected && constantTimeEqual(candidate, expected));
+  const normalizedCandidate = candidate.trim();
+  const normalizedExpected = expected.trim();
+
+  return Boolean(
+    normalizedCandidate &&
+      normalizedExpected &&
+      constantTimeEqual(normalizedCandidate, normalizedExpected),
+  );
 }
 
 export async function hashPassword(password: string, pepper: string): Promise<string> {
