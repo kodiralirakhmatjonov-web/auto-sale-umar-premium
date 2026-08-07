@@ -50,6 +50,13 @@ type CreateStaffResponse = {
   error?: string;
 };
 
+type UpdateStaffResponse = {
+  success: boolean;
+  message?: string;
+  staff?: StaffMember;
+  error?: string;
+};
+
 type StaffForm = {
   fullName: string;
   email: string;
@@ -123,6 +130,10 @@ export default function StaffPage() {
   const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
+  const [updatingMember, setUpdatingMember] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const loadStaff = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -168,15 +179,16 @@ export default function StaffPage() {
   }, [loadStaff]);
 
   useEffect(() => {
-    if (!createOpen) return;
+    if (!createOpen && !selectedMember) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !creating) {
-        setCreateOpen(false);
-      }
+      if (event.key !== "Escape" || creating || updatingMember) return;
+      setCreateOpen(false);
+      setSelectedMember(null);
+      setActionError(null);
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -185,7 +197,7 @@ export default function StaffPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [createOpen, creating]);
+  }, [createOpen, selectedMember, creating, updatingMember]);
 
   const subtitle = useMemo(() => {
     if (scope === "sales_managers") {
@@ -220,6 +232,59 @@ export default function StaffPage() {
   const closeCreate = () => {
     if (creating) return;
     setCreateOpen(false);
+  };
+
+  const openMemberActions = (member: StaffMember) => {
+    if (member.role === "super_admin") return;
+    setActionError(null);
+    setSelectedMember(member);
+  };
+
+  const closeMemberActions = () => {
+    if (updatingMember) return;
+    setSelectedMember(null);
+    setActionError(null);
+  };
+
+  const updateMember = async (changes: { role?: CreatableStaffRole; status?: "active" | "blocked" }) => {
+    if (!selectedMember || updatingMember) return;
+
+    setUpdatingMember(true);
+    setActionError(null);
+
+    try {
+      const response = await fetch(`/api/staff/${selectedMember.id}`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(changes),
+      });
+
+      if (response.status === 401) {
+        window.location.replace("/admin/login/");
+        return;
+      }
+
+      const data = (await response.json()) as UpdateStaffResponse;
+
+      if (!response.ok || !data.success || !data.staff) {
+        throw new Error(data.error || "Не удалось обновить сотрудника.");
+      }
+
+      setSelectedMember(data.staff);
+      await loadStaff();
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : "Не удалось обновить сотрудника. Попробуйте ещё раз.",
+      );
+    } finally {
+      setUpdatingMember(false);
+    }
   };
 
   const createStaff = async (event: FormEvent<HTMLFormElement>) => {
@@ -416,9 +481,14 @@ export default function StaffPage() {
                             <button
                               className={styles.moreButton}
                               type="button"
-                              disabled
+                              disabled={member.role === "super_admin"}
                               aria-label={`Действия для ${member.fullName}`}
-                              title="Действия подключим следующим этапом"
+                              title={
+                                member.role === "super_admin"
+                                  ? "Супер-администратор защищён"
+                                  : "Управление сотрудником"
+                              }
+                              onClick={() => openMemberActions(member)}
                             >
                               •••
                             </button>
@@ -452,6 +522,107 @@ export default function StaffPage() {
           </>
         )}
       </section>
+
+      {selectedMember ? (
+        <div className={styles.actionLayer} role="presentation" onMouseDown={closeMemberActions}>
+          <div className={styles.actionFade} aria-hidden="true" />
+          <section
+            className={styles.actionSheet}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="staff-actions-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className={styles.modalHandle} aria-hidden="true" />
+
+            <div className={styles.actionHeader}>
+              <div className={styles.actionIdentity}>
+                <div className={styles.actionAvatar} aria-hidden="true">
+                  {initials(selectedMember.fullName)}
+                </div>
+                <div>
+                  <p className={styles.modalEyebrow}>ПРОФИЛЬ СОТРУДНИКА</p>
+                  <h2 id="staff-actions-title">{selectedMember.fullName}</h2>
+                  <span>{selectedMember.email}</span>
+                </div>
+              </div>
+              <button
+                className={styles.closeButton}
+                type="button"
+                onClick={closeMemberActions}
+                disabled={updatingMember}
+                aria-label="Закрыть"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.actionFacts}>
+              <div>
+                <span>Телефон</span>
+                <strong>{selectedMember.phone || "Не указан"}</strong>
+              </div>
+              <div>
+                <span>Последний вход</span>
+                <strong>{formatLastLogin(selectedMember.lastLoginAt)}</strong>
+              </div>
+            </div>
+
+            {viewerRole === "super_admin" ? (
+              <div className={styles.actionBlock}>
+                <div className={styles.actionBlockTitle}>
+                  <span>Роль в системе</span>
+                  <small>Изменение применяется сразу</small>
+                </div>
+                <div className={styles.actionChoices}>
+                  <button
+                    type="button"
+                    className={selectedMember.role === "sales_manager" ? styles.actionChoiceActive : styles.actionChoice}
+                    disabled={updatingMember}
+                    onClick={() => void updateMember({ role: "sales_manager" })}
+                  >
+                    <strong>Менеджер</strong>
+                    <span>Автомобили, клиенты и визиты</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={selectedMember.role === "admin" ? styles.actionChoiceActive : styles.actionChoice}
+                    disabled={updatingMember}
+                    onClick={() => void updateMember({ role: "admin" })}
+                  >
+                    <strong>Администратор</strong>
+                    <span>Управление системой и менеджерами</span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            <div className={styles.actionBlock}>
+              <div className={styles.actionBlockTitle}>
+                <span>Доступ</span>
+                <small>Блокировка прекращает доступ к системе</small>
+              </div>
+              <button
+                className={selectedMember.status === "active" ? styles.blockButton : styles.restoreButton}
+                type="button"
+                disabled={updatingMember}
+                onClick={() =>
+                  void updateMember({
+                    status: selectedMember.status === "active" ? "blocked" : "active",
+                  })
+                }
+              >
+                {updatingMember ? (
+                  <span className={styles.spinner} aria-hidden="true" />
+                ) : null}
+                {selectedMember.status === "active" ? "Заблокировать доступ" : "Восстановить доступ"}
+              </button>
+            </div>
+
+            {actionError ? <div className={styles.formError} role="alert">{actionError}</div> : null}
+          </section>
+        </div>
+      ) : null}
 
       {createOpen ? (
         <div className={styles.modalLayer} role="presentation" onMouseDown={closeCreate}>
