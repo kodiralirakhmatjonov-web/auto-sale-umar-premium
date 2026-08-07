@@ -140,7 +140,7 @@ export async function verifyPassword(
   if (algorithm !== "pbkdf2_sha256" || !iterationsText || !saltText || !expectedText) return false;
 
   const iterations = Number(iterationsText);
-  if (!Number.isInteger(iterations) || iterations < 50_000 || iterations > 1_000_000) return false;
+  if (!Number.isInteger(iterations) || iterations < 50_000 || iterations > 100_000) return false;
 
   try {
     const passwordMaterial = encoder.encode(`${password}\u0000${pepper}`);
