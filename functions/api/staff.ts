@@ -1,7 +1,15 @@
-import { getAuthenticatedUser, json, type Env } from "../_lib/auth";
+import {
+  getAuthenticatedUser,
+  hashPassword,
+  isValidEmail,
+  json,
+  normalizeEmail,
+  type Env,
+} from "../_lib/auth";
 
 type StaffRole = "super_admin" | "admin" | "sales_manager";
 type StaffStatus = "active" | "blocked";
+type CreatableStaffRole = "admin" | "sales_manager";
 
 interface StaffRow {
   id: number;
@@ -16,6 +24,13 @@ interface StaffRow {
   last_login_at: string | null;
 }
 
+interface CreateStaffBody {
+  fullName?: unknown;
+  email?: unknown;
+  phone?: unknown;
+  role?: unknown;
+}
+
 interface D1ListResult<T> {
   results?: T[];
   success?: boolean;
@@ -25,6 +40,9 @@ interface D1ListStatementLike {
   bind(...values: unknown[]): D1ListStatementLike;
   all<T = Record<string, unknown>>(): Promise<D1ListResult<T>>;
 }
+
+const TEMP_PASSWORD_ALPHABET =
+  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
 function toPublicStaff(row: StaffRow, currentUserId: number) {
   return {
@@ -40,6 +58,39 @@ function toPublicStaff(row: StaffRow, currentUserId: number) {
     lastLoginAt: row.last_login_at,
     isCurrentUser: row.id === currentUserId,
   };
+}
+
+function normalizeText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizePhone(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") return null;
+
+  const phone = value.trim();
+  return phone ? phone : null;
+}
+
+function generateTemporaryPassword(): string {
+  const random = crypto.getRandomValues(new Uint8Array(16));
+  let suffix = "";
+
+  for (const byte of random) {
+    suffix += TEMP_PASSWORD_ALPHABET[byte % TEMP_PASSWORD_ALPHABET.length];
+  }
+
+  // Гарантированно содержит заглавные/строчные буквы и цифру.
+  return `Asu7-${suffix}`;
+}
+
+function isCreatableRole(value: string): value is CreatableStaffRole {
+  return value === "admin" || value === "sales_manager";
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /unique|constraint/i.test(message);
 }
 
 export async function onRequestGet(context: { request: Request; env: Env }): Promise<Response> {
@@ -108,6 +159,130 @@ export async function onRequestGet(context: { request: Request; env: Env }): Pro
   }
 }
 
-export function onRequest(): Response {
-  return json({ success: false, error: "Используйте GET-запрос." }, 405, { allow: "GET" });
+export async function onRequestPost(context: { request: Request; env: Env }): Promise<Response> {
+  const { request, env } = context;
+
+  if (!env.DB || !env.AUTH_PEPPER) {
+    return json({ success: false, error: "Серверная конфигурация не завершена." }, 500);
+  }
+
+  const currentUser = await getAuthenticatedUser(request, env);
+  if (!currentUser) {
+    return json({ success: false, error: "Требуется вход в систему." }, 401);
+  }
+
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    return json({ success: false, error: "Недостаточно прав для создания сотрудников." }, 403);
+  }
+
+  let body: CreateStaffBody;
+  try {
+    body = (await request.json()) as CreateStaffBody;
+  } catch {
+    return json({ success: false, error: "Некорректный JSON-запрос." }, 400);
+  }
+
+  const fullName = normalizeText(body.fullName);
+  const rawEmail = normalizeText(body.email);
+  const email = normalizeEmail(rawEmail);
+  const phone = normalizePhone(body.phone);
+  const role = normalizeText(body.role);
+
+  if (fullName.length < 2 || fullName.length > 100) {
+    return json({ success: false, error: "Имя должно содержать от 2 до 100 символов." }, 400);
+  }
+
+  if (!email || !isValidEmail(email) || email.length > 254) {
+    return json({ success: false, error: "Укажите корректную электронную почту." }, 400);
+  }
+
+  if (phone && phone.length > 40) {
+    return json({ success: false, error: "Номер телефона слишком длинный." }, 400);
+  }
+
+  if (!isCreatableRole(role)) {
+    return json({ success: false, error: "Можно создать только администратора или менеджера." }, 400);
+  }
+
+  if (currentUser.role === "admin" && role !== "sales_manager") {
+    return json({ success: false, error: "Администратор может создавать только менеджеров." }, 403);
+  }
+
+  try {
+    const existing = await env.DB.prepare(
+      `SELECT id
+       FROM users
+       WHERE email = ?1
+       LIMIT 1`,
+    )
+      .bind(email)
+      .first<{ id: number }>();
+
+    if (existing) {
+      return json({ success: false, error: "Сотрудник с такой электронной почтой уже существует." }, 409);
+    }
+
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await hashPassword(temporaryPassword, env.AUTH_PEPPER);
+    const now = new Date().toISOString();
+
+    const created = await env.DB.prepare(
+      `INSERT INTO users (
+         email,
+         password_hash,
+         full_name,
+         phone,
+         role,
+         status,
+         created_by,
+         created_at,
+         updated_at
+       )
+       VALUES (?1, ?2, ?3, ?4, ?5, 'active', ?6, ?7, ?7)
+       RETURNING
+         id,
+         email,
+         full_name,
+         phone,
+         role,
+         status,
+         created_by,
+         created_at,
+         updated_at,
+         last_login_at`,
+    )
+      .bind(
+        email,
+        passwordHash,
+        fullName,
+        phone,
+        role,
+        currentUser.id,
+        now,
+      )
+      .first<StaffRow>();
+
+    if (!created) {
+      throw new Error("D1 did not return the created staff row.");
+    }
+
+    return json(
+      {
+        success: true,
+        message: "Сотрудник создан.",
+        staff: toPublicStaff(created, currentUser.id),
+        temporaryPassword,
+        passwordMustBeChanged: true,
+      },
+      201,
+    );
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return json({ success: false, error: "Сотрудник с такой электронной почтой уже существует." }, 409);
+    }
+
+    console.error("Staff creation failed", error);
+    return json({ success: false, error: "Не удалось создать сотрудника." }, 500);
+  }
 }
+
