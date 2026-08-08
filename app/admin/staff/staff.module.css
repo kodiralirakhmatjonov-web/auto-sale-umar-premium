@@ -1972,3 +1972,299 @@
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ===== Minimal Apple pass: staff page ===== */
+
+.systemPill {
+  display: none !important;
+}
+
+.livePill {
+  min-height: 34px;
+  padding: 0 12px;
+  border-color: color-mix(in srgb, var(--line) 72%, transparent);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Keep hero restrained and editorial. */
+.heroRow {
+  gap: 24px;
+}
+
+.heroCopy h1 {
+  letter-spacing: -.062em;
+}
+
+.addButton {
+  min-height: 58px;
+  border-radius: 999px;
+  box-shadow:
+    0 12px 32px rgba(12, 12, 14, .11),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.addIcon {
+  width: 34px;
+  height: 34px;
+  box-shadow: none;
+}
+
+/* Statistics become one calm information strip instead of four floating cards. */
+.dashboardLabel {
+  margin-top: 34px;
+  padding: 0 3px 10px;
+}
+
+.metrics,
+.loadingGrid {
+  width: 100%;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(138px, 1fr);
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  scroll-snap-type: x proximity;
+}
+
+.metricCard,
+.skeletonMetric {
+  min-height: 112px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.metricCard:last-child,
+.skeletonMetric:last-child {
+  border-right: 0;
+}
+
+.metricCard {
+  padding: 18px 17px 17px;
+}
+
+.metricCard::after {
+  display: none;
+}
+
+.metricCard span {
+  font-size: 11px;
+}
+
+.metricCard strong {
+  margin: 12px 0 5px;
+  font-size: 34px;
+  font-weight: 660;
+}
+
+.metricCard small {
+  font-size: 9.5px;
+  line-height: 1.32;
+}
+
+/* Remove the "card around cards" feeling from the employees section. */
+.staffSection {
+  margin-top: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.sectionHeading {
+  min-height: 58px;
+  padding: 0 3px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sectionHeading p {
+  font-size: 21px;
+  font-weight: 730;
+}
+
+.liveBadge {
+  min-height: 28px;
+  padding: 0 9px;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Employee rows: flat list with dividers, not nested cards. */
+.staffList {
+  gap: 0;
+}
+
+.staffCard {
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px 3px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page[data-theme="dark"] .staffCard {
+  box-shadow: none;
+}
+
+.staffCard:last-child {
+  border-bottom: 0;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 17px;
+  background: transparent;
+  font-size: 17px;
+}
+
+.nameLine h2 {
+  font-size: 18px;
+}
+
+.youBadge {
+  min-height: 23px;
+  padding: 0 8px;
+  background: transparent;
+}
+
+.memberHeading p {
+  margin-top: 5px;
+}
+
+.badgeRow {
+  margin-top: 9px;
+  gap: 7px;
+}
+
+.roleBadge,
+.activeBadge,
+.blockedBadge {
+  min-height: 27px;
+  padding: 0 9px;
+  background: transparent;
+}
+
+.activeBadge {
+  background: color-mix(in srgb, var(--success) 4%, transparent);
+}
+
+.blockedBadge {
+  background: color-mix(in srgb, var(--danger) 4%, transparent);
+}
+
+/* Metadata is now typography + a subtle divider instead of two cards inside each row. */
+.memberMeta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 13px;
+  border-top: 1px solid var(--line);
+}
+
+.memberMeta > div {
+  min-width: 0;
+  padding: 12px 12px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.memberMeta > div + div {
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+
+.memberMeta span {
+  margin-bottom: 4px;
+  font-size: 7.5px;
+  letter-spacing: .14em;
+}
+
+.memberMeta strong {
+  font-size: 10.5px;
+  font-weight: 590;
+}
+
+/* Three-dot action remains a control, but visually lighter. */
+.memberHeading .moreButton {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.memberHeading .moreButton:active {
+  background: var(--surface-soft);
+}
+
+/* Less decorative ambient light on this utility page. */
+.ambientOrbOne {
+  opacity: .16;
+}
+
+.ambientOrbTwo {
+  opacity: .08;
+}
+
+/* Mobile refinement */
+@media (max-width: 520px) {
+  .dashboardLabel {
+    margin-top: 30px;
+  }
+
+  .metrics,
+  .loadingGrid {
+    grid-auto-columns: minmax(132px, 42vw);
+  }
+
+  .metricCard {
+    padding-inline: 13px;
+  }
+
+  .staffSection {
+    margin-top: 30px;
+  }
+
+  .staffCard {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 12px;
+    padding: 17px 2px;
+  }
+
+  .avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+  }
+
+  .memberMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .memberMeta > div {
+    padding: 10px 0 0;
+  }
+
+  .memberMeta > div + div {
+    margin-top: 8px;
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  }
+}
+
