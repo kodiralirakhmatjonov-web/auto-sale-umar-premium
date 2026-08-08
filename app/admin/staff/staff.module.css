@@ -161,10 +161,10 @@
 .topbar {
   position: sticky;
   z-index: 50;
-  top: 0;
+  top: 12px;
   pointer-events: none;
   padding: 0 12px;
-  margin-top: -6px;
+  margin-top: 14px;
   animation: dockIn 720ms 40ms var(--spring) both;
 }
 
@@ -1738,8 +1738,9 @@
 
 @media (max-width: 420px) {
   .topbar {
+    top: 10px;
     padding: 0 10px;
-    margin-top: -10px;
+    margin-top: 14px;
   }
 
   .topbar::before {
