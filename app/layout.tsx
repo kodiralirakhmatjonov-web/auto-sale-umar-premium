@@ -27,8 +27,18 @@ const themeBootstrap = `
 
     document.documentElement.dataset.asuTheme = theme;
     document.documentElement.style.colorScheme = theme;
-    document.documentElement.style.backgroundColor =
-      theme === "light" ? "#f5f5f3" : "#0b0c0d";
+    const color = theme === "light" ? "#f5f5f3" : "#0b0c0d";
+    document.documentElement.style.backgroundColor = color;
+
+    const syncBody = () => {
+      if (document.body) {
+        document.body.dataset.asuTheme = theme;
+        document.body.style.backgroundColor = color;
+      }
+    };
+
+    if (document.body) syncBody();
+    else document.addEventListener("DOMContentLoaded", syncBody, { once: true });
   } catch (_) {
     document.documentElement.dataset.asuTheme = "light";
     document.documentElement.style.backgroundColor = "#f5f5f3";
