@@ -1974,69 +1974,99 @@
 }
 
 
-/* ===== Minimal Apple pass: staff page ===== */
+/* =========================================================
+   ASU STAFF — BALANCED MINIMALISM V2
+   One calm workspace container:
+   1) access overview as simple cells
+   2) employee profiles as one flat list
+   Orange is reserved for CTA only.
+   ========================================================= */
+
+/* Brand accent is no longer used as decoration on utility labels. */
+.eyebrow,
+.modalEyebrow {
+  color: var(--text-3);
+}
 
 .systemPill {
-  display: none !important;
+  color: var(--text-2);
+  background: transparent;
+  box-shadow: none;
 }
 
 .livePill {
-  min-height: 34px;
-  padding: 0 12px;
-  border-color: color-mix(in srgb, var(--line) 72%, transparent);
   background: transparent;
   box-shadow: none;
 }
 
-/* Keep hero restrained and editorial. */
-.heroRow {
-  gap: 24px;
-}
-
-.heroCopy h1 {
-  letter-spacing: -.062em;
-}
-
+/* Keep the main CTA strong. Orange remains only on its action glyph. */
 .addButton {
-  min-height: 58px;
+  min-height: 60px;
   border-radius: 999px;
-  box-shadow:
-    0 12px 32px rgba(12, 12, 14, .11),
-    inset 0 1px 0 rgba(255,255,255,.10);
 }
 
 .addIcon {
-  width: 34px;
-  height: 34px;
-  box-shadow: none;
+  background: var(--accent);
 }
 
-/* Statistics become one calm information strip instead of four floating cards. */
+/* ---------- ONE MAIN WORKSPACE CARD ---------- */
+
+/* Top of the unified card. */
 .dashboardLabel {
-  margin-top: 34px;
-  padding: 0 3px 10px;
+  margin: 34px 0 0;
+  padding: 22px 22px 15px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 32px 32px 0 0;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
+  box-shadow:
+    0 16px 44px rgba(15, 18, 22, 0.055),
+    inset 0 1px 0 rgba(255,255,255,.54);
 }
 
+.page[data-theme="dark"] .dashboardLabel {
+  box-shadow:
+    0 20px 52px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.dashboardLabel span {
+  font-size: 17px;
+  font-weight: 720;
+}
+
+.dashboardLabel small {
+  font-size: 10px;
+}
+
+/* Overview is inside the same card, but metrics are not separate cards. */
 .metrics,
 .loadingGrid {
-  width: 100%;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(138px, 1fr);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
   gap: 0;
-  padding: 0;
+  overflow: visible;
+  scroll-snap-type: none;
+  padding: 0 22px 20px;
   margin: 0;
-  overflow-x: auto;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-  scroll-snap-type: x proximity;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
 }
 
 .metricCard,
 .skeletonMetric {
   min-height: 112px;
+  scroll-snap-align: unset;
   border: 0;
-  border-right: 1px solid var(--line);
+  border-top: 1px solid var(--line);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -2044,13 +2074,14 @@
   backdrop-filter: none;
 }
 
-.metricCard:last-child,
-.skeletonMetric:last-child {
-  border-right: 0;
+.metricCard {
+  padding: 18px 16px 16px;
 }
 
-.metricCard {
-  padding: 18px 17px 17px;
+/* Internal hairlines create one Apple-like grouped card. */
+.metricCard:nth-child(even),
+.skeletonMetric:nth-child(even) {
+  border-left: 1px solid var(--line);
 }
 
 .metricCard::after {
@@ -2062,60 +2093,74 @@
 }
 
 .metricCard strong {
-  margin: 12px 0 5px;
-  font-size: 34px;
-  font-weight: 660;
+  margin: 12px 0 6px;
+  font-size: 35px;
+  font-weight: 650;
 }
 
 .metricCard small {
+  max-width: 150px;
   font-size: 9.5px;
-  line-height: 1.32;
+  line-height: 1.35;
 }
 
-/* Remove the "card around cards" feeling from the employees section. */
+/* Employee area is the lower half of the SAME workspace card. */
 .staffSection {
-  margin-top: 34px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  margin-top: 0;
+  padding: 0 22px 8px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 32px 32px;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
+  box-shadow:
+    0 22px 54px rgba(15, 18, 22, 0.075),
+    inset 0 -1px 0 rgba(255,255,255,.28);
+}
+
+.page[data-theme="dark"] .staffSection {
+  box-shadow:
+    0 26px 64px rgba(0,0,0,.24),
+    inset 0 -1px 0 rgba(255,255,255,.025);
 }
 
 .sectionHeading {
-  min-height: 58px;
-  padding: 0 3px 12px;
+  min-height: 72px;
+  padding: 18px 2px 15px;
+  border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
 .sectionHeading p {
-  font-size: 21px;
-  font-weight: 730;
+  font-size: 20px;
+  font-weight: 720;
 }
 
 .liveBadge {
-  min-height: 28px;
+  min-height: 29px;
   padding: 0 9px;
   background: transparent;
   box-shadow: none;
 }
 
-/* Employee rows: flat list with dividers, not nested cards. */
+/* ---------- PROFILES = ONE LIST, NOT CARDS INSIDE CARDS ---------- */
+
 .staffList {
   gap: 0;
 }
 
 .staffCard {
-  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-columns: 52px minmax(0, 1fr);
   gap: 14px;
-  padding: 18px 3px;
+  padding: 18px 2px;
   border: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .page[data-theme="dark"] .staffCard {
@@ -2127,49 +2172,43 @@
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   border-radius: 17px;
-  background: transparent;
-  font-size: 17px;
+  background: var(--surface-soft);
+  box-shadow: none;
 }
 
 .nameLine h2 {
   font-size: 18px;
 }
 
+/* Neutral utility badges. No orange decoration. */
 .youBadge {
-  min-height: 23px;
-  padding: 0 8px;
+  border-color: var(--line);
+  background: var(--surface-soft);
+  color: var(--text-2);
+}
+
+.roleBadge {
+  border-color: var(--line);
   background: transparent;
-}
-
-.memberHeading p {
-  margin-top: 5px;
-}
-
-.badgeRow {
-  margin-top: 9px;
-  gap: 7px;
-}
-
-.roleBadge,
-.activeBadge,
-.blockedBadge {
-  min-height: 27px;
-  padding: 0 9px;
-  background: transparent;
+  color: var(--text-2);
 }
 
 .activeBadge {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 22%, var(--line));
   background: color-mix(in srgb, var(--success) 4%, transparent);
 }
 
 .blockedBadge {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 22%, var(--line));
   background: color-mix(in srgb, var(--danger) 4%, transparent);
 }
 
-/* Metadata is now typography + a subtle divider instead of two cards inside each row. */
+/* Metadata is typography with one separator, not two nested cards. */
 .memberMeta {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
@@ -2178,8 +2217,7 @@
 }
 
 .memberMeta > div {
-  min-width: 0;
-  padding: 12px 12px 0 0;
+  padding: 11px 12px 0 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -2193,7 +2231,6 @@
 .memberMeta span {
   margin-bottom: 4px;
   font-size: 7.5px;
-  letter-spacing: .14em;
 }
 
 .memberMeta strong {
@@ -2201,70 +2238,125 @@
   font-weight: 590;
 }
 
-/* Three-dot action remains a control, but visually lighter. */
+/* Three-dot action is intentionally quiet until used. */
 .memberHeading .moreButton {
+  border-color: transparent;
   background: transparent;
   box-shadow: none;
-  border-color: transparent;
 }
 
 .memberHeading .moreButton:active {
+  border-color: var(--line);
   background: var(--surface-soft);
 }
 
-/* Less decorative ambient light on this utility page. */
-.ambientOrbOne {
-  opacity: .16;
+/* ---------- ORANGE ONLY WHERE IT COMMUNICATES ACTION ---------- */
+
+/* Selection states are neutral, not orange. */
+.actionChoiceActive,
+.roleOptionActive {
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--text) 4%, var(--surface-soft));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 3%, transparent);
 }
 
-.ambientOrbTwo {
-  opacity: .08;
+.actionChoiceActive::after,
+.roleOptionActive i {
+  border-color: var(--text);
+  background: var(--surface-solid);
 }
 
-/* Mobile refinement */
+.field input:focus {
+  border-color: var(--line-strong);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--text) 5%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+/* Primary action button may keep the brand accent. */
+.primaryButton {
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+}
+
+/* Remove orange decorative glow from utility cards/canvas. */
+.page[data-theme="dark"] .ambient::after {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255,255,255,0.055), transparent 25rem),
+    radial-gradient(circle at 92% 8%, rgba(255,255,255,0.028), transparent 32rem),
+    linear-gradient(180deg, #121315 0%, #0d0e10 53%, #090a0b 100%);
+}
+
+/* ---------- MOBILE ---------- */
 @media (max-width: 520px) {
   .dashboardLabel {
     margin-top: 30px;
+    padding: 20px 16px 13px;
+    border-radius: 28px 28px 0 0;
   }
 
   .metrics,
   .loadingGrid {
-    grid-auto-columns: minmax(132px, 42vw);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 16px 16px;
   }
 
   .metricCard {
-    padding-inline: 13px;
+    min-height: 105px;
+    padding: 16px 11px 14px;
+  }
+
+  .metricCard strong {
+    font-size: 32px;
   }
 
   .staffSection {
-    margin-top: 30px;
+    padding: 0 16px 7px;
+    border-radius: 0 0 28px 28px;
+  }
+
+  .sectionHeading {
+    min-height: 67px;
+    padding: 16px 1px 13px;
   }
 
   .staffCard {
-    grid-template-columns: 46px minmax(0, 1fr);
+    grid-template-columns: 48px minmax(0, 1fr);
     gap: 12px;
-    padding: 17px 2px;
+    padding: 17px 1px;
   }
 
   .avatar {
-    width: 46px;
-    height: 46px;
-    border-radius: 15px;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .memberMeta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 370px) {
+  .dashboardLabel {
+    padding-inline: 14px;
+  }
+
+  .metrics,
+  .loadingGrid,
+  .staffSection {
+    padding-left: 14px;
+    padding-right: 14px;
   }
 
   .memberMeta {
     grid-template-columns: 1fr;
   }
 
-  .memberMeta > div {
-    padding: 10px 0 0;
-  }
-
   .memberMeta > div + div {
     margin-top: 8px;
     padding-left: 0;
     border-left: 0;
-    border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
   }
 }
-
