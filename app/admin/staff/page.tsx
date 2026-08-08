@@ -7,6 +7,7 @@ import styles from "./staff.module.css";
 type StaffRole = "super_admin" | "admin" | "sales_manager";
 type StaffStatus = "active" | "blocked" | string;
 type CreatableStaffRole = "admin" | "sales_manager";
+type Theme = "light" | "dark";
 
 type StaffMember = {
   id: number;
@@ -115,6 +116,7 @@ function normalizeClientEmail(value: string): string {
 }
 
 export default function StaffPage() {
+  const [theme, setTheme] = useState<Theme>("light");
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [summary, setSummary] = useState<StaffSummary>(EMPTY_SUMMARY);
   const [viewerRole, setViewerRole] = useState<StaffRole | null>(null);
@@ -177,6 +179,32 @@ export default function StaffPage() {
   useEffect(() => {
     void loadStaff();
   }, [loadStaff]);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("asu-theme");
+      if (stored === "light" || stored === "dark") {
+        setTheme(stored);
+        return;
+      }
+
+      setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    } catch {
+      setTheme("light");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next = current === "light" ? "dark" : "light";
+      try {
+        window.localStorage.setItem("asu-theme", next);
+      } catch {
+        // Theme persistence is optional; the UI still switches immediately.
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!createOpen && !selectedMember) return;
@@ -253,14 +281,19 @@ export default function StaffPage() {
     setActionError(null);
 
     try {
-      const response = await fetch(`/api/staff/${selectedMember.id}`, {
-        method: "PATCH",
+      const response = await fetch("/api/staff", {
+        method: "POST",
         credentials: "same-origin",
+        cache: "no-store",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(changes),
+        body: JSON.stringify({
+          action: "update",
+          id: selectedMember.id,
+          ...changes,
+        }),
       });
 
       if (response.status === 401) {
@@ -268,7 +301,14 @@ export default function StaffPage() {
         return;
       }
 
-      const data = (await response.json()) as UpdateStaffResponse;
+      const responseText = await response.text();
+      let data: UpdateStaffResponse;
+
+      try {
+        data = JSON.parse(responseText) as UpdateStaffResponse;
+      } catch {
+        throw new Error(`Сервер вернул некорректный ответ (${response.status}).`);
+      }
 
       if (!response.ok || !data.success || !data.staff) {
         throw new Error(data.error || "Не удалось обновить сотрудника.");
@@ -363,33 +403,59 @@ export default function StaffPage() {
   };
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-theme={theme}>
       <div className={styles.ambient} aria-hidden="true" />
 
       <header className={styles.topbar}>
-        <a className={styles.backButton} href="/admin/" aria-label="Назад в панель управления">
-          <span aria-hidden="true">←</span>
-        </a>
+        <div className={styles.topbarInner}>
+          <a className={styles.backButton} href="/admin/" aria-label="Назад в панель управления">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </a>
 
-        <a className={styles.brand} href="/admin/" aria-label="Auto Sale Umar Control System">
-          <span className={styles.brandWordmark}>Auto Sale Umar</span>
-          <small className={styles.brandSystem}>CONTROL SYSTEM</small>
-          <i className={styles.brandShine} aria-hidden="true" />
-        </a>
+          <a className={styles.brand} href="/admin/" aria-label="Auto Sale Umar">
+            <img
+              className={styles.logoImage}
+              src="/brand/asu-wordmark-black.png"
+              alt="Auto Sale Umar"
+            />
+            <span className={styles.brandSystem}>CONTROL SYSTEM</span>
+          </a>
 
-        <div className={styles.topbarSpacer} aria-hidden="true" />
+          <button
+            className={styles.themeButton}
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
+            title={theme === "light" ? "Тёмная тема" : "Светлая тема"}
+          >
+            {theme === "light" ? (
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3a9 9 0 1 0 9 9c0-.5-.04-1-.12-1.47A7 7 0 0 1 12 3Z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+              </svg>
+            )}
+          </button>
+        </div>
       </header>
 
       <section className={styles.content}>
         <div className={styles.heroRow}>
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>КОМАНДА AUTO SALE UMAR</p>
-            <h1>Сотрудники</h1>
+            <p className={styles.eyebrow}>AUTO SALE UMAR / CONTROL SYSTEM</p>
+            <h1>Команда</h1>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
 
           <button className={styles.addButton} type="button" onClick={openCreate}>
-            <span className={styles.addIcon} aria-hidden="true">+</span>
+            <span className={styles.addIcon} aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+            </span>
             <span>Добавить сотрудника</span>
           </button>
         </div>
@@ -439,7 +505,7 @@ export default function StaffPage() {
             <section className={styles.staffSection}>
               <div className={styles.sectionHeading}>
                 <div>
-                  <p>Команда Auto Sale Umar</p>
+                  <p>Сотрудники</p>
                   <span>{summary.total === 1 ? "1 профиль" : `${summary.total} профилей`}</span>
                 </div>
                 <span className={styles.liveBadge}>
