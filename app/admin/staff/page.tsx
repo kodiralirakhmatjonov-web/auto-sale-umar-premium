@@ -200,13 +200,17 @@ export default function StaffPage() {
     document.documentElement.style.colorScheme = nextTheme;
     document.body.dataset.asuTheme = nextTheme;
 
+    const themeColor = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
+    document.documentElement.style.backgroundColor = themeColor;
+    document.body.style.backgroundColor = themeColor;
+
     let themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (!themeMeta) {
       themeMeta = document.createElement("meta");
       themeMeta.name = "theme-color";
       document.head.appendChild(themeMeta);
     }
-    themeMeta.content = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
+    themeMeta.content = themeColor;
   }, []);
 
   useEffect(() => {
