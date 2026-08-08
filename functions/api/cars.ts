@@ -21,22 +21,36 @@ interface CreateCarBody {
   year?: unknown;
   trim?: unknown;
   vin?: unknown;
+  stockNumber?: unknown;
   status?: unknown;
   countryCode?: unknown;
+  arrivalDate?: unknown;
+
   price?: unknown;
   currency?: unknown;
+  priceOnRequest?: unknown;
+
   mileageKm?: unknown;
-  bodyType?: unknown;
   fuelType?: unknown;
   driveType?: unknown;
   transmission?: unknown;
   engineText?: unknown;
   seats?: unknown;
+
   exteriorColor?: unknown;
+  exteriorColorRu?: unknown;
+  exteriorColorUz?: unknown;
   interiorColor?: unknown;
+  interiorColorRu?: unknown;
+  interiorColorUz?: unknown;
+
+  shortDescriptionRu?: unknown;
+  shortDescriptionUz?: unknown;
   descriptionRu?: unknown;
   descriptionUz?: unknown;
-  internalNote?: unknown;
+
+  isNew?: unknown;
+  isNewArrival?: unknown;
   isPublic?: unknown;
   isFeatured?: unknown;
 }
@@ -57,10 +71,13 @@ interface CarListRow {
   year: number | null;
   trim: string | null;
   vin: string | null;
+  stock_number: string | null;
   status: CarStatus;
   country_code: string | null;
+  arrival_date: string | null;
   price: number | null;
   currency: Currency;
+  price_on_request: number;
   mileage_km: number;
   engine_text: string | null;
   fuel_type: string | null;
@@ -69,8 +86,12 @@ interface CarListRow {
   seats: number | null;
   exterior_color: string | null;
   interior_color: string | null;
+  short_description_ru: string;
+  short_description_uz: string;
   description_ru: string;
   description_uz: string;
+  is_new: number;
+  is_new_arrival: number;
   is_public: number;
   is_featured: number;
   created_by: number | null;
@@ -140,6 +161,14 @@ function validCountryCode(value: string): boolean {
   return value === "" || /^[A-Z]{2}$/.test(value);
 }
 
+function validIsoDate(value: string): boolean {
+  if (!value) return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 function isUniqueConstraintError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /unique|constraint/i.test(message);
@@ -202,10 +231,13 @@ function toPublicCar(row: CarListRow) {
     year: row.year,
     trim: row.trim,
     vin: row.vin,
+    stockNumber: row.stock_number,
     status: row.status,
     countryCode: row.country_code,
+    arrivalDate: row.arrival_date,
     price: row.price,
     currency: row.currency,
+    priceOnRequest: row.price_on_request === 1,
     mileageKm: row.mileage_km,
     bodyType: null,
     fuelType: row.fuel_type,
@@ -215,9 +247,12 @@ function toPublicCar(row: CarListRow) {
     seats: row.seats,
     exteriorColor: row.exterior_color,
     interiorColor: row.interior_color,
+    shortDescriptionRu: row.short_description_ru,
+    shortDescriptionUz: row.short_description_uz,
     descriptionRu: row.description_ru,
     descriptionUz: row.description_uz,
-    internalNote: null,
+    isNew: row.is_new === 1,
+    isNewArrival: row.is_new_arrival === 1,
     isPublic: row.is_public === 1,
     isFeatured: row.is_featured === 1,
     createdBy: row.created_by,
@@ -236,10 +271,13 @@ const CAR_SELECT = `
     c.model_year AS year,
     c.trim,
     c.vin,
+    c.stock_number,
     c.status,
     c.source_country AS country_code,
+    c.arrival_date,
     c.price_amount AS price,
     c.price_currency AS currency,
+    c.price_on_request,
     c.mileage_km,
     s.engine_name AS engine_text,
     s.fuel_type_ru AS fuel_type,
@@ -248,8 +286,12 @@ const CAR_SELECT = `
     s.seats,
     v.color_name_ru AS exterior_color,
     v.interior_color_ru AS interior_color,
+    c.short_description_ru,
+    c.short_description_uz,
     c.description_ru,
     c.description_uz,
+    c.is_new,
+    c.is_new_arrival,
     c.is_published AS is_public,
     c.is_featured,
     c.created_by,
@@ -478,8 +520,10 @@ export async function onRequestPost(context: {
   const model = normalizeText(body.model, 100);
   const trim = nullableText(body.trim, 120);
   const vin = nullableText(body.vin, 32)?.toUpperCase() ?? null;
+  const stockNumber = nullableText(body.stockNumber, 80);
   const status = normalizeText(body.status, 30);
   const countryCode = normalizeText(body.countryCode, 10).toUpperCase();
+  const arrivalDate = normalizeText(body.arrivalDate, 10);
   const currencyText = normalizeText(body.currency, 10).toUpperCase() || "USD";
 
   if (!brandName) {
@@ -496,6 +540,10 @@ export async function onRequestPost(context: {
 
   if (!validCountryCode(countryCode)) {
     return json({ success: false, error: "Выберите корректную страну." }, 400);
+  }
+
+  if (!validIsoDate(arrivalDate)) {
+    return json({ success: false, error: "Проверьте дату прибытия." }, 400);
   }
 
   if (!isCurrency(currencyText)) {
@@ -543,10 +591,25 @@ export async function onRequestPost(context: {
   const fuelType = nullableText(body.fuelType, 80);
   const driveType = nullableText(body.driveType, 80);
   const transmission = nullableText(body.transmission, 80);
-  const exteriorColor = nullableText(body.exteriorColor, 100);
-  const interiorColor = nullableText(body.interiorColor, 100);
+
+  const exteriorColorRu =
+    nullableText(body.exteriorColorRu, 100) ?? nullableText(body.exteriorColor, 100);
+  const exteriorColorUz = nullableText(body.exteriorColorUz, 100) ?? exteriorColorRu;
+  const interiorColorRu =
+    nullableText(body.interiorColorRu, 100) ?? nullableText(body.interiorColor, 100);
+  const interiorColorUz = nullableText(body.interiorColorUz, 100) ?? interiorColorRu;
+
   const descriptionRuInput = nullableText(body.descriptionRu, 10_000);
   const descriptionUzInput = nullableText(body.descriptionUz, 10_000);
+  const shortDescriptionRuInput = nullableText(body.shortDescriptionRu, 220);
+  const shortDescriptionUzInput = nullableText(body.shortDescriptionUz, 220);
+
+  const priceOnRequestInput = parseBoolean(body.priceOnRequest, price == null);
+  const priceOnRequest = priceOnRequestInput || price == null;
+  const finalPrice = priceOnRequest ? null : price;
+
+  const isNew = parseBoolean(body.isNew, (mileageKm ?? 0) === 0);
+  const isNewArrival = parseBoolean(body.isNewArrival, false);
   const isPublished = parseBoolean(body.isPublic, false);
   const isFeatured = parseBoolean(body.isFeatured, false);
 
@@ -556,8 +619,10 @@ export async function onRequestPost(context: {
 
   const descriptionRu = descriptionRuInput ?? fallbackDescription;
   const descriptionUz = descriptionUzInput ?? fallbackDescription;
-  const shortDescriptionRu = shortText(descriptionRu, fallbackDescription);
-  const shortDescriptionUz = shortText(descriptionUz, fallbackDescription);
+  const shortDescriptionRu =
+    shortDescriptionRuInput ?? shortText(descriptionRu, fallbackDescription);
+  const shortDescriptionUz =
+    shortDescriptionUzInput ?? shortText(descriptionUz, fallbackDescription);
   const carSlug = `${slugify([brandName, model, year, trim].filter(Boolean).join("-"))}-${crypto
     .randomUUID()
     .slice(0, 8)}`;
@@ -565,6 +630,35 @@ export async function onRequestPost(context: {
   const fuel = fuelLabels(fuelType);
   const transmissionLabelsValue = transmissionLabels(transmission);
   const drivetrain = drivetrainLabels(driveType);
+
+  try {
+    if (vin) {
+      const existingVin = await env.DB.prepare(
+        `SELECT id FROM cars WHERE vin = ?1 COLLATE NOCASE LIMIT 1`,
+      )
+        .bind(vin)
+        .first<{ id: number }>();
+
+      if (existingVin) {
+        return json({ success: false, error: "Автомобиль с таким VIN уже существует." }, 409);
+      }
+    }
+
+    if (stockNumber) {
+      const existingStock = await env.DB.prepare(
+        `SELECT id FROM cars WHERE stock_number = ?1 LIMIT 1`,
+      )
+        .bind(stockNumber)
+        .first<{ id: number }>();
+
+      if (existingStock) {
+        return json({ success: false, error: "Такой внутренний номер уже используется." }, 409);
+      }
+    }
+  } catch (error) {
+    console.error("Car duplicate check failed", error);
+    return json({ success: false, error: "Не удалось проверить данные автомобиля." }, 500);
+  }
 
   let createdCarId: number | null = null;
 
@@ -578,6 +672,7 @@ export async function onRequestPost(context: {
         trim,
         model_year,
         vin,
+        stock_number,
         short_description_ru,
         short_description_uz,
         description_ru,
@@ -587,6 +682,7 @@ export async function onRequestPost(context: {
         price_on_request,
         status,
         source_country,
+        arrival_date,
         mileage_km,
         is_new,
         is_featured,
@@ -596,10 +692,10 @@ export async function onRequestPost(context: {
         created_by,
         updated_by
       ) VALUES (
-        ?1, ?2, ?3, ?4, ?5,
-        ?6, ?7, ?8, ?9,
-        ?10, ?11, ?12, ?13, ?14,
-        ?15, ?16, ?17, 0, ?18, ?19, ?20, ?20
+        ?1, ?2, ?3, ?4, ?5, ?6,
+        ?7, ?8, ?9, ?10,
+        ?11, ?12, ?13, ?14, ?15, ?16,
+        ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?23
       )
       RETURNING id`,
     )
@@ -609,18 +705,21 @@ export async function onRequestPost(context: {
         trim,
         year,
         vin,
+        stockNumber,
         shortDescriptionRu,
         shortDescriptionUz,
         descriptionRu,
         descriptionUz,
-        price,
+        finalPrice,
         currencyText,
-        price == null ? 1 : 0,
+        priceOnRequest ? 1 : 0,
         status,
         countryCode || null,
+        arrivalDate || null,
         mileageKm ?? 0,
-        (mileageKm ?? 0) === 0 ? 1 : 0,
+        isNew ? 1 : 0,
         isFeatured ? 1 : 0,
+        isNewArrival ? 1 : 0,
         isPublished ? 1 : 0,
         carSlug,
         currentUser.id,
@@ -665,9 +764,9 @@ export async function onRequestPost(context: {
         .run();
     }
 
-    if (exteriorColor || interiorColor) {
-      const colorNameRu = exteriorColor ?? "Не указан";
-      const colorNameUz = exteriorColor ?? "Ko‘rsatilmagan";
+    if (exteriorColorRu || exteriorColorUz || interiorColorRu || interiorColorUz) {
+      const colorNameRu = exteriorColorRu ?? "Не указан";
+      const colorNameUz = exteriorColorUz ?? "Ko‘rsatilmagan";
 
       await env.DB.prepare(
         `INSERT INTO car_variants (
@@ -685,8 +784,8 @@ export async function onRequestPost(context: {
           createdCarId,
           colorNameRu,
           colorNameUz,
-          interiorColor,
-          interiorColor,
+          interiorColorRu,
+          interiorColorUz,
         )
         .run();
     }
@@ -696,20 +795,11 @@ export async function onRequestPost(context: {
       throw new Error("Created car could not be loaded.");
     }
 
-    const warnings: string[] = [];
-    if (normalizeText(body.bodyType, 80)) {
-      warnings.push("Тип кузова пока не сохраняется: в текущей D1-схеме для него нет отдельного поля.");
-    }
-    if (normalizeText(body.internalNote, 4000)) {
-      warnings.push("Внутренняя заметка пока не сохраняется: в текущей D1-схеме для неё нет отдельного поля.");
-    }
-
     return json(
       {
         success: true,
         message: "Автомобиль добавлен.",
         car: toPublicCar(car),
-        warnings,
       },
       201,
     );
@@ -722,8 +812,14 @@ export async function onRequestPost(context: {
       }
     }
 
-    if (vin && isUniqueConstraintError(error)) {
-      return json({ success: false, error: "Автомобиль с таким VIN уже существует." }, 409);
+    if (isUniqueConstraintError(error)) {
+      return json(
+        {
+          success: false,
+          error: "VIN, внутренний номер или служебный идентификатор уже используется.",
+        },
+        409,
+      );
     }
 
     console.error("Car creation failed", error);
