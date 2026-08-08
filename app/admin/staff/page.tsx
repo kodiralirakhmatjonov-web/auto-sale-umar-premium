@@ -443,18 +443,15 @@ export default function StaffPage() {
   return (
     <main className={styles.page} data-theme={theme}>
       <div className={styles.ambient} aria-hidden="true" />
-      <div className={styles.topChromeFade} aria-hidden="true" />
-      <div className={styles.bottomChromeFade} aria-hidden="true" />
-
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
-          <a className={styles.backButton} href="/admin/" aria-label="Назад в панель управления">
+          <a className={styles.backButton} href="/" aria-label="Вернуться на сайт">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </a>
 
-          <a className={styles.brand} href="/admin/" aria-label="Auto Sale Umar">
+          <a className={styles.brand} href="/admin/staff/" aria-label="Auto Sale Umar Control System">
             <span className={styles.logoStack} aria-hidden="true">
               <img
                 className={`${styles.logoImage} ${styles.logoLight}`}
