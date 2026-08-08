@@ -491,6 +491,19 @@ export default function StaffPage() {
         </div>
       </header>
 
+      <nav className={styles.sectionNav} aria-label="Разделы Control System">
+        <a
+          className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`}
+          href="/admin/staff/"
+          aria-current="page"
+        >
+          Команда
+        </a>
+        <a className={styles.sectionNavItem} href="/admin/cars/">
+          Автомобили
+        </a>
+      </nav>
+
       <section className={styles.content}>
         <div className={styles.heroRow}>
           <div className={styles.heroCopy}>
