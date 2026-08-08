@@ -9,6 +9,13 @@ type StaffStatus = "active" | "blocked" | string;
 type CreatableStaffRole = "admin" | "sales_manager";
 type Theme = "light" | "dark";
 
+type ViewTransitionDocument = Document & {
+  startViewTransition?: (updateCallback: () => void) => {
+    ready: Promise<void>;
+    finished: Promise<void>;
+  };
+};
+
 type StaffMember = {
   id: number;
   email: string;
@@ -180,30 +187,61 @@ export default function StaffPage() {
     void loadStaff();
   }, [loadStaff]);
 
+  const applyTheme = useCallback((nextTheme: Theme) => {
+    setTheme(nextTheme);
+
+    try {
+      window.localStorage.setItem("asu-theme", nextTheme);
+    } catch {
+      // Persistence is optional. The visual theme still works.
+    }
+
+    document.documentElement.dataset.asuTheme = nextTheme;
+    document.documentElement.style.colorScheme = nextTheme;
+    document.body.dataset.asuTheme = nextTheme;
+
+    let themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!themeMeta) {
+      themeMeta = document.createElement("meta");
+      themeMeta.name = "theme-color";
+      document.head.appendChild(themeMeta);
+    }
+    themeMeta.content = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
+  }, []);
+
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem("asu-theme");
-      if (stored === "light" || stored === "dark") {
-        setTheme(stored);
+      const rootTheme = document.documentElement.dataset.asuTheme;
+      if (rootTheme === "light" || rootTheme === "dark") {
+        applyTheme(rootTheme);
         return;
       }
 
-      setTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      const stored = window.localStorage.getItem("asu-theme");
+      if (stored === "light" || stored === "dark") {
+        applyTheme(stored);
+        return;
+      }
+
+      applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     } catch {
-      setTheme("light");
+      applyTheme("light");
     }
-  }, []);
+  }, [applyTheme]);
 
   const toggleTheme = () => {
-    setTheme((current) => {
-      const next = current === "light" ? "dark" : "light";
-      try {
-        window.localStorage.setItem("asu-theme", next);
-      } catch {
-        // Theme persistence is optional; the UI still switches immediately.
-      }
-      return next;
-    });
+    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const transitionDocument = document as ViewTransitionDocument;
+
+    if (!reducedMotion && transitionDocument.startViewTransition) {
+      transitionDocument.startViewTransition(() => {
+        applyTheme(nextTheme);
+      });
+      return;
+    }
+
+    applyTheme(nextTheme);
   };
 
   useEffect(() => {
@@ -405,6 +443,8 @@ export default function StaffPage() {
   return (
     <main className={styles.page} data-theme={theme}>
       <div className={styles.ambient} aria-hidden="true" />
+      <div className={styles.topChromeFade} aria-hidden="true" />
+      <div className={styles.bottomChromeFade} aria-hidden="true" />
 
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
@@ -415,11 +455,18 @@ export default function StaffPage() {
           </a>
 
           <a className={styles.brand} href="/admin/" aria-label="Auto Sale Umar">
-            <img
-              className={styles.logoImage}
-              src="/brand/asu-wordmark-black.png"
-              alt="Auto Sale Umar"
-            />
+            <span className={styles.logoStack} aria-hidden="true">
+              <img
+                className={`${styles.logoImage} ${styles.logoLight}`}
+                src="/brand/asu-wordmark-black.png"
+                alt=""
+              />
+              <img
+                className={`${styles.logoImage} ${styles.logoDark}`}
+                src="/brand/asu-wordmark-white.png"
+                alt=""
+              />
+            </span>
             <span className={styles.brandSystem}>CONTROL SYSTEM</span>
           </a>
 
@@ -430,16 +477,15 @@ export default function StaffPage() {
             aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
             title={theme === "light" ? "Тёмная тема" : "Светлая тема"}
           >
-            {theme === "light" ? (
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+            <span className={styles.themeIconStage} aria-hidden="true">
+              <svg className={styles.moonIcon} viewBox="0 0 24 24">
                 <path d="M12 3a9 9 0 1 0 9 9c0-.5-.04-1-.12-1.47A7 7 0 0 1 12 3Z" />
               </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+              <svg className={styles.sunIcon} viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="4" />
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
               </svg>
-            )}
+            </span>
           </button>
         </div>
       </header>
@@ -447,7 +493,11 @@ export default function StaffPage() {
       <section className={styles.content}>
         <div className={styles.heroRow}>
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>AUTO SALE UMAR / CONTROL SYSTEM</p>
+            <div className={styles.heroMeta}>
+              <span className={styles.systemPill}>CONTROL SYSTEM</span>
+              <span className={styles.livePill}><i aria-hidden="true" />D1 ONLINE</span>
+            </div>
+            <p className={styles.eyebrow}>AUTO SALE UMAR</p>
             <h1>Команда</h1>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
@@ -479,6 +529,10 @@ export default function StaffPage() {
           </section>
         ) : (
           <>
+            <div className={styles.dashboardLabel}>
+              <span>Обзор доступа</span>
+              <small>Обновляется из D1</small>
+            </div>
             <section className={styles.metrics} aria-label="Статистика сотрудников">
               <article className={styles.metricCard}>
                 <span>Всего</span>
