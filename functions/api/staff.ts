@@ -24,11 +24,14 @@ interface StaffRow {
   last_login_at: string | null;
 }
 
-interface CreateStaffBody {
+interface StaffPostBody {
+  action?: unknown;
+  id?: unknown;
   fullName?: unknown;
   email?: unknown;
   phone?: unknown;
   role?: unknown;
+  status?: unknown;
 }
 
 interface D1ListResult<T> {
@@ -80,12 +83,20 @@ function generateTemporaryPassword(): string {
     suffix += TEMP_PASSWORD_ALPHABET[byte % TEMP_PASSWORD_ALPHABET.length];
   }
 
-  // Гарантированно содержит заглавные/строчные буквы и цифру.
   return `Asu7-${suffix}`;
 }
 
 function isCreatableRole(value: string): value is CreatableStaffRole {
   return value === "admin" || value === "sales_manager";
+}
+
+function isEditableStatus(value: unknown): value is StaffStatus {
+  return value === "active" || value === "blocked";
+}
+
+function parsePositiveId(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) return null;
+  return value;
 }
 
 function isUniqueConstraintError(error: unknown): boolean {
@@ -159,6 +170,93 @@ export async function onRequestGet(context: { request: Request; env: Env }): Pro
   }
 }
 
+async function updateStaffMember(
+  body: StaffPostBody,
+  currentUser: NonNullable<Awaited<ReturnType<typeof getAuthenticatedUser>>>,
+  env: Env,
+): Promise<Response> {
+  const targetId = parsePositiveId(body.id);
+  if (!targetId) {
+    return json({ success: false, error: "Некорректный идентификатор сотрудника." }, 400);
+  }
+
+  const wantsRole = body.role !== undefined;
+  const wantsStatus = body.status !== undefined;
+
+  if (!wantsRole && !wantsStatus) {
+    return json({ success: false, error: "Не указаны изменения." }, 400);
+  }
+
+  const requestedRole = wantsRole ? normalizeText(body.role) : null;
+  if (wantsRole && !isCreatableRole(requestedRole ?? "")) {
+    return json({ success: false, error: "Недопустимая роль сотрудника." }, 400);
+  }
+
+  if (wantsStatus && !isEditableStatus(body.status)) {
+    return json({ success: false, error: "Недопустимый статус сотрудника." }, 400);
+  }
+
+  try {
+    const target = await env.DB.prepare(
+      `SELECT id, email, full_name, phone, role, status, created_by, created_at, updated_at, last_login_at
+       FROM users
+       WHERE id = ?1
+       LIMIT 1`,
+    )
+      .bind(targetId)
+      .first<StaffRow>();
+
+    if (!target) {
+      return json({ success: false, error: "Сотрудник не найден." }, 404);
+    }
+
+    if (target.role === "super_admin") {
+      return json({ success: false, error: "Профиль супер-администратора защищён от изменений." }, 403);
+    }
+
+    if (currentUser.role === "admin") {
+      if (target.role !== "sales_manager") {
+        return json({ success: false, error: "Администратор может управлять только менеджерами." }, 403);
+      }
+
+      if (wantsRole && requestedRole !== "sales_manager") {
+        return json({ success: false, error: "Только супер-администратор может назначать администраторов." }, 403);
+      }
+    }
+
+    const nextRole: CreatableStaffRole = wantsRole
+      ? (requestedRole as CreatableStaffRole)
+      : (target.role as CreatableStaffRole);
+    const currentStatus: StaffStatus = target.status === "blocked" ? "blocked" : "active";
+    const nextStatus: StaffStatus = wantsStatus ? (body.status as StaffStatus) : currentStatus;
+    const now = new Date().toISOString();
+
+    const updated = await env.DB.prepare(
+      `UPDATE users
+       SET role = ?1,
+           status = ?2,
+           updated_at = ?3
+       WHERE id = ?4
+       RETURNING id, email, full_name, phone, role, status, created_by, created_at, updated_at, last_login_at`,
+    )
+      .bind(nextRole, nextStatus, now, targetId)
+      .first<StaffRow>();
+
+    if (!updated) {
+      throw new Error("D1 did not return the updated staff row.");
+    }
+
+    return json({
+      success: true,
+      message: "Профиль сотрудника обновлён.",
+      staff: toPublicStaff(updated, currentUser.id),
+    });
+  } catch (error) {
+    console.error("Staff update failed", error);
+    return json({ success: false, error: "Не удалось обновить профиль сотрудника." }, 500);
+  }
+}
+
 export async function onRequestPost(context: { request: Request; env: Env }): Promise<Response> {
   const { request, env } = context;
 
@@ -172,14 +270,22 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
   }
 
   if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
-    return json({ success: false, error: "Недостаточно прав для создания сотрудников." }, 403);
+    return json({ success: false, error: "Недостаточно прав для управления сотрудниками." }, 403);
   }
 
-  let body: CreateStaffBody;
+  let body: StaffPostBody;
   try {
-    body = (await request.json()) as CreateStaffBody;
+    body = (await request.json()) as StaffPostBody;
   } catch {
     return json({ success: false, error: "Некорректный JSON-запрос." }, 400);
+  }
+
+  if (body.action !== undefined) {
+    if (body.action !== "update") {
+      return json({ success: false, error: "Неизвестное действие." }, 400);
+    }
+
+    return updateStaffMember(body, currentUser, env);
   }
 
   const fullName = normalizeText(body.fullName);
@@ -251,15 +357,7 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
          updated_at,
          last_login_at`,
     )
-      .bind(
-        email,
-        passwordHash,
-        fullName,
-        phone,
-        role,
-        currentUser.id,
-        now,
-      )
+      .bind(email, passwordHash, fullName, phone, role, currentUser.id, now)
       .first<StaffRow>();
 
     if (!created) {
@@ -285,4 +383,3 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
     return json({ success: false, error: "Не удалось создать сотрудника." }, 500);
   }
 }
-
