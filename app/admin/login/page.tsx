@@ -17,7 +17,10 @@ const copy = {
     back: "Вернуться на сайт",
     home: "Auto Sale Umar — на главную",
     options: "Открыть настройки",
-    menuTitle: "Настройки интерфейса",
+    closeOptions: "Закрыть настройки",
+    menuTitle: "Настройки",
+    menuSubtitle: "Выберите оформление и язык",
+    saved: "Настройки сохраняются автоматически",
     appearance: "Оформление",
     light: "Светлая",
     dark: "Тёмная",
@@ -39,7 +42,10 @@ const copy = {
     back: "Saytga qaytish",
     home: "Auto Sale Umar — bosh sahifa",
     options: "Sozlamalarni ochish",
-    menuTitle: "Interfeys sozlamalari",
+    closeOptions: "Sozlamalarni yopish",
+    menuTitle: "Sozlamalar",
+    menuSubtitle: "Ko‘rinish va tilni tanlang",
+    saved: "Sozlamalar avtomatik saqlanadi",
     appearance: "Ko‘rinish",
     light: "Yorug‘",
     dark: "Tungi",
@@ -89,17 +95,13 @@ function SunIcon() {
   );
 }
 
-function MenuIcon() {
+function MenuIcon({ open }: { open: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M5 7.25h14M5 12h14M5 16.75h14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-      />
-    </svg>
+    <span className={styles.menuGlyph} data-open={open} aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
   );
 }
 
@@ -224,6 +226,9 @@ export default function AdminLoginPage() {
   useEffect(() => {
     if (!menuOpen) return;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     function closeOnOutsidePress(event: PointerEvent) {
       if (!toolbarRef.current?.contains(event.target as Node)) setMenuOpen(false);
     }
@@ -236,6 +241,7 @@ export default function AdminLoginPage() {
     document.addEventListener("keydown", closeOnEscape);
 
     return () => {
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("pointerdown", closeOnOutsidePress);
       document.removeEventListener("keydown", closeOnEscape);
     };
@@ -294,11 +300,11 @@ export default function AdminLoginPage() {
             data-active={menuOpen}
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            aria-label={text.options}
+            aria-label={menuOpen ? text.closeOptions : text.options}
             aria-expanded={menuOpen}
             aria-controls="login-interface-options"
           >
-            <MenuIcon />
+            <MenuIcon open={menuOpen} />
           </button>
         </header>
 
@@ -307,63 +313,80 @@ export default function AdminLoginPage() {
           id="login-interface-options"
           data-open={menuOpen}
           aria-hidden={!menuOpen}
-          aria-label={text.menuTitle}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="login-options-title"
         >
-          <p className={styles.menuTitle}>{text.menuTitle}</p>
+          <header className={styles.menuHeader}>
+            <p>CONTROL SYSTEM</p>
+            <h2 className={styles.menuTitle} id="login-options-title">{text.menuTitle}</h2>
+            <span>{text.menuSubtitle}</span>
+          </header>
 
-          <div className={styles.optionBlock}>
-            <span className={styles.optionLabel}>{text.appearance}</span>
-            <div className={styles.segmentedControl}>
-              <button
-                type="button"
-                data-selected={theme === "light"}
-                onClick={() => applyTheme("light")}
-                aria-pressed={theme === "light"}
-                tabIndex={menuOpen ? 0 : -1}
-              >
-                <SunIcon />
-                <span>{text.light}</span>
-              </button>
-              <button
-                type="button"
-                data-selected={theme === "dark"}
-                onClick={() => applyTheme("dark")}
-                aria-pressed={theme === "dark"}
-                tabIndex={menuOpen ? 0 : -1}
-              >
-                <MoonIcon />
-                <span>{text.dark}</span>
-              </button>
+          <div className={styles.menuContent}>
+            <div className={styles.optionBlock}>
+              <span className={styles.optionLabel}>{text.appearance}</span>
+              <div className={styles.segmentedControl}>
+                <button
+                  type="button"
+                  data-selected={theme === "light"}
+                  onClick={() => applyTheme("light")}
+                  aria-pressed={theme === "light"}
+                  tabIndex={menuOpen ? 0 : -1}
+                >
+                  <SunIcon />
+                  <span>{text.light}</span>
+                </button>
+                <button
+                  type="button"
+                  data-selected={theme === "dark"}
+                  onClick={() => applyTheme("dark")}
+                  aria-pressed={theme === "dark"}
+                  tabIndex={menuOpen ? 0 : -1}
+                >
+                  <MoonIcon />
+                  <span>{text.dark}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.optionBlock}>
+              <span className={styles.optionLabel}>{text.language}</span>
+              <div className={styles.segmentedControl}>
+                <button
+                  type="button"
+                  data-selected={language === "ru"}
+                  onClick={() => applyLanguage("ru")}
+                  aria-pressed={language === "ru"}
+                  tabIndex={menuOpen ? 0 : -1}
+                >
+                  <span>{text.russian}</span>
+                </button>
+                <button
+                  type="button"
+                  data-selected={language === "uz"}
+                  onClick={() => applyLanguage("uz")}
+                  aria-pressed={language === "uz"}
+                  tabIndex={menuOpen ? 0 : -1}
+                >
+                  <span>{text.uzbek}</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className={styles.optionBlock}>
-            <span className={styles.optionLabel}>{text.language}</span>
-            <div className={styles.segmentedControl}>
-              <button
-                type="button"
-                data-selected={language === "ru"}
-                onClick={() => applyLanguage("ru")}
-                aria-pressed={language === "ru"}
-                tabIndex={menuOpen ? 0 : -1}
-              >
-                <span>RU</span>
-                <span>{text.russian}</span>
-              </button>
-              <button
-                type="button"
-                data-selected={language === "uz"}
-                onClick={() => applyLanguage("uz")}
-                aria-pressed={language === "uz"}
-                tabIndex={menuOpen ? 0 : -1}
-              >
-                <span>UZ</span>
-                <span>{text.uzbek}</span>
-              </button>
-            </div>
-          </div>
+          <footer className={styles.menuFooter}>{text.saved}</footer>
         </section>
       </div>
+
+      <button
+        className={styles.menuBackdrop}
+        data-open={menuOpen}
+        type="button"
+        onClick={() => setMenuOpen(false)}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
       <section className={styles.content}>
         <section className={styles.loginSheet} aria-labelledby="login-title">

@@ -127,6 +127,39 @@
   height: 24px;
 }
 
+.menuGlyph {
+  width: 24px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.menuGlyph i {
+  width: 19px;
+  height: 2px;
+  display: block;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  transition: transform 300ms var(--ease), opacity 180ms var(--ease), width 240ms var(--ease);
+}
+
+.menuGlyph[data-open="true"] i:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menuGlyph[data-open="true"] i:nth-child(2) {
+  width: 0;
+  opacity: 0;
+}
+
+.menuGlyph[data-open="true"] i:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
 .wordmarkWrap {
   width: min(265px, 100%);
   height: 46px;
@@ -143,90 +176,170 @@
 }
 
 .optionsMenu {
-  width: min(350px, 100%);
+  width: min(540px, 100%);
+  height: clamp(460px, 68dvh, 620px);
+  max-height: calc(100dvh - 108px - env(safe-area-inset-top));
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   z-index: 1;
-  padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 26px;
-  color: #ffffff;
-  background: rgba(20, 20, 22, 0.72);
-  -webkit-backdrop-filter: blur(28px) saturate(165%);
-  backdrop-filter: blur(28px) saturate(165%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 34px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--sheet) 96%, transparent);
+  -webkit-backdrop-filter: blur(34px) saturate(150%);
+  backdrop-filter: blur(34px) saturate(150%);
   box-shadow:
-    0 22px 58px rgba(0, 0, 0, 0.34),
+    0 30px 90px rgba(0, 0, 0, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.13);
+  display: flex;
+  flex-direction: column;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(-10px) scale(0.975);
-  transform-origin: top right;
+  -webkit-clip-path: inset(0 0 94% 0 round 34px);
+  clip-path: inset(0 0 94% 0 round 34px);
+  transform: translateY(-18px) scale(0.965);
+  transform-origin: top center;
   transition:
-    opacity 220ms var(--ease),
-    visibility 220ms var(--ease),
-    transform 280ms var(--ease);
+    opacity 240ms var(--ease),
+    visibility 0s linear 460ms,
+    transform 460ms var(--ease),
+    -webkit-clip-path 460ms var(--ease),
+    clip-path 460ms var(--ease),
+    color 240ms var(--ease),
+    background-color 240ms var(--ease);
 }
 
 .optionsMenu[data-open="true"] {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  -webkit-clip-path: inset(0 0 0 0 round 34px);
+  clip-path: inset(0 0 0 0 round 34px);
   transform: translateY(0) scale(1);
+  transition:
+    opacity 260ms var(--ease),
+    visibility 0s linear 0s,
+    transform 520ms var(--ease),
+    -webkit-clip-path 520ms var(--ease),
+    clip-path 520ms var(--ease),
+    color 240ms var(--ease),
+    background-color 240ms var(--ease);
+}
+
+.menuHeader,
+.menuContent,
+.menuFooter {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 180ms var(--ease), transform 260ms var(--ease);
+}
+
+.optionsMenu[data-open="true"] .menuHeader {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 120ms;
+}
+
+.optionsMenu[data-open="true"] .menuContent {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 190ms;
+}
+
+.optionsMenu[data-open="true"] .menuFooter {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 250ms;
+}
+
+.menuHeader {
+  text-align: left;
+}
+
+.menuHeader > p {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
 }
 
 .menuTitle {
-  margin: 2px 4px 13px;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--text);
+  font-size: 31px;
+  font-weight: 710;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.menuHeader > span {
+  display: block;
+  margin-top: 7px;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.menuContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 30px;
+  padding: 18px 0;
 }
 
 .optionBlock {
   display: grid;
-  gap: 7px;
+  gap: 11px;
 }
 
 .optionBlock + .optionBlock {
-  margin-top: 13px;
-  padding-top: 13px;
-  border-top: 1px solid rgba(255, 255, 255, 0.11);
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .optionLabel {
-  padding-left: 3px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 11px;
-  font-weight: 620;
+  color: var(--secondary);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 630;
 }
 
 .segmentedControl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 17px;
-  background: rgba(0, 0, 0, 0.22);
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 21px;
+  background: var(--group);
 }
 
 .segmentedControl button {
   min-width: 0;
-  min-height: 44px;
+  min-height: 54px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
   padding: 0 10px;
   border: 0;
-  border-radius: 13px;
-  color: rgba(255, 255, 255, 0.68);
+  border-radius: 16px;
+  color: var(--secondary);
   background: transparent;
   font: inherit;
-  font-size: 12px;
-  font-weight: 620;
+  font-size: 14px;
+  font-weight: 650;
   white-space: nowrap;
   cursor: pointer;
   transition: color 180ms var(--ease), background-color 180ms var(--ease), transform 160ms var(--ease);
@@ -237,15 +350,45 @@
 }
 
 .segmentedControl button[data-selected="true"] {
-  color: #111113;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+  color: #ffffff;
+  background: var(--accent);
+  box-shadow: 0 6px 18px rgba(255, 106, 0, 0.24);
 }
 
 .segmentedControl svg {
   width: 17px;
   height: 17px;
   flex: 0 0 auto;
+}
+
+.menuFooter {
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  color: var(--tertiary);
+  text-align: center;
+  font-size: 12px;
+}
+
+.menuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.42);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 300ms var(--ease), visibility 0s linear 360ms;
+}
+
+.menuBackdrop[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 360ms var(--ease), visibility 0s linear 0s;
 }
 
 .content {
@@ -498,7 +641,21 @@
   }
 
   .optionsMenu {
-    width: min(350px, calc(100vw - 20px));
+    width: 100%;
+    height: clamp(470px, 68dvh, 620px);
+    padding: 22px 20px 18px;
+    border-radius: 32px;
+    -webkit-clip-path: inset(0 0 94% 0 round 32px);
+    clip-path: inset(0 0 94% 0 round 32px);
+  }
+
+  .optionsMenu[data-open="true"] {
+    -webkit-clip-path: inset(0 0 0 0 round 32px);
+    clip-path: inset(0 0 0 0 round 32px);
+  }
+
+  .menuContent {
+    gap: 26px;
   }
 }
 
@@ -532,9 +689,19 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .toolbar,
-  .optionsMenu {
+  .toolbar {
     background: rgba(22, 22, 24, 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .optionsMenu {
+    background: var(--sheet);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .menuBackdrop {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -542,7 +709,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .toolbar,
-  .loginSheet {
+  .loginSheet,
+  .optionsMenu,
+  .menuHeader,
+  .menuContent,
+  .menuFooter {
     animation: none;
   }
 
