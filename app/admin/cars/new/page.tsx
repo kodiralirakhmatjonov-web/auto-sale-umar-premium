@@ -12,6 +12,7 @@ import {
 import styles from "./new-car.module.css";
 
 type Theme = "light" | "dark";
+type Language = "ru" | "uz";
 type CarStatus =
   | "in_stock"
   | "in_showroom"
@@ -97,22 +98,124 @@ const BRANDS = [
   { value: "Lamborghini", mark: "LAMBORGHINI" },
 ] as const;
 
-const STATUS_OPTIONS: Array<{ value: CarStatus; label: string }> = [
-  { value: "in_stock", label: "В наличии" },
-  { value: "in_showroom", label: "В шоуруме" },
-  { value: "in_transit", label: "В пути" },
-  { value: "made_to_order", label: "Под заказ" },
-  { value: "reserved", label: "Резерв" },
-  { value: "sold", label: "Продан" },
-  { value: "hidden", label: "Скрыт" },
+const STATUS_OPTIONS: Array<{ value: CarStatus; label: Record<Language, string> }> = [
+  { value: "in_stock", label: { ru: "В наличии", uz: "Mavjud" } },
+  { value: "in_showroom", label: { ru: "В шоуруме", uz: "Shourumda" } },
+  { value: "in_transit", label: { ru: "В пути", uz: "Yo‘lda" } },
+  { value: "made_to_order", label: { ru: "Под заказ", uz: "Buyurtma asosida" } },
+  { value: "reserved", label: { ru: "Резерв", uz: "Band qilingan" } },
+  { value: "sold", label: { ru: "Продан", uz: "Sotilgan" } },
+  { value: "hidden", label: { ru: "Скрыт", uz: "Yashirilgan" } },
 ];
 
 const COUNTRY_OPTIONS = [
-  { value: "KR", label: "Корея" },
-  { value: "US", label: "США" },
-  { value: "CA", label: "Канада" },
-  { value: "AE", label: "ОАЭ" },
+  { value: "KR", label: { ru: "Корея", uz: "Koreya" } },
+  { value: "US", label: { ru: "США", uz: "AQSh" } },
+  { value: "CA", label: { ru: "Канада", uz: "Kanada" } },
+  { value: "AE", label: { ru: "ОАЭ", uz: "BAA" } },
 ] as const;
+
+const UZ_COPY: Record<string, string> = {
+  "Не удалось проверить защищённую сессию.": "Himoyalangan sessiyani tekshirib bo‘lmadi.",
+  "У вашей роли нет права добавлять автомобили.":
+    "Sizning rolingizga avtomobil qo‘shish huquqi berilmagan.",
+  "Выберите марку автомобиля.": "Avtomobil brendini tanlang.",
+  "Укажите модель автомобиля.": "Avtomobil modelini kiriting.",
+  "Проверьте год автомобиля.": "Avtomobil yilini tekshiring.",
+  "VIN должен содержать 11–17 допустимых латинских символов и цифр.":
+    "VIN 11–17 ta ruxsat etilgan lotin harfi va raqamdan iborat bo‘lishi kerak.",
+  "Проверьте дату прибытия.": "Yetib kelish sanasini tekshiring.",
+  "Проверьте пробег.": "Yurgan masofani tekshiring.",
+  "Проверьте количество мест.": "O‘rindiqlar sonini tekshiring.",
+  "Цена должна быть целым положительным числом.":
+    "Narx musbat butun son bo‘lishi kerak.",
+  "Не удалось добавить автомобиль.": "Avtomobilni qo‘shib bo‘lmadi.",
+  "D1 не подтвердил ID созданного автомобиля. Переход отменён.":
+    "D1 yaratilgan avtomobil ID raqamini tasdiqlamadi. O‘tish bekor qilindi.",
+  "Проверка сессии": "Sessiya tekshirilmoqda",
+  "Назад к автомобилям": "Avtomobillarga qaytish",
+  "Открыть настройки": "Sozlamalarni ochish",
+  "Закрыть настройки": "Sozlamalarni yopish",
+  "Настройки": "Sozlamalar",
+  "Выберите оформление и язык": "Ko‘rinish va tilni tanlang",
+  "Оформление": "Ko‘rinish",
+  "Светлая": "Yorug‘",
+  "Тёмная": "Tungi",
+  "Язык": "Til",
+  "Настройки сохраняются автоматически": "Sozlamalar avtomatik saqlanadi",
+  "CONTROL SYSTEM · АВТОМОБИЛИ": "CONTROL SYSTEM · AVTOMOBILLAR",
+  "Новый автомобиль": "Yangi avtomobil",
+  "Одна форма. После сохранения автомобиль появится в D1 только после подтверждённой записи.":
+    "Bitta shakl. Saqlangandan keyin avtomobil faqat D1 yozuvni tasdiqlagach paydo bo‘ladi.",
+  "Автомобиль": "Avtomobil",
+  "Сначала выберите марку, затем укажите модель.":
+    "Avval brendni tanlang, keyin modelni kiriting.",
+  "Марка автомобиля": "Avtomobil brendi",
+  "Марка": "Brend",
+  "Выберите выше": "Yuqoridan tanlang",
+  "Модель *": "Model *",
+  "Комплектация": "Komplektatsiya",
+  "Год": "Yil",
+  "Внутренний номер": "Ichki raqam",
+  "Поставка": "Yetkazib berish",
+  "Статус и источник поставки используются в каталоге и фильтрах.":
+    "Holat va yetkazib berish manbasi katalog hamda filtrlarda ishlatiladi.",
+  "Статус": "Holat",
+  "Страна поставки": "Yetkazib beruvchi davlat",
+  "Дата прибытия": "Yetib kelish sanasi",
+  "Пробег, км": "Yurgan masofa, km",
+  "Характеристики": "Xususiyatlar",
+  "Основные данные, которые будут видны в карточке автомобиля.":
+    "Avtomobil kartasida ko‘rinadigan asosiy ma’lumotlar.",
+  "Двигатель": "Dvigatel",
+  "Топливо": "Yoqilg‘i",
+  "Не указано": "Ko‘rsatilmagan",
+  "Бензин": "Benzin",
+  "Дизель": "Dizel",
+  "Гибрид": "Gibrid",
+  "Plug-in гибрид": "Plug-in gibrid",
+  "Электро": "Elektr",
+  "Привод": "Uzatma turi",
+  "Коробка": "Uzatmalar qutisi",
+  "Автомат": "Avtomat",
+  "Робот": "Robot",
+  "Вариатор": "Variator",
+  "Механика": "Mexanika",
+  "Мест": "O‘rindiqlar",
+  "Цвет кузова": "Kuzov rangi",
+  "Цвет салона": "Salon rangi",
+  "Цена и публикация": "Narx va e’lon",
+  "По умолчанию автомобиль не публикуется до добавления фотографий.":
+    "Standart holatda suratlar qo‘shilmaguncha avtomobil e’lon qilinmaydi.",
+  "Цена": "Narx",
+  "Валюта": "Valyuta",
+  "Цена по запросу": "Narx so‘rov asosida",
+  "Вместо числа в публичной карточке показывается запрос цены.":
+    "Ommaviy kartada raqam o‘rniga narx so‘rovi ko‘rsatiladi.",
+  "Используется для классификации автомобиля.": "Avtomobilni tasniflash uchun ishlatiladi.",
+  "Новое поступление": "Yangi kelgan",
+  "Разрешает выводить автомобиль в блоке последних поступлений.":
+    "Avtomobilni so‘nggi kelganlar bo‘limida ko‘rsatishga ruxsat beradi.",
+  "Рекомендуемый": "Tavsiya etilgan",
+  "Поднимает автомобиль выше в административном каталоге.":
+    "Avtomobilni boshqaruv katalogida yuqoriroqqa chiqaradi.",
+  "Опубликовать на сайте": "Saytda e’lon qilish",
+  "Оставьте выключенным, пока не добавлены качественные фотографии.":
+    "Sifatli suratlar qo‘shilmaguncha o‘chiq qoldiring.",
+  "Описание": "Tavsif",
+  "Русская и узбекская версии хранятся отдельно.":
+    "Ruscha va o‘zbekcha versiyalar alohida saqlanadi.",
+  "Коротко · RU": "Qisqa · RU",
+  "Краткое описание для карточки": "Karta uchun qisqa tavsif",
+  "Описание · RU": "Tavsif · RU",
+  "Полное описание автомобиля": "Avtomobilning to‘liq tavsifi",
+  "Марка не выбрана": "Brend tanlanmagan",
+  "НОВЫЙ АВТОМОБИЛЬ": "YANGI AVTOMOBIL",
+  "Сохраняем в D1…": "D1 bazasiga saqlanmoqda…",
+  "Сохранить автомобиль": "Avtomobilni saqlash",
+  "Автомобиль сохранён": "Avtomobil saqlandi",
+  "D1 подтвердил запись": "D1 yozuvni tasdiqladi",
+};
 
 const INITIAL_FORM: FormState = {
   brand: "",
@@ -155,12 +258,19 @@ function normalizeUpper(value: string, maxLength: number): string {
 
 export default function NewCarPage() {
   const [theme, setTheme] = useState<Theme>("light");
+  const [language, setLanguage] = useState<Language>("ru");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createdCar, setCreatedCar] = useState<{ id: number; title: string } | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
+
+  const t = useCallback(
+    (russian: string) => (language === "uz" ? (UZ_COPY[russian] ?? russian) : russian),
+    [language],
+  );
 
   const selectedBrand = useMemo(
     () => BRANDS.find((brand) => brand.value === form.brand) ?? null,
@@ -176,7 +286,7 @@ export default function NewCarPage() {
       // Theme persistence is optional.
     }
 
-    const color = nextTheme === "light" ? "#f5f5f7" : "#0b0b0d";
+    const color = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
     document.documentElement.dataset.asuTheme = nextTheme;
     document.documentElement.style.colorScheme = nextTheme;
     document.documentElement.style.backgroundColor = color;
@@ -212,12 +322,36 @@ export default function NewCarPage() {
     }
   }, [applyTheme]);
 
+  const applyLanguage = useCallback((nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    document.documentElement.lang = nextLanguage;
+
+    try {
+      localStorage.setItem("asu-language", nextLanguage);
+    } catch {
+      // The browser language remains the fallback.
+    }
+  }, []);
+
+  useEffect(() => {
+    let nextLanguage: Language = navigator.language.toLowerCase().startsWith("uz") ? "uz" : "ru";
+
+    try {
+      const stored = localStorage.getItem("asu-language");
+      if (stored === "ru" || stored === "uz") nextLanguage = stored;
+    } catch {
+      // Continue with the browser language.
+    }
+
+    applyLanguage(nextLanguage);
+  }, [applyLanguage]);
+
   useEffect(() => {
     let cancelled = false;
 
     async function verifySession() {
       try {
-        const response = await fetch("/api/v1/auth/me", {
+        const response = await fetch("/api/me", {
           credentials: "same-origin",
           cache: "no-store",
           headers: { Accept: "application/json" },
@@ -230,11 +364,11 @@ export default function NewCarPage() {
         }
 
         if (!response.ok) {
-          throw new Error(data?.error || "Не удалось проверить защищённую сессию.");
+          throw new Error(data?.error || t("Не удалось проверить защищённую сессию."));
         }
 
         if (data?.user?.role !== "super_admin" && data?.user?.role !== "admin") {
-          throw new Error("У вашей роли нет права добавлять автомобили.");
+          throw new Error(t("У вашей роли нет права добавлять автомобили."));
         }
 
         if (!cancelled) {
@@ -246,7 +380,7 @@ export default function NewCarPage() {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "Не удалось проверить защищённую сессию.",
+              : t("Не удалось проверить защищённую сессию."),
           );
         }
       }
@@ -256,15 +390,33 @@ export default function NewCarPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!error) return;
     errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [error]);
 
-  function toggleTheme() {
-    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+  useEffect(() => {
+    if (!settingsOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSettingsOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [settingsOpen]);
+
+  function changeTheme(nextTheme: Theme) {
+    if (nextTheme === theme) return;
+
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const transitionDocument = document as ViewTransitionDocument;
 
@@ -302,41 +454,41 @@ export default function NewCarPage() {
   }
 
   function validate(): string | null {
-    if (!form.brand) return "Выберите марку автомобиля.";
-    if (!form.model.trim()) return "Укажите модель автомобиля.";
+    if (!form.brand) return t("Выберите марку автомобиля.");
+    if (!form.model.trim()) return t("Укажите модель автомобиля.");
 
     if (form.year) {
       const year = Number(form.year);
       if (!Number.isInteger(year) || year < 1900 || year > 2100) {
-        return "Проверьте год автомобиля.";
+        return t("Проверьте год автомобиля.");
       }
     }
 
     const vin = form.vin.trim().toUpperCase();
     if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) {
-      return "VIN должен содержать 11–17 допустимых латинских символов и цифр.";
+      return t("VIN должен содержать 11–17 допустимых латинских символов и цифр.");
     }
 
     if (form.arrivalDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.arrivalDate)) {
-      return "Проверьте дату прибытия.";
+      return t("Проверьте дату прибытия.");
     }
 
     if (form.mileageKm) {
       const mileage = Number(form.mileageKm);
-      if (!Number.isSafeInteger(mileage) || mileage < 0) return "Проверьте пробег.";
+      if (!Number.isSafeInteger(mileage) || mileage < 0) return t("Проверьте пробег.");
     }
 
     if (form.seats) {
       const seats = Number(form.seats);
       if (!Number.isInteger(seats) || seats < 1 || seats > 99) {
-        return "Проверьте количество мест.";
+        return t("Проверьте количество мест.");
       }
     }
 
     if (!form.priceOnRequest && form.price) {
       const price = Number(form.price);
       if (!Number.isSafeInteger(price) || price < 0) {
-        return "Цена должна быть целым положительным числом.";
+        return t("Цена должна быть целым положительным числом.");
       }
     }
 
@@ -392,7 +544,7 @@ export default function NewCarPage() {
         isFeatured: form.isFeatured,
       };
 
-      const response = await fetch("/api/v1/cars", {
+      const response = await fetch("/api/cars", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",
@@ -411,12 +563,12 @@ export default function NewCarPage() {
       }
 
       if (!response.ok || !data?.success) {
-        throw new Error(data?.error || "Не удалось добавить автомобиль.");
+        throw new Error(data?.error || t("Не удалось добавить автомобиль."));
       }
 
       const createdId = data.car?.id;
       if (!Number.isInteger(createdId) || !createdId) {
-        throw new Error("D1 не подтвердил ID созданного автомобиля. Переход отменён.");
+        throw new Error(t("D1 не подтвердил ID созданного автомобиля. Переход отменён."));
       }
 
       const title = `${data.car?.brand || form.brand} ${data.car?.model || form.model}`.trim();
@@ -429,7 +581,7 @@ export default function NewCarPage() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Не удалось добавить автомобиль.",
+          : t("Не удалось добавить автомобиль."),
       );
     } finally {
       setSaving(false);
@@ -439,7 +591,7 @@ export default function NewCarPage() {
   if (!authReady && !error) {
     return (
       <main className={styles.loadingPage} data-theme={theme}>
-        <div className={styles.loadingDot} aria-label="Проверка сессии" />
+        <div className={styles.loadingDot} aria-label={t("Проверка сессии")} />
       </main>
     );
   }
@@ -448,7 +600,11 @@ export default function NewCarPage() {
     <main className={styles.page} data-theme={theme}>
       <header className={styles.toolbar}>
         <div className={styles.toolbarInner}>
-          <a className={styles.roundControl} href="/admin/cars/" aria-label="Назад к автомобилям">
+          <a
+            className={styles.roundControl}
+            href="/admin/cars/"
+            aria-label={t("Назад к автомобилям")}
+          >
             <ChevronLeftIcon />
           </a>
 
@@ -463,20 +619,104 @@ export default function NewCarPage() {
           <button
             className={styles.roundControl}
             type="button"
-            onClick={toggleTheme}
-            aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
+            data-active={settingsOpen}
+            onClick={() => setSettingsOpen((current) => !current)}
+            aria-label={settingsOpen ? t("Закрыть настройки") : t("Открыть настройки")}
+            aria-expanded={settingsOpen}
+            aria-controls="new-car-interface-options"
           >
-            {theme === "light" ? <MoonIcon /> : <SunIcon />}
+            <MenuIcon open={settingsOpen} />
           </button>
         </div>
+
+        <section
+          className={styles.settingsMenu}
+          id="new-car-interface-options"
+          data-open={settingsOpen}
+          aria-hidden={!settingsOpen}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-car-options-title"
+        >
+          <header className={styles.settingsHeader}>
+            <p>CONTROL SYSTEM</p>
+            <h2 id="new-car-options-title">{t("Настройки")}</h2>
+            <span>{t("Выберите оформление и язык")}</span>
+          </header>
+
+          <div className={styles.settingsContent}>
+            <div className={styles.settingsBlock}>
+              <span className={styles.settingsLabel}>{t("Оформление")}</span>
+              <div className={styles.settingsSegments}>
+                <button
+                  type="button"
+                  data-selected={theme === "light"}
+                  onClick={() => changeTheme("light")}
+                  aria-pressed={theme === "light"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  <SunIcon />
+                  <span>{t("Светлая")}</span>
+                </button>
+                <button
+                  type="button"
+                  data-selected={theme === "dark"}
+                  onClick={() => changeTheme("dark")}
+                  aria-pressed={theme === "dark"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  <MoonIcon />
+                  <span>{t("Тёмная")}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.settingsBlock}>
+              <span className={styles.settingsLabel}>{t("Язык")}</span>
+              <div className={styles.settingsSegments}>
+                <button
+                  type="button"
+                  data-selected={language === "ru"}
+                  onClick={() => applyLanguage("ru")}
+                  aria-pressed={language === "ru"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  Русский
+                </button>
+                <button
+                  type="button"
+                  data-selected={language === "uz"}
+                  onClick={() => applyLanguage("uz")}
+                  aria-pressed={language === "uz"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  O‘zbekcha
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <footer className={styles.settingsFooter}>
+            {t("Настройки сохраняются автоматически")}
+          </footer>
+        </section>
       </header>
+
+      <button
+        className={styles.settingsBackdrop}
+        data-open={settingsOpen}
+        type="button"
+        onClick={() => setSettingsOpen(false)}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
       <div className={styles.shell}>
         <section className={styles.intro}>
-          <p className={styles.eyebrow}>CONTROL SYSTEM · АВТОМОБИЛИ</p>
-          <h1>Новый автомобиль</h1>
+          <p className={styles.eyebrow}>{t("CONTROL SYSTEM · АВТОМОБИЛИ")}</p>
+          <h1>{t("Новый автомобиль")}</h1>
           <p className={styles.introText}>
-            Одна форма. После сохранения автомобиль появится в D1 только после подтверждённой записи.
+            {t("Одна форма. После сохранения автомобиль появится в D1 только после подтверждённой записи.")}
           </p>
         </section>
 
@@ -492,12 +732,16 @@ export default function NewCarPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.sectionKicker}>01</p>
-                <h2>Автомобиль</h2>
+                <h2>{t("Автомобиль")}</h2>
               </div>
-              <p>Сначала выберите марку, затем укажите модель.</p>
+              <p>{t("Сначала выберите марку, затем укажите модель.")}</p>
             </div>
 
-            <div className={styles.brandRail} role="listbox" aria-label="Марка автомобиля">
+            <div
+              className={styles.brandRail}
+              role="listbox"
+              aria-label={t("Марка автомобиля")}
+            >
               {BRANDS.map((brand) => {
                 const active = form.brand === brand.value;
                 return (
@@ -526,12 +770,16 @@ export default function NewCarPage() {
 
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>Марка</span>
-                <input value={selectedBrand?.value ?? ""} readOnly placeholder="Выберите выше" />
+                <span>{t("Марка")}</span>
+                <input
+                  value={selectedBrand?.value ?? ""}
+                  readOnly
+                  placeholder={t("Выберите выше")}
+                />
               </label>
 
               <label className={styles.field}>
-                <span>Модель *</span>
+                <span>{t("Модель *")}</span>
                 <input
                   value={form.model}
                   onChange={(event) => setUpperText("model", event, 100)}
@@ -543,7 +791,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Комплектация</span>
+                <span>{t("Комплектация")}</span>
                 <input
                   value={form.trim}
                   onChange={(event) => setText("trim", event)}
@@ -552,7 +800,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Год</span>
+                <span>{t("Год")}</span>
                 <input
                   value={form.year}
                   onChange={(event) => setText("year", event)}
@@ -575,7 +823,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Внутренний номер</span>
+                <span>{t("Внутренний номер")}</span>
                 <input
                   value={form.stockNumber}
                   onChange={(event) => setUpperText("stockNumber", event, 80)}
@@ -591,13 +839,13 @@ export default function NewCarPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.sectionKicker}>02</p>
-                <h2>Поставка</h2>
+                <h2>{t("Поставка")}</h2>
               </div>
-              <p>Статус и источник поставки используются в каталоге и фильтрах.</p>
+              <p>{t("Статус и источник поставки используются в каталоге и фильтрах.")}</p>
             </div>
 
             <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Статус</span>
+              <span className={styles.controlLabel}>{t("Статус")}</span>
               <div className={styles.segmentGrid}>
                 {STATUS_OPTIONS.map((option) => (
                   <button
@@ -606,14 +854,14 @@ export default function NewCarPage() {
                     className={`${styles.segment} ${form.status === option.value ? styles.segmentActive : ""}`}
                     onClick={() => setForm((current) => ({ ...current, status: option.value }))}
                   >
-                    {option.label}
+                    {option.label[language]}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Страна поставки</span>
+              <span className={styles.controlLabel}>{t("Страна поставки")}</span>
               <div className={styles.segmentGrid}>
                 {COUNTRY_OPTIONS.map((option) => (
                   <button
@@ -622,7 +870,7 @@ export default function NewCarPage() {
                     className={`${styles.segment} ${form.countryCode === option.value ? styles.segmentActive : ""}`}
                     onClick={() => setForm((current) => ({ ...current, countryCode: option.value }))}
                   >
-                    {option.label}
+                    {option.label[language]}
                   </button>
                 ))}
               </div>
@@ -630,7 +878,7 @@ export default function NewCarPage() {
 
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>Дата прибытия</span>
+                <span>{t("Дата прибытия")}</span>
                 <input
                   className={styles.dateInput}
                   type="date"
@@ -640,7 +888,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Пробег, км</span>
+                <span>{t("Пробег, км")}</span>
                 <input
                   value={form.mileageKm}
                   onChange={(event) => setText("mileageKm", event)}
@@ -655,14 +903,14 @@ export default function NewCarPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.sectionKicker}>03</p>
-                <h2>Характеристики</h2>
+                <h2>{t("Характеристики")}</h2>
               </div>
-              <p>Основные данные, которые будут видны в карточке автомобиля.</p>
+              <p>{t("Основные данные, которые будут видны в карточке автомобиля.")}</p>
             </div>
 
             <div className={styles.fieldGrid}>
               <label className={`${styles.field} ${styles.fieldWide}`}>
-                <span>Двигатель</span>
+                <span>{t("Двигатель")}</span>
                 <input
                   value={form.engineText}
                   onChange={(event) => setText("engineText", event)}
@@ -671,21 +919,21 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Топливо</span>
+                <span>{t("Топливо")}</span>
                 <select value={form.fuelType} onChange={(event) => setText("fuelType", event)}>
-                  <option value="">Не указано</option>
-                  <option value="gasoline">Бензин</option>
-                  <option value="diesel">Дизель</option>
-                  <option value="hybrid">Гибрид</option>
-                  <option value="phev">Plug-in гибрид</option>
-                  <option value="electric">Электро</option>
+                  <option value="">{t("Не указано")}</option>
+                  <option value="gasoline">{t("Бензин")}</option>
+                  <option value="diesel">{t("Дизель")}</option>
+                  <option value="hybrid">{t("Гибрид")}</option>
+                  <option value="phev">{t("Plug-in гибрид")}</option>
+                  <option value="electric">{t("Электро")}</option>
                 </select>
               </label>
 
               <label className={styles.field}>
-                <span>Привод</span>
+                <span>{t("Привод")}</span>
                 <select value={form.driveType} onChange={(event) => setText("driveType", event)}>
-                  <option value="">Не указано</option>
+                  <option value="">{t("Не указано")}</option>
                   <option value="AWD">AWD</option>
                   <option value="4WD">4WD</option>
                   <option value="RWD">RWD</option>
@@ -694,18 +942,18 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Коробка</span>
+                <span>{t("Коробка")}</span>
                 <select value={form.transmission} onChange={(event) => setText("transmission", event)}>
-                  <option value="">Не указано</option>
-                  <option value="automatic">Автомат</option>
-                  <option value="robot">Робот</option>
-                  <option value="cvt">Вариатор</option>
-                  <option value="manual">Механика</option>
+                  <option value="">{t("Не указано")}</option>
+                  <option value="automatic">{t("Автомат")}</option>
+                  <option value="robot">{t("Робот")}</option>
+                  <option value="cvt">{t("Вариатор")}</option>
+                  <option value="manual">{t("Механика")}</option>
                 </select>
               </label>
 
               <label className={styles.field}>
-                <span>Мест</span>
+                <span>{t("Мест")}</span>
                 <input
                   value={form.seats}
                   onChange={(event) => setText("seats", event)}
@@ -715,7 +963,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Цвет кузова</span>
+                <span>{t("Цвет кузова")}</span>
                 <input
                   value={form.exteriorColor}
                   onChange={(event) => setText("exteriorColor", event)}
@@ -724,7 +972,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Цвет салона</span>
+                <span>{t("Цвет салона")}</span>
                 <input
                   value={form.interiorColor}
                   onChange={(event) => setText("interiorColor", event)}
@@ -738,14 +986,14 @@ export default function NewCarPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.sectionKicker}>04</p>
-                <h2>Цена и публикация</h2>
+                <h2>{t("Цена и публикация")}</h2>
               </div>
-              <p>По умолчанию автомобиль не публикуется до добавления фотографий.</p>
+              <p>{t("По умолчанию автомобиль не публикуется до добавления фотографий.")}</p>
             </div>
 
             <div className={styles.priceRow}>
               <label className={`${styles.field} ${styles.priceField}`}>
-                <span>Цена</span>
+                <span>{t("Цена")}</span>
                 <input
                   value={form.price}
                   onChange={(event) => setText("price", event)}
@@ -756,7 +1004,7 @@ export default function NewCarPage() {
               </label>
 
               <label className={`${styles.field} ${styles.currencyField}`}>
-                <span>Валюта</span>
+                <span>{t("Валюта")}</span>
                 <select value={form.currency} onChange={(event) => setText("currency", event)}>
                   <option value="USD">USD</option>
                   <option value="UZS">UZS</option>
@@ -767,32 +1015,32 @@ export default function NewCarPage() {
 
             <div className={styles.switchList}>
               <SwitchRow
-                label="Цена по запросу"
-                detail="Вместо числа в публичной карточке показывается запрос цены."
+                label={t("Цена по запросу")}
+                detail={t("Вместо числа в публичной карточке показывается запрос цены.")}
                 checked={form.priceOnRequest}
                 onChange={(checked) => setForm((current) => ({ ...current, priceOnRequest: checked }))}
               />
               <SwitchRow
-                label="Новый автомобиль"
-                detail="Используется для классификации автомобиля."
+                label={t("Новый автомобиль")}
+                detail={t("Используется для классификации автомобиля.")}
                 checked={form.isNew}
                 onChange={(checked) => setForm((current) => ({ ...current, isNew: checked }))}
               />
               <SwitchRow
-                label="Новое поступление"
-                detail="Разрешает выводить автомобиль в блоке последних поступлений."
+                label={t("Новое поступление")}
+                detail={t("Разрешает выводить автомобиль в блоке последних поступлений.")}
                 checked={form.isNewArrival}
                 onChange={(checked) => setForm((current) => ({ ...current, isNewArrival: checked }))}
               />
               <SwitchRow
-                label="Рекомендуемый"
-                detail="Поднимает автомобиль выше в административном каталоге."
+                label={t("Рекомендуемый")}
+                detail={t("Поднимает автомобиль выше в административном каталоге.")}
                 checked={form.isFeatured}
                 onChange={(checked) => setForm((current) => ({ ...current, isFeatured: checked }))}
               />
               <SwitchRow
-                label="Опубликовать на сайте"
-                detail="Оставьте выключенным, пока не добавлены качественные фотографии."
+                label={t("Опубликовать на сайте")}
+                detail={t("Оставьте выключенным, пока не добавлены качественные фотографии.")}
                 checked={form.isPublic}
                 onChange={(checked) => setForm((current) => ({ ...current, isPublic: checked }))}
               />
@@ -803,19 +1051,19 @@ export default function NewCarPage() {
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.sectionKicker}>05</p>
-                <h2>Описание</h2>
+                <h2>{t("Описание")}</h2>
               </div>
-              <p>Русская и узбекская версии хранятся отдельно.</p>
+              <p>{t("Русская и узбекская версии хранятся отдельно.")}</p>
             </div>
 
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>Коротко · RU</span>
+                <span>{t("Коротко · RU")}</span>
                 <textarea
                   className={styles.shortTextarea}
                   value={form.shortDescriptionRu}
                   onChange={(event) => setText("shortDescriptionRu", event)}
-                  placeholder="Краткое описание для карточки"
+                  placeholder={t("Краткое описание для карточки")}
                   maxLength={220}
                 />
               </label>
@@ -832,11 +1080,11 @@ export default function NewCarPage() {
               </label>
 
               <label className={`${styles.field} ${styles.fieldWide}`}>
-                <span>Описание · RU</span>
+                <span>{t("Описание · RU")}</span>
                 <textarea
                   value={form.descriptionRu}
                   onChange={(event) => setText("descriptionRu", event)}
-                  placeholder="Полное описание автомобиля"
+                  placeholder={t("Полное описание автомобиля")}
                 />
               </label>
 
@@ -853,12 +1101,12 @@ export default function NewCarPage() {
 
           <div className={styles.saveDock}>
             <div className={styles.saveMeta}>
-              <span>{form.brand || "Марка не выбрана"}</span>
-              <strong>{form.model || "НОВЫЙ АВТОМОБИЛЬ"}</strong>
+              <span>{form.brand || t("Марка не выбрана")}</span>
+              <strong>{form.model || t("НОВЫЙ АВТОМОБИЛЬ")}</strong>
             </div>
             <button className={styles.saveButton} type="submit" disabled={saving || !authReady}>
               {saving ? <span className={styles.spinner} aria-hidden="true" /> : <CheckIcon />}
-              <span>{saving ? "Сохраняем в D1…" : "Сохранить автомобиль"}</span>
+              <span>{saving ? t("Сохраняем в D1…") : t("Сохранить автомобиль")}</span>
             </button>
           </div>
         </form>
@@ -870,9 +1118,9 @@ export default function NewCarPage() {
             <span className={styles.successIcon}>
               <CheckIcon />
             </span>
-            <p>Автомобиль сохранён</p>
+            <p>{t("Автомобиль сохранён")}</p>
             <h2>{createdCar.title}</h2>
-            <span>D1 подтвердил запись · ID {createdCar.id}</span>
+            <span>{t("D1 подтвердил запись")} · ID {createdCar.id}</span>
           </div>
         </div>
       ) : null}
@@ -915,6 +1163,16 @@ function ChevronLeftIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M14.75 5.5 8.25 12l6.5 6.5" />
     </svg>
+  );
+}
+
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <span className={styles.menuGlyph} data-open={open} aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
   );
 }
 

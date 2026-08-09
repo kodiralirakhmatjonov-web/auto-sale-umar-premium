@@ -1,6 +1,6 @@
 .page,
 .loadingPage {
-  --bg: #f5f5f7;
+  --bg: #f5f5f3;
   --surface: #ffffff;
   --surface-2: #f7f7f8;
   --glass: rgba(255, 255, 255, 0.72);
@@ -15,7 +15,9 @@
   --shadow: 0 18px 60px rgba(0, 0, 0, 0.09);
   --spring: cubic-bezier(0.16, 1, 0.3, 1);
 
-  min-height: 100svh;
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
   color: var(--text);
   background:
     radial-gradient(circle at 50% -8%, rgba(255, 255, 255, 0.95), transparent 30rem),
@@ -26,7 +28,7 @@
 
 .page[data-theme="dark"],
 .loadingPage[data-theme="dark"] {
-  --bg: #0b0b0d;
+  --bg: #0b0c0d;
   --surface: #161618;
   --surface-2: #1d1d20;
   --glass: rgba(24, 24, 27, 0.72);
@@ -56,23 +58,29 @@
 
 .toolbar {
   position: sticky;
-  top: 0;
-  z-index: 40;
-  padding: 10px 14px 8px;
+  top: 12px;
+  z-index: 50;
+  margin-top: 14px;
+  padding: 0 10px;
   pointer-events: none;
 }
 
 .toolbarInner {
-  width: min(100%, 980px);
-  min-height: 66px;
+  width: min(var(--asu-admin-toolbar-max-width, 1180px), 100%);
+  min-height: var(--asu-admin-toolbar-height, 70px);
   margin: 0 auto;
-  padding: 8px 10px;
+  padding:
+    var(--asu-admin-toolbar-padding-block, 9px)
+    var(--asu-admin-toolbar-padding-inline, 10px);
   display: grid;
-  grid-template-columns: 48px 1fr 48px;
+  grid-template-columns:
+    var(--asu-admin-toolbar-control-size, 48px)
+    minmax(0, 1fr)
+    var(--asu-admin-toolbar-control-size, 48px);
   align-items: center;
-  gap: 10px;
+  gap: var(--asu-admin-toolbar-gap, 10px);
   border: 1px solid var(--line);
-  border-radius: 32px;
+  border-radius: var(--asu-admin-toolbar-radius, 35px);
   background: var(--glass);
   box-shadow: var(--shadow);
   -webkit-backdrop-filter: blur(28px) saturate(145%);
@@ -81,8 +89,8 @@
 }
 
 .roundControl {
-  width: 48px;
-  height: 48px;
+  width: var(--asu-admin-toolbar-control-size, 48px);
+  height: var(--asu-admin-toolbar-control-size, 48px);
   padding: 0;
   display: grid;
   place-items: center;
@@ -98,12 +106,16 @@
   transform: scale(0.94);
 }
 
+.roundControl[data-active="true"] {
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
 .roundControl svg,
 .brandCheck svg,
 .saveButton svg,
 .successIcon svg {
-  width: 23px;
-  height: 23px;
+  width: var(--asu-admin-toolbar-icon-size, 24px);
+  height: var(--asu-admin-toolbar-icon-size, 24px);
   fill: none;
   stroke: currentColor;
   stroke-width: 2.15;
@@ -112,16 +124,279 @@
 }
 
 .wordmarkLink {
+  width: 100%;
+  max-width: var(--asu-admin-toolbar-logo-width, 205px);
+  height: var(--asu-admin-toolbar-logo-height, 50px);
   min-width: 0;
+  justify-self: center;
   display: grid;
   place-items: center;
 }
 
 .wordmark {
   display: block;
-  width: min(230px, 52vw);
-  max-height: 42px;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: contain;
+}
+
+.menuGlyph {
+  width: var(--asu-admin-toolbar-icon-size, 24px);
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.menuGlyph i {
+  width: 19px;
+  height: 2px;
+  display: block;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  transition:
+    transform 300ms var(--spring),
+    opacity 180ms ease,
+    width 240ms ease;
+}
+
+.menuGlyph[data-open="true"] i:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menuGlyph[data-open="true"] i:nth-child(2) {
+  width: 0;
+  opacity: 0;
+}
+
+.menuGlyph[data-open="true"] i:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.settingsMenu {
+  width: min(var(--asu-admin-settings-width, 540px), calc(100% - 20px));
+  height: var(--asu-admin-settings-height, clamp(470px, 68dvh, 620px));
+  max-height: calc(100dvh - 112px - env(safe-area-inset-top));
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 10px);
+  right: max(10px, calc((100% - var(--asu-admin-toolbar-max-width, 1180px)) / 2));
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--asu-admin-settings-radius, 32px);
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 97%, transparent);
+  -webkit-backdrop-filter: blur(34px) saturate(145%);
+  backdrop-filter: blur(34px) saturate(145%);
+  box-shadow:
+    0 34px 100px rgba(9, 11, 14, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  -webkit-clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius, 32px));
+  clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius, 32px));
+  transform: translateY(-18px) scale(.965);
+  transform-origin: top center;
+  transition:
+    opacity 240ms var(--spring),
+    visibility 0s linear 460ms,
+    transform 460ms var(--spring),
+    -webkit-clip-path 460ms var(--spring),
+    clip-path 460ms var(--spring);
+}
+
+.page[data-theme="dark"] .settingsMenu {
+  box-shadow:
+    0 38px 110px rgba(0, 0, 0, .62),
+    inset 0 1px 0 rgba(255, 255, 255, .075);
+}
+
+.settingsMenu[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  -webkit-clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius, 32px));
+  clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius, 32px));
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 260ms var(--spring),
+    visibility 0s linear 0s,
+    transform 520ms var(--spring),
+    -webkit-clip-path 520ms var(--spring),
+    clip-path 520ms var(--spring);
+}
+
+.settingsHeader,
+.settingsContent,
+.settingsFooter {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 180ms ease, transform 260ms var(--spring);
+}
+
+.settingsMenu[data-open="true"] .settingsHeader,
+.settingsMenu[data-open="true"] .settingsContent,
+.settingsMenu[data-open="true"] .settingsFooter {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.settingsMenu[data-open="true"] .settingsHeader {
+  transition-delay: 120ms;
+}
+
+.settingsMenu[data-open="true"] .settingsContent {
+  transition-delay: 190ms;
+}
+
+.settingsMenu[data-open="true"] .settingsFooter {
+  transition-delay: 250ms;
+}
+
+.settingsHeader {
+  text-align: left;
+}
+
+.settingsHeader > p {
+  margin: 0 0 8px;
+  color: var(--tertiary);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .16em;
+}
+
+.settingsHeader > h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 31px;
+  font-weight: 720;
+  letter-spacing: -.04em;
+  line-height: 1.05;
+}
+
+.settingsHeader > span {
+  display: block;
+  margin-top: 7px;
+  color: var(--secondary);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.settingsContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 30px;
+  padding: 18px 0;
+}
+
+.settingsBlock {
+  display: grid;
+  gap: 11px;
+}
+
+.settingsLabel {
+  color: var(--secondary);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 640;
+}
+
+.settingsSegments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 21px;
+  background: var(--surface-2);
+}
+
+.settingsSegments button {
+  min-width: 0;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 16px;
+  color: var(--secondary);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 660;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 160ms var(--spring),
+    box-shadow 180ms ease;
+}
+
+.settingsSegments button:active {
+  transform: scale(.97);
+}
+
+.settingsSegments button[data-selected="true"] {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 7px 20px rgba(255, 107, 26, .22);
+}
+
+.settingsSegments svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settingsFooter {
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  color: var(--tertiary);
+  text-align: center;
+  font-size: 12px;
+}
+
+.settingsBackdrop {
+  position: fixed;
+  z-index: 45;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, .42);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 300ms ease, visibility 0s linear 360ms;
+}
+
+.settingsBackdrop[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 360ms ease, visibility 0s linear 0s;
 }
 
 .shell {
@@ -682,18 +957,32 @@
 
 @media (max-width: 720px) {
   .toolbar {
-    padding: 8px 10px 6px;
+    top: 10px;
+    padding: 0 10px;
   }
 
   .toolbarInner {
-    min-height: 62px;
-    grid-template-columns: 46px 1fr 46px;
-    border-radius: 29px;
+    min-height: var(--asu-admin-toolbar-height, 70px);
+    grid-template-columns:
+      var(--asu-admin-toolbar-control-size, 48px)
+      minmax(0, 1fr)
+      var(--asu-admin-toolbar-control-size, 48px);
+    border-radius: var(--asu-admin-toolbar-radius, 35px);
   }
 
   .roundControl {
-    width: 46px;
-    height: 46px;
+    width: var(--asu-admin-toolbar-control-size, 48px);
+    height: var(--asu-admin-toolbar-control-size, 48px);
+  }
+
+  .settingsMenu {
+    width: calc(100% - 20px);
+    right: 10px;
+    padding: 22px 20px 18px;
+  }
+
+  .settingsContent {
+    gap: 26px;
   }
 
   .shell {
@@ -793,6 +1082,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .roundControl,
+  .settingsMenu,
+  .settingsHeader,
+  .settingsContent,
+  .settingsFooter,
   .brandTile,
   .segment,
   .switchThumb,
@@ -807,6 +1100,7 @@
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .toolbarInner,
+  .settingsMenu,
   .saveDock {
     background: color-mix(in srgb, var(--surface) 96%, transparent);
   }
