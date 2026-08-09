@@ -13,6 +13,27 @@
   --radius-xl: 34px;
   --radius-lg: 26px;
   --radius-md: 20px;
+
+  /*
+    Auto Sale Umar admin chrome — one source of truth.
+    Login, Staff and Cars consume these exact dimensions so that responsive
+    page rules can never resize the shared control island independently.
+  */
+  --asu-admin-toolbar-max-width: 1180px;
+  --asu-admin-toolbar-height: 70px;
+  --asu-admin-toolbar-radius: 35px;
+  --asu-admin-toolbar-padding-block: 9px;
+  --asu-admin-toolbar-padding-inline: 10px;
+  --asu-admin-toolbar-control-size: 48px;
+  --asu-admin-toolbar-icon-size: 24px;
+  --asu-admin-toolbar-gap: 10px;
+  --asu-admin-toolbar-logo-width: 205px;
+  --asu-admin-toolbar-logo-height: 50px;
+  --asu-admin-settings-width: 540px;
+  --asu-admin-settings-height: clamp(470px, 68dvh, 620px);
+  --asu-admin-settings-radius: 32px;
+  --asu-admin-section-width: 420px;
+  --asu-admin-section-height: 52px;
 }
 
 :root[data-theme="light"] {
@@ -46,6 +67,28 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+html[data-asu-theme="light"],
+html[data-asu-theme="light"] body {
+  color-scheme: light;
+  background-color: #f5f5f3;
+}
+
+html[data-asu-theme="dark"],
+html[data-asu-theme="dark"] body {
+  color-scheme: dark;
+  background-color: #0b0c0d;
+}
+
+/*
+  Native root snapshots can briefly expose Safari's canvas around the rounded
+  viewport while switching themes. Page-level CSS transitions remain intact.
+*/
+@supports (view-transition-name: none) {
+  html {
+    view-transition-name: none;
+  }
 }
 
 button, a {
