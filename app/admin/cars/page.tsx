@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./cars.module.css";
 
 type Theme = "light" | "dark";
+type Language = "ru" | "uz";
 type CarStatus =
   | "in_stock"
   | "in_showroom"
@@ -55,52 +56,138 @@ type ViewTransitionDocument = Document & {
   };
 };
 
-const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
-  { value: "all", label: "Все" },
-  { value: "in_stock", label: "В наличии" },
-  { value: "in_showroom", label: "В шоуруме" },
-  { value: "in_transit", label: "В пути" },
-  { value: "made_to_order", label: "Под заказ" },
-  { value: "reserved", label: "Резерв" },
-  { value: "sold", label: "Проданы" },
-  { value: "hidden", label: "Скрытые" },
+const STATUS_FILTERS: StatusFilter[] = [
+  "all",
+  "in_stock",
+  "in_showroom",
+  "in_transit",
+  "made_to_order",
+  "reserved",
+  "sold",
+  "hidden",
 ];
 
-const COUNTRY_FILTERS: Array<{ value: CountryFilter; label: string }> = [
-  { value: "all", label: "Все страны" },
-  { value: "KR", label: "Корея" },
-  { value: "US", label: "США" },
-  { value: "CA", label: "Канада" },
-  { value: "AE", label: "ОАЭ" },
-];
+const COUNTRY_FILTERS: CountryFilter[] = ["all", "KR", "US", "CA", "AE"];
 
-const STATUS_LABELS: Record<CarStatus, string> = {
-  in_stock: "В наличии",
-  in_showroom: "В шоуруме",
-  in_transit: "В пути",
-  made_to_order: "Под заказ",
-  reserved: "Резерв",
-  sold: "Продан",
-  hidden: "Скрыт",
+const STATUS_FILTER_LABELS: Record<Language, Record<StatusFilter, string>> = {
+  ru: {
+    all: "Все",
+    in_stock: "В наличии",
+    in_showroom: "В шоуруме",
+    in_transit: "В пути",
+    made_to_order: "Под заказ",
+    reserved: "Резерв",
+    sold: "Проданы",
+    hidden: "Скрытые",
+  },
+  uz: {
+    all: "Barchasi",
+    in_stock: "Mavjud",
+    in_showroom: "Shourumda",
+    in_transit: "Yo‘lda",
+    made_to_order: "Buyurtma asosida",
+    reserved: "Band qilingan",
+    sold: "Sotilgan",
+    hidden: "Yashirilgan",
+  },
 };
 
-const COUNTRY_LABELS: Record<string, string> = {
-  KR: "Корея",
-  US: "США",
-  CA: "Канада",
-  AE: "ОАЭ",
+const COUNTRY_FILTER_LABELS: Record<Language, Record<CountryFilter, string>> = {
+  ru: { all: "Все страны", KR: "Корея", US: "США", CA: "Канада", AE: "ОАЭ" },
+  uz: { all: "Barcha davlatlar", KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA" },
 };
 
-function formatPrice(car: CarRecord): string {
-  if (car.priceOnRequest || car.price == null) return "Цена по запросу";
-  return new Intl.NumberFormat("ru-RU", {
+const STATUS_LABELS: Record<Language, Record<CarStatus, string>> = {
+  ru: {
+    in_stock: "В наличии",
+    in_showroom: "В шоуруме",
+    in_transit: "В пути",
+    made_to_order: "Под заказ",
+    reserved: "Резерв",
+    sold: "Продан",
+    hidden: "Скрыт",
+  },
+  uz: {
+    in_stock: "Mavjud",
+    in_showroom: "Shourumda",
+    in_transit: "Yo‘lda",
+    made_to_order: "Buyurtma asosida",
+    reserved: "Band qilingan",
+    sold: "Sotilgan",
+    hidden: "Yashirilgan",
+  },
+};
+
+const COUNTRY_LABELS: Record<Language, Record<string, string>> = {
+  ru: { KR: "Корея", US: "США", CA: "Канада", AE: "ОАЭ" },
+  uz: { KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA" },
+};
+
+const UZ_COPY: Record<string, string> = {
+  "Раздел автомобилей недоступен": "Avtomobillar bo‘limiga kirish yopiq",
+  "Повторить": "Qayta urinish",
+  "Вернуться на сайт": "Saytga qaytish",
+  "Открыть настройки": "Sozlamalarni ochish",
+  "Закрыть настройки": "Sozlamalarni yopish",
+  "Настройки": "Sozlamalar",
+  "Выберите оформление и язык": "Ko‘rinish va tilni tanlang",
+  "Оформление": "Ko‘rinish",
+  "Светлая": "Yorug‘",
+  "Тёмная": "Tungi",
+  "Язык": "Til",
+  "Настройки сохраняются автоматически": "Sozlamalar avtomatik saqlanadi",
+  "Разделы Control System": "Control System bo‘limlari",
+  "Команда": "Jamoa",
+  "Автомобили": "Avtomobillar",
+  "Единая база автомобилей Auto Sale Umar — в наличии, в пути, зарезервированные и проданные.":
+    "Auto Sale Umar avtomobillarining yagona bazasi — mavjud, yo‘ldagi, band qilingan va sotilgan avtomobillar.",
+  "Добавить автомобиль": "Avtomobil qo‘shish",
+  "Закрыть": "Yopish",
+  "Каталог автомобилей": "Avtomobillar katalogi",
+  "БАЗА АВТОМОБИЛЕЙ": "AVTOMOBILLAR BAZASI",
+  "Каталог": "Katalog",
+  "Проверка доступа…": "Kirish tekshirilmoqda…",
+  "Марка, модель, VIN": "Brend, model, VIN",
+  "Поиск автомобилей": "Avtomobillarni qidirish",
+  "Очистить поиск": "Qidiruvni tozalash",
+  "Открыть фильтры": "Filtrlarni ochish",
+  "Фильтры": "Filtrlar",
+  "Статус автомобиля": "Avtomobil holati",
+  "Загрузка автомобилей": "Avtomobillar yuklanmoqda",
+  "Опубликован": "E’lon qilingan",
+  "Черновик": "Qoralama",
+  "Цена": "Narx",
+  "НИЧЕГО НЕ НАЙДЕНО": "HECH NARSA TOPILMADI",
+  "БАЗА ГОТОВА К НАПОЛНЕНИЮ": "BAZA TO‘LDIRISHGA TAYYOR",
+  "Измените поиск или фильтры": "Qidiruv yoki filtrlarni o‘zgartiring",
+  "Добавьте первый автомобиль": "Birinchi avtomobilni qo‘shing",
+  "В D1 нет автомобилей, соответствующих выбранным условиям.":
+    "D1 bazasida tanlangan shartlarga mos avtomobillar yo‘q.",
+  "После сохранения здесь появятся только реальные автомобили AutoSale Umar.":
+    "Saqlangandan keyin bu yerda faqat Auto Sale Umar avtomobillari ko‘rinadi.",
+  "Сбросить поиск": "Qidiruvni tozalash",
+  "Закрыть фильтры": "Filtrlarni yopish",
+  "КАТАЛОГ": "KATALOG",
+  "Статус": "Holat",
+  "Страна": "Davlat",
+  "Сбросить": "Tozalash",
+  "Готово": "Tayyor",
+};
+
+function formatPrice(car: CarRecord, language: Language): string {
+  if (car.priceOnRequest || car.price == null) {
+    return language === "uz" ? "Narx so‘rov asosida" : "Цена по запросу";
+  }
+  return new Intl.NumberFormat(language === "uz" ? "uz-UZ" : "ru-RU", {
     style: "currency",
     currency: car.currency,
     maximumFractionDigits: 0,
   }).format(car.price);
 }
 
-function formatCarCount(value: number): string {
+function formatCarCount(value: number, language: Language): string {
+  if (language === "uz") return `${value} avtomobil`;
+
   const mod10 = value % 10;
   const mod100 = value % 100;
   if (mod10 === 1 && mod100 !== 11) return `${value} автомобиль`;
@@ -112,6 +199,8 @@ function formatCarCount(value: number): string {
 
 export default function CarsPage() {
   const [theme, setTheme] = useState<Theme>("light");
+  const [language, setLanguage] = useState<Language>("ru");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -125,6 +214,11 @@ export default function CarsPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [createdCarId, setCreatedCarId] = useState<number | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const t = useCallback(
+    (russian: string) => (language === "uz" ? (UZ_COPY[russian] ?? russian) : russian),
+    [language],
+  );
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -182,6 +276,30 @@ export default function CarsPage() {
     }
   }, [applyTheme]);
 
+  const applyLanguage = useCallback((nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    document.documentElement.lang = nextLanguage;
+
+    try {
+      window.localStorage.setItem("asu-language", nextLanguage);
+    } catch {
+      // The browser language remains the fallback.
+    }
+  }, []);
+
+  useEffect(() => {
+    let nextLanguage: Language = navigator.language.toLowerCase().startsWith("uz") ? "uz" : "ru";
+
+    try {
+      const stored = window.localStorage.getItem("asu-language");
+      if (stored === "ru" || stored === "uz") nextLanguage = stored;
+    } catch {
+      // Continue with the browser language.
+    }
+
+    applyLanguage(nextLanguage);
+  }, [applyLanguage]);
+
   useEffect(() => {
     const created = new URLSearchParams(window.location.search).get("created");
     const parsed = created ? Number(created) : Number.NaN;
@@ -198,7 +316,7 @@ export default function CarsPage() {
       if (query.trim()) params.set("q", query.trim());
       if (status !== "all") params.set("status", status);
       if (country !== "all") params.set("country", country);
-      const endpoint = `/api/v1/cars${params.size ? `?${params.toString()}` : ""}`;
+      const endpoint = `/api/cars${params.size ? `?${params.toString()}` : ""}`;
 
       try {
         const response = await fetch(endpoint, {
@@ -216,12 +334,20 @@ export default function CarsPage() {
         }
 
         if (response.status === 403) {
-          setAuthError(data?.error || "У вашей роли нет доступа к автомобилям.");
+          setAuthError(
+            document.documentElement.lang === "uz"
+              ? "Sizning rolingiz avtomobillar bo‘limiga kira olmaydi."
+              : (data?.error || "У вашей роли нет доступа к автомобилям."),
+          );
           return;
         }
 
         if (!response.ok || !data?.success || !Array.isArray(data.cars)) {
-          throw new Error(data?.error || "Не удалось загрузить автомобили из D1.");
+          throw new Error(
+            document.documentElement.lang === "uz"
+              ? "D1 bazasidan avtomobillarni yuklab bo‘lmadi."
+              : (data?.error || "Не удалось загрузить автомобили из D1."),
+          );
         }
 
         setCars(data.cars);
@@ -232,7 +358,11 @@ export default function CarsPage() {
         if (controller.signal.aborted) return;
         setAuthReady(true);
         setLoadError(
-          error instanceof Error ? error.message : "Не удалось загрузить автомобили из D1.",
+          error instanceof Error
+            ? error.message
+            : document.documentElement.lang === "uz"
+              ? "D1 bazasidan avtomobillarni yuklab bo‘lmadi."
+              : "Не удалось загрузить автомобили из D1.",
         );
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -246,13 +376,14 @@ export default function CarsPage() {
   }, [country, query, reloadToken, status]);
 
   useEffect(() => {
-    if (!filtersOpen) return;
+    if (!settingsOpen && !filtersOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      setSettingsOpen(false);
       setFiltersOpen(false);
     };
 
@@ -262,10 +393,11 @@ export default function CarsPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [filtersOpen]);
+  }, [settingsOpen, filtersOpen]);
 
-  function toggleTheme() {
-    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+  function changeTheme(nextTheme: Theme) {
+    if (nextTheme === theme) return;
+
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const transitionDocument = document as ViewTransitionDocument;
 
@@ -292,10 +424,10 @@ export default function CarsPage() {
             <ShieldIcon />
           </span>
           <p className={styles.accessEyebrow}>AUTO SALE UMAR</p>
-          <h1>Раздел автомобилей недоступен</h1>
+          <h1>{t("Раздел автомобилей недоступен")}</h1>
           <p>{authError}</p>
           <button type="button" onClick={() => window.location.reload()}>
-            Повторить
+            {t("Повторить")}
           </button>
         </div>
       </main>
@@ -311,7 +443,7 @@ export default function CarsPage() {
 
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <a className={styles.roundButton} href="/" aria-label="Вернуться на сайт">
+          <a className={styles.roundButton} href="/" aria-label={t("Вернуться на сайт")}>
             <ArrowLeftIcon />
           </a>
 
@@ -326,31 +458,108 @@ export default function CarsPage() {
           <button
             className={styles.roundButton}
             type="button"
-            onClick={toggleTheme}
-            aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
+            data-active={settingsOpen}
+            onClick={() => setSettingsOpen((current) => !current)}
+            aria-label={settingsOpen ? t("Закрыть настройки") : t("Открыть настройки")}
+            aria-expanded={settingsOpen}
+            aria-controls="cars-interface-options"
           >
-            <span className={styles.iconStage}>
-              <span className={styles.moonIcon}>
-                <MoonIcon />
-              </span>
-              <span className={styles.sunIcon}>
-                <SunIcon />
-              </span>
-            </span>
+            <MenuIcon open={settingsOpen} />
           </button>
         </div>
+
+        <section
+          className={styles.settingsMenu}
+          id="cars-interface-options"
+          data-open={settingsOpen}
+          aria-hidden={!settingsOpen}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cars-options-title"
+        >
+          <header className={styles.settingsHeader}>
+            <p>CONTROL SYSTEM</p>
+            <h2 id="cars-options-title">{t("Настройки")}</h2>
+            <span>{t("Выберите оформление и язык")}</span>
+          </header>
+
+          <div className={styles.settingsContent}>
+            <div className={styles.settingsBlock}>
+              <span className={styles.settingsLabel}>{t("Оформление")}</span>
+              <div className={styles.settingsSegments}>
+                <button
+                  type="button"
+                  data-selected={theme === "light"}
+                  onClick={() => changeTheme("light")}
+                  aria-pressed={theme === "light"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  <SunIcon />
+                  <span>{t("Светлая")}</span>
+                </button>
+                <button
+                  type="button"
+                  data-selected={theme === "dark"}
+                  onClick={() => changeTheme("dark")}
+                  aria-pressed={theme === "dark"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  <MoonIcon />
+                  <span>{t("Тёмная")}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.settingsBlock}>
+              <span className={styles.settingsLabel}>{t("Язык")}</span>
+              <div className={styles.settingsSegments}>
+                <button
+                  type="button"
+                  data-selected={language === "ru"}
+                  onClick={() => applyLanguage("ru")}
+                  aria-pressed={language === "ru"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  Русский
+                </button>
+                <button
+                  type="button"
+                  data-selected={language === "uz"}
+                  onClick={() => applyLanguage("uz")}
+                  aria-pressed={language === "uz"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  O‘zbekcha
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <footer className={styles.settingsFooter}>
+            {t("Настройки сохраняются автоматически")}
+          </footer>
+        </section>
       </header>
 
-      <nav className={styles.sectionNav} aria-label="Разделы Control System">
+      <button
+        className={styles.settingsBackdrop}
+        data-open={settingsOpen}
+        type="button"
+        onClick={() => setSettingsOpen(false)}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
+
+      <nav className={styles.sectionNav} aria-label={t("Разделы Control System")}>
         <a className={styles.sectionNavItem} href="/admin/staff/">
-          Команда
+          {t("Команда")}
         </a>
         <a
           className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`}
           href="/admin/cars/"
           aria-current="page"
         >
-          Автомобили
+          {t("Автомобили")}
         </a>
       </nav>
 
@@ -358,10 +567,9 @@ export default function CarsPage() {
         <section className={styles.hero}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>AUTO SALE UMAR / CONTROL SYSTEM</p>
-            <h1>Автомобили</h1>
+            <h1>{t("Автомобили")}</h1>
             <p className={styles.lead}>
-              Единая база автомобилей Auto Sale Umar — в наличии, в пути,
-              зарезервированные и проданные.
+              {t("Единая база автомобилей Auto Sale Umar — в наличии, в пути, зарезервированные и проданные.")}
             </p>
           </div>
 
@@ -372,7 +580,7 @@ export default function CarsPage() {
             <span className={styles.ctaIcon}>
               <PlusIcon />
             </span>
-            <span>Добавить автомобиль</span>
+            <span>{t("Добавить автомобиль")}</span>
           </a>
         </section>
 
@@ -382,9 +590,11 @@ export default function CarsPage() {
               <CheckIcon />
             </span>
             <span>
-              Автомобиль сохранён в D1. Запись №{createdCarId} уже находится в общем каталоге.
+              {language === "uz"
+                ? `Avtomobil D1 bazasiga saqlandi. №${createdCarId} yozuv umumiy katalogda.`
+                : `Автомобиль сохранён в D1. Запись №${createdCarId} уже находится в общем каталоге.`}
             </span>
-            <button type="button" onClick={() => setCreatedCarId(null)} aria-label="Закрыть">
+            <button type="button" onClick={() => setCreatedCarId(null)} aria-label={t("Закрыть")}>
               <CloseSmallIcon />
             </button>
           </div>
@@ -392,17 +602,17 @@ export default function CarsPage() {
 
         <section
           className={styles.catalog}
-          aria-label="Каталог автомобилей"
+          aria-label={t("Каталог автомобилей")}
           aria-busy={loading}
         >
           <div className={styles.catalogTop}>
             <div>
-              <p className={styles.sectionKicker}>БАЗА АВТОМОБИЛЕЙ</p>
-              <h2>Каталог</h2>
+              <p className={styles.sectionKicker}>{t("БАЗА АВТОМОБИЛЕЙ")}</p>
+              <h2>{t("Каталог")}</h2>
             </div>
 
             <span className={styles.catalogCount}>
-              {authReady ? formatCarCount(total) : "Проверка доступа…"}
+              {authReady ? formatCarCount(total, language) : t("Проверка доступа…")}
             </span>
           </div>
 
@@ -413,17 +623,17 @@ export default function CarsPage() {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Марка, модель, VIN"
+                placeholder={t("Марка, модель, VIN")}
                 autoComplete="off"
                 spellCheck={false}
-                aria-label="Поиск автомобилей"
+                aria-label={t("Поиск автомобилей")}
               />
               {query ? (
                 <button
                   className={styles.clearSearch}
                   type="button"
                   onClick={() => setQuery("")}
-                  aria-label="Очистить поиск"
+                  aria-label={t("Очистить поиск")}
                 >
                   <CloseSmallIcon />
                 </button>
@@ -433,29 +643,32 @@ export default function CarsPage() {
             <button
               className={styles.filterButton}
               type="button"
-              onClick={() => setFiltersOpen(true)}
-              aria-label="Открыть фильтры"
+              onClick={() => {
+                setSettingsOpen(false);
+                setFiltersOpen(true);
+              }}
+              aria-label={t("Открыть фильтры")}
             >
               <FilterIcon />
-              <span>Фильтры</span>
+              <span>{t("Фильтры")}</span>
               {activeFilterCount > 0 ? (
                 <b className={styles.filterCount}>{activeFilterCount}</b>
               ) : null}
             </button>
           </div>
 
-          <div className={styles.statusScroller} aria-label="Статус автомобиля">
+          <div className={styles.statusScroller} aria-label={t("Статус автомобиля")}>
             {STATUS_FILTERS.map((item) => (
               <button
-                key={item.value}
+                key={item}
                 type="button"
                 className={`${styles.statusChip} ${
-                  status === item.value ? styles.statusChipActive : ""
+                  status === item ? styles.statusChipActive : ""
                 }`}
-                onClick={() => setStatus(item.value)}
-                aria-pressed={status === item.value}
+                onClick={() => setStatus(item)}
+                aria-pressed={status === item}
               >
-                {item.label}
+                {STATUS_FILTER_LABELS[language][item]}
               </button>
             ))}
           </div>
@@ -466,13 +679,13 @@ export default function CarsPage() {
             <div className={styles.loadError} role="alert">
               <span>{loadError}</span>
               <button type="button" onClick={() => setReloadToken((value) => value + 1)}>
-                Повторить
+                {t("Повторить")}
               </button>
             </div>
           ) : null}
 
           {loading && cars.length === 0 ? (
-            <div className={styles.skeletonGrid} aria-label="Загрузка автомобилей">
+            <div className={styles.skeletonGrid} aria-label={t("Загрузка автомобилей")}>
               {[0, 1, 2].map((item) => (
                 <div className={styles.skeletonCard} key={item} aria-hidden="true">
                   <span />
@@ -506,11 +719,11 @@ export default function CarsPage() {
                     )}
 
                     <span className={styles.statusBadge} data-status={car.status}>
-                      {STATUS_LABELS[car.status]}
+                      {STATUS_LABELS[language][car.status]}
                     </span>
 
                     <span className={styles.publishBadge} data-published={car.isPublic}>
-                      {car.isPublic ? "Опубликован" : "Черновик"}
+                      {car.isPublic ? t("Опубликован") : t("Черновик")}
                     </span>
                   </div>
 
@@ -527,7 +740,7 @@ export default function CarsPage() {
 
                     <div className={styles.carFacts}>
                       {car.countryCode ? (
-                        <span>{COUNTRY_LABELS[car.countryCode] ?? car.countryCode}</span>
+                        <span>{COUNTRY_LABELS[language][car.countryCode] ?? car.countryCode}</span>
                       ) : null}
                       {car.engineText ? <span>{car.engineText}</span> : null}
                       {car.exteriorColor ? <span>{car.exteriorColor}</span> : null}
@@ -535,8 +748,8 @@ export default function CarsPage() {
 
                     <div className={styles.carFooter}>
                       <div>
-                        <span className={styles.priceLabel}>Цена</span>
-                        <strong>{formatPrice(car)}</strong>
+                        <span className={styles.priceLabel}>{t("Цена")}</span>
+                        <strong>{formatPrice(car, language)}</strong>
                       </div>
                       <div className={styles.stockMeta}>
                         <span>{car.stockNumber || `ID ${car.id}`}</span>
@@ -555,17 +768,19 @@ export default function CarsPage() {
                 <CarOutlineIcon />
               </div>
               <p className={styles.emptyEyebrow}>
-                {query || activeFilterCount > 0 ? "НИЧЕГО НЕ НАЙДЕНО" : "БАЗА ГОТОВА К НАПОЛНЕНИЮ"}
+                {query || activeFilterCount > 0
+                  ? t("НИЧЕГО НЕ НАЙДЕНО")
+                  : t("БАЗА ГОТОВА К НАПОЛНЕНИЮ")}
               </p>
               <h3>
                 {query || activeFilterCount > 0
-                  ? "Измените поиск или фильтры"
-                  : "Добавьте первый автомобиль"}
+                  ? t("Измените поиск или фильтры")
+                  : t("Добавьте первый автомобиль")}
               </h3>
               <p>
                 {query || activeFilterCount > 0
-                  ? "В D1 нет автомобилей, соответствующих выбранным условиям."
-                  : "После сохранения здесь появятся только реальные автомобили AutoSale Umar."}
+                  ? t("В D1 нет автомобилей, соответствующих выбранным условиям.")
+                  : t("После сохранения здесь появятся только реальные автомобили AutoSale Umar.")}
               </p>
 
               {query || activeFilterCount > 0 ? (
@@ -577,11 +792,11 @@ export default function CarsPage() {
                     resetFilters();
                   }}
                 >
-                  Сбросить поиск
+                  {t("Сбросить поиск")}
                 </button>
               ) : (
                 <a className={styles.emptyReset} href="/admin/cars/new/">
-                  Добавить автомобиль
+                  {t("Добавить автомобиль")}
                 </a>
               )}
             </div>
@@ -595,7 +810,7 @@ export default function CarsPage() {
             className={styles.scrim}
             type="button"
             onClick={() => setFiltersOpen(false)}
-            aria-label="Закрыть фильтры"
+            aria-label={t("Закрыть фильтры")}
           />
 
           <section
@@ -607,51 +822,51 @@ export default function CarsPage() {
             <div className={styles.sheetHandle} />
             <div className={styles.sheetHeader}>
               <div>
-                <p className={styles.sheetEyebrow}>КАТАЛОГ</p>
-                <h2 id="cars-filter-title">Фильтры</h2>
+                <p className={styles.sheetEyebrow}>{t("КАТАЛОГ")}</p>
+                <h2 id="cars-filter-title">{t("Фильтры")}</h2>
               </div>
 
               <button
                 className={styles.sheetClose}
                 type="button"
                 onClick={() => setFiltersOpen(false)}
-                aria-label="Закрыть"
+                aria-label={t("Закрыть")}
               >
                 <CloseIcon />
               </button>
             </div>
 
             <div className={styles.filterGroup}>
-              <p>Статус</p>
+              <p>{t("Статус")}</p>
               <div className={styles.optionGrid}>
                 {STATUS_FILTERS.map((item) => (
                   <button
-                    key={item.value}
+                    key={item}
                     type="button"
                     className={`${styles.optionButton} ${
-                      status === item.value ? styles.optionButtonActive : ""
+                      status === item ? styles.optionButtonActive : ""
                     }`}
-                    onClick={() => setStatus(item.value)}
+                    onClick={() => setStatus(item)}
                   >
-                    {item.label}
+                    {STATUS_FILTER_LABELS[language][item]}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className={styles.filterGroup}>
-              <p>Страна</p>
+              <p>{t("Страна")}</p>
               <div className={styles.optionGrid}>
                 {COUNTRY_FILTERS.map((item) => (
                   <button
-                    key={item.value}
+                    key={item}
                     type="button"
                     className={`${styles.optionButton} ${
-                      country === item.value ? styles.optionButtonActive : ""
+                      country === item ? styles.optionButtonActive : ""
                     }`}
-                    onClick={() => setCountry(item.value)}
+                    onClick={() => setCountry(item)}
                   >
-                    {item.label}
+                    {COUNTRY_FILTER_LABELS[language][item]}
                   </button>
                 ))}
               </div>
@@ -659,14 +874,14 @@ export default function CarsPage() {
 
             <div className={styles.sheetActions}>
               <button className={styles.secondaryAction} type="button" onClick={resetFilters}>
-                Сбросить
+                {t("Сбросить")}
               </button>
               <button
                 className={styles.primaryAction}
                 type="button"
                 onClick={() => setFiltersOpen(false)}
               >
-                Готово
+                {t("Готово")}
               </button>
             </div>
           </section>
@@ -674,6 +889,16 @@ export default function CarsPage() {
       ) : null}
 
     </main>
+  );
+}
+
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <span className={styles.menuGlyph} data-open={open} aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
   );
 }
 

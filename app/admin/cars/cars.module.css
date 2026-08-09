@@ -1717,3 +1717,320 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* =========================================================
+   ASU SHARED SETTINGS SHEET
+   Same interaction language as Login and Staff.
+   ========================================================= */
+
+.header {
+  z-index: 50;
+}
+
+.wordmarkWrap {
+  width: min(330px, 100%);
+}
+
+.roundButton[data-active="true"] {
+  background: color-mix(in srgb, var(--solid) 96%, transparent);
+}
+
+.menuGlyph {
+  width: 24px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.menuGlyph i {
+  width: 19px;
+  height: 2px;
+  display: block;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  transition:
+    transform 300ms var(--spring),
+    opacity 180ms var(--ease),
+    width 240ms var(--ease);
+}
+
+.menuGlyph[data-open="true"] i:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menuGlyph[data-open="true"] i:nth-child(2) {
+  width: 0;
+  opacity: 0;
+}
+
+.menuGlyph[data-open="true"] i:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.settingsMenu {
+  width: min(540px, 100%);
+  height: clamp(470px, 68dvh, 620px);
+  max-height: calc(100dvh - 112px - env(safe-area-inset-top));
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 10px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 36px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--solid) 97%, transparent);
+  -webkit-backdrop-filter: blur(34px) saturate(145%);
+  backdrop-filter: blur(34px) saturate(145%);
+  box-shadow:
+    0 34px 100px rgba(9, 11, 14, .30),
+    inset 0 1px 0 rgba(255, 255, 255, .46);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  -webkit-clip-path: inset(0 0 94% 0 round 36px);
+  clip-path: inset(0 0 94% 0 round 36px);
+  transform: translateY(-18px) scale(.965);
+  transform-origin: top center;
+  transition:
+    opacity 240ms var(--spring),
+    visibility 0s linear 460ms,
+    transform 460ms var(--spring),
+    -webkit-clip-path 460ms var(--spring),
+    clip-path 460ms var(--spring),
+    color 560ms var(--ease),
+    background-color 560ms var(--ease),
+    border-color 560ms var(--ease);
+}
+
+.page[data-theme="dark"] .settingsMenu {
+  box-shadow:
+    0 38px 110px rgba(0, 0, 0, .62),
+    inset 0 1px 0 rgba(255, 255, 255, .075);
+}
+
+.settingsMenu[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  -webkit-clip-path: inset(0 0 0 0 round 36px);
+  clip-path: inset(0 0 0 0 round 36px);
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 260ms var(--spring),
+    visibility 0s linear 0s,
+    transform 520ms var(--spring),
+    -webkit-clip-path 520ms var(--spring),
+    clip-path 520ms var(--spring),
+    color 560ms var(--ease),
+    background-color 560ms var(--ease),
+    border-color 560ms var(--ease);
+}
+
+.settingsHeader,
+.settingsContent,
+.settingsFooter {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 180ms var(--ease), transform 260ms var(--spring);
+}
+
+.settingsMenu[data-open="true"] .settingsHeader {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 120ms;
+}
+
+.settingsMenu[data-open="true"] .settingsContent {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 190ms;
+}
+
+.settingsMenu[data-open="true"] .settingsFooter {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 250ms;
+}
+
+.settingsHeader {
+  text-align: left;
+}
+
+.settingsHeader > p {
+  margin: 0 0 8px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .16em;
+}
+
+.settingsHeader > h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 31px;
+  font-weight: 720;
+  letter-spacing: -.04em;
+  line-height: 1.05;
+}
+
+.settingsHeader > span {
+  display: block;
+  margin-top: 7px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.settingsContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 30px;
+  padding: 18px 0;
+}
+
+.settingsBlock {
+  display: grid;
+  gap: 11px;
+}
+
+.settingsLabel {
+  color: var(--text-2);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 640;
+}
+
+.settingsSegments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 21px;
+  background: var(--surface-soft);
+  transition: background-color 560ms var(--ease), border-color 560ms var(--ease);
+}
+
+.settingsSegments button {
+  min-width: 0;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 16px;
+  color: var(--text-2);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 660;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 180ms var(--ease),
+    background-color 180ms var(--ease),
+    transform 160ms var(--spring),
+    box-shadow 180ms var(--ease);
+}
+
+.settingsSegments button:active {
+  transform: scale(.97);
+}
+
+.settingsSegments button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  outline-offset: 2px;
+}
+
+.settingsSegments button[data-selected="true"] {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 7px 20px rgba(255, 106, 10, .22);
+}
+
+.settingsSegments svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.settingsFooter {
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  text-align: center;
+  font-size: 12px;
+}
+
+.settingsBackdrop {
+  position: fixed;
+  z-index: 45;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, .42);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 300ms var(--ease), visibility 0s linear 360ms;
+}
+
+.settingsBackdrop[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 360ms var(--ease), visibility 0s linear 0s;
+}
+
+@media (max-width: 760px) {
+  .wordmarkWrap {
+    width: min(285px, 100%);
+  }
+
+  .settingsMenu {
+    width: 100%;
+    height: clamp(470px, 68dvh, 620px);
+    padding: 22px 20px 18px;
+    border-radius: 32px;
+    -webkit-clip-path: inset(0 0 94% 0 round 32px);
+    clip-path: inset(0 0 94% 0 round 32px);
+  }
+
+  .settingsMenu[data-open="true"] {
+    -webkit-clip-path: inset(0 0 0 0 round 32px);
+    clip-path: inset(0 0 0 0 round 32px);
+  }
+
+  .settingsContent {
+    gap: 26px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .settingsMenu {
+    background: var(--solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .settingsBackdrop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
