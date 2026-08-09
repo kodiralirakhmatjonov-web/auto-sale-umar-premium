@@ -29,14 +29,7 @@ function MoonIcon() {
 function SunIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle
-        cx="12"
-        cy="12"
-        r="4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
       <path
         d="M12 2.4V5M12 19v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.4 12H5M19 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"
         fill="none"
@@ -63,6 +56,45 @@ function ArrowLeftIcon() {
   );
 }
 
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect
+        x="5.25"
+        y="10.25"
+        width="13.5"
+        height="10"
+        rx="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M8.4 10.25V7.8a3.6 3.6 0 0 1 7.2 0v2.45"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="m9.5 5.5 6.5 6.5-6.5 6.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [theme, setTheme] = useState<Theme>("light");
@@ -75,14 +107,14 @@ export default function AdminLoginPage() {
     try {
       window.localStorage.setItem("asu-theme", nextTheme);
     } catch {
-      // Theme persistence is optional.
+      // The system theme remains a safe fallback when storage is unavailable.
     }
 
     document.documentElement.dataset.asuTheme = nextTheme;
     document.documentElement.style.colorScheme = nextTheme;
     document.body.dataset.asuTheme = nextTheme;
 
-    const themeColor = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
+    const themeColor = nextTheme === "light" ? "#f5f5f7" : "#000000";
     document.documentElement.style.backgroundColor = themeColor;
     document.body.style.backgroundColor = themeColor;
 
@@ -109,7 +141,7 @@ export default function AdminLoginPage() {
         return;
       }
     } catch {
-      // Continue to system theme.
+      // Continue with the system preference.
     }
 
     const systemDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
@@ -122,14 +154,17 @@ export default function AdminLoginPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
+
     setError("");
     setLoading(true);
 
     const form = new FormData(event.currentTarget);
 
     try {
-      const response = await fetch("/api/v1/auth/login", {
+      const response = await fetch("/api/login", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           email: String(form.get("email") ?? ""),
@@ -147,7 +182,7 @@ export default function AdminLoginPage() {
       router.replace("/admin/staff/");
       router.refresh();
     } catch {
-      setError("Не удалось связаться с сервером.");
+      setError("Не удалось связаться с сервером. Проверьте подключение и повторите вход.");
     } finally {
       setLoading(false);
     }
@@ -155,81 +190,59 @@ export default function AdminLoginPage() {
 
   return (
     <main className={styles.page} data-theme={theme}>
-      <div className={styles.ambient} aria-hidden="true">
-        <span className={styles.ambientOne} />
-        <span className={styles.ambientTwo} />
-      </div>
+      <header className={styles.toolbar}>
+        <a className={styles.toolbarButton} href="/" aria-label="Вернуться на сайт">
+          <ArrowLeftIcon />
+        </a>
 
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <a className={styles.roundButton} href="/" aria-label="Вернуться на сайт">
-            <ArrowLeftIcon />
-          </a>
+        <a className={styles.wordmarkWrap} href="/" aria-label="Auto Sale Umar — на главную">
+          <img
+            className={`${styles.wordmark} ${styles.wordmarkLight}`}
+            src="/brand/asu-wordmark-black.png"
+            alt="Auto Sale Umar"
+          />
+          <img
+            className={`${styles.wordmark} ${styles.wordmarkDark}`}
+            src="/brand/asu-wordmark-white.png"
+            alt=""
+            aria-hidden="true"
+          />
+        </a>
 
-          <div className={styles.wordmarkWrap} aria-label="Auto Sale Umar">
-            <img
-              className={`${styles.wordmark} ${styles.wordmarkLight}`}
-              src="/brand/asu-wordmark-black.png"
-              alt="Auto Sale Umar"
-            />
-            <img
-              className={`${styles.wordmark} ${styles.wordmarkDark}`}
-              src="/brand/asu-wordmark-white.png"
-              alt=""
-              aria-hidden="true"
-            />
-          </div>
-
-          <button
-            className={styles.roundButton}
-            type="button"
-            onClick={toggleTheme}
-            aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
-          >
-            <span className={styles.iconStage}>
-              <span className={styles.moonIcon}>
-                <MoonIcon />
-              </span>
-              <span className={styles.sunIcon}>
-                <SunIcon />
-              </span>
-            </span>
-          </button>
-        </div>
+        <button
+          className={styles.toolbarButton}
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
+          aria-pressed={theme === "dark"}
+        >
+          <span className={styles.iconStage}>
+            <span className={styles.moonIcon}><MoonIcon /></span>
+            <span className={styles.sunIcon}><SunIcon /></span>
+          </span>
+        </button>
       </header>
 
       <section className={styles.content}>
-        <div className={styles.intro}>
-          <div className={styles.pills}>
-            <span className={styles.pill}>CONTROL SYSTEM</span>
-            <span className={styles.pill}>
-              <i className={styles.onlineDot} />
-              SECURE ACCESS
-            </span>
+        <div className={styles.heading}>
+          <div className={styles.productLabel}>
+            <span className={styles.statusDot} aria-hidden="true" />
+            CONTROL SYSTEM
           </div>
-
-          <p className={styles.eyebrow}>AUTO SALE UMAR</p>
-          <h1 className={styles.headline}>
-            Управление.
-            <br />
-            Без лишнего.
-          </h1>
-          <p className={styles.lead}>
-            Закрытая система для команды Auto Sale Umar: сотрудники,
-            автомобили, клиенты и операции в одном пространстве.
-          </p>
+          <h1>Вход для команды</h1>
+          <p>Автомобили, сотрудники и операции Auto Sale Umar в одном защищённом пространстве.</p>
         </div>
 
-        <section className={styles.loginCard} aria-label="Вход в систему">
-          <div className={styles.cardTop}>
+        <section className={styles.loginCard} aria-labelledby="login-title">
+          <div className={styles.cardHeader}>
+            <span className={styles.lockIcon} aria-hidden="true"><LockIcon /></span>
             <div>
-              <p className={styles.cardEyebrow}>ЗАЩИЩЁННЫЙ ВХОД</p>
-              <h2 className={styles.cardTitle}>Войти</h2>
+              <h2 id="login-title">Добро пожаловать</h2>
+              <p>Используйте рабочую учётную запись.</p>
             </div>
-            <span className={styles.securityBadge}>D1</span>
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
+          <form className={styles.form} onSubmit={handleSubmit} aria-busy={loading}>
             <label className={styles.field}>
               <span>Электронная почта</span>
               <input
@@ -237,7 +250,10 @@ export default function AdminLoginPage() {
                 type="email"
                 inputMode="email"
                 autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 autoComplete="email"
+                enterKeyHint="next"
                 placeholder="name@example.com"
                 required
               />
@@ -249,23 +265,26 @@ export default function AdminLoginPage() {
                 name="password"
                 type="password"
                 autoComplete="current-password"
+                enterKeyHint="go"
                 placeholder="Введите пароль"
                 required
               />
             </label>
 
-            {error ? <p className={styles.error}>{error}</p> : null}
+            <div className={styles.messageSlot} aria-live="polite">
+              {error ? <p className={styles.error} role="alert">{error}</p> : null}
+            </div>
 
             <button className={styles.submit} type="submit" disabled={loading}>
-              <span>{loading ? "Входим…" : "Войти в Control System"}</span>
-              <span className={styles.submitArrow} aria-hidden="true">→</span>
+              <span>{loading ? "Проверяем…" : "Продолжить"}</span>
+              <span className={styles.submitIcon} aria-hidden="true"><ArrowRightIcon /></span>
             </button>
           </form>
 
-          <div className={styles.cardFooter}>
-            <span className={styles.lockDot} aria-hidden="true" />
-            <span>Сессия защищена. Доступ только для сотрудников.</span>
-          </div>
+          <footer className={styles.cardFooter}>
+            <LockIcon />
+            <span>Защищённая сессия · доступ только для сотрудников</span>
+          </footer>
         </section>
       </section>
     </main>
