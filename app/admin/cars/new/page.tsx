@@ -12,7 +12,14 @@ import {
 import styles from "./new-car.module.css";
 
 type Theme = "light" | "dark";
-type CarStatus = "in_stock" | "in_transit" | "reserved" | "sold";
+type CarStatus =
+  | "in_stock"
+  | "in_showroom"
+  | "in_transit"
+  | "made_to_order"
+  | "reserved"
+  | "sold"
+  | "hidden";
 type Currency = "USD" | "UZS" | "EUR";
 
 type ViewTransitionDocument = Document & {
@@ -70,6 +77,14 @@ interface CreateCarResponse {
   };
 }
 
+interface MeResponse {
+  success?: boolean;
+  error?: string;
+  user?: {
+    role?: "super_admin" | "admin" | "sales_manager";
+  };
+}
+
 const BRANDS = [
   { value: "Mercedes-Benz", mark: "MERCEDES\nBENZ" },
   { value: "Range Rover", mark: "RANGE\nROVER" },
@@ -84,9 +99,12 @@ const BRANDS = [
 
 const STATUS_OPTIONS: Array<{ value: CarStatus; label: string }> = [
   { value: "in_stock", label: "В наличии" },
+  { value: "in_showroom", label: "В шоуруме" },
   { value: "in_transit", label: "В пути" },
+  { value: "made_to_order", label: "Под заказ" },
   { value: "reserved", label: "Резерв" },
   { value: "sold", label: "Продан" },
+  { value: "hidden", label: "Скрыт" },
 ];
 
 const COUNTRY_OPTIONS = [
@@ -199,11 +217,12 @@ export default function NewCarPage() {
 
     async function verifySession() {
       try {
-        const response = await fetch("/api/me", {
+        const response = await fetch("/api/v1/auth/me", {
           credentials: "same-origin",
           cache: "no-store",
           headers: { Accept: "application/json" },
         });
+        const data = (await response.json().catch(() => null)) as MeResponse | null;
 
         if (response.status === 401) {
           location.replace("/admin/login/");
@@ -211,7 +230,11 @@ export default function NewCarPage() {
         }
 
         if (!response.ok) {
-          throw new Error("Не удалось проверить защищённую сессию.");
+          throw new Error(data?.error || "Не удалось проверить защищённую сессию.");
+        }
+
+        if (data?.user?.role !== "super_admin" && data?.user?.role !== "admin") {
+          throw new Error("У вашей роли нет права добавлять автомобили.");
         }
 
         if (!cancelled) {
@@ -369,7 +392,7 @@ export default function NewCarPage() {
         isFeatured: form.isFeatured,
       };
 
-      const response = await fetch("/api/cars", {
+      const response = await fetch("/api/v1/cars", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",
