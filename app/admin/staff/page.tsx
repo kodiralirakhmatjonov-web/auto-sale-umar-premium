@@ -8,6 +8,7 @@ type StaffRole = "super_admin" | "admin" | "sales_manager";
 type StaffStatus = "active" | "blocked" | string;
 type CreatableStaffRole = "admin" | "sales_manager";
 type Theme = "light" | "dark";
+type Language = "ru" | "uz";
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (updateCallback: () => void) => {
@@ -87,10 +88,99 @@ const EMPTY_FORM: StaffForm = {
   role: "sales_manager",
 };
 
-const ROLE_LABELS: Record<StaffRole, string> = {
-  super_admin: "Супер-администратор",
-  admin: "Администратор",
-  sales_manager: "Менеджер",
+const ROLE_LABELS: Record<Language, Record<StaffRole, string>> = {
+  ru: {
+    super_admin: "Супер-администратор",
+    admin: "Администратор",
+    sales_manager: "Менеджер",
+  },
+  uz: {
+    super_admin: "Super administrator",
+    admin: "Administrator",
+    sales_manager: "Menejer",
+  },
+};
+
+const UZ_COPY: Record<string, string> = {
+  "Вернуться на сайт": "Saytga qaytish",
+  "Открыть настройки": "Sozlamalarni ochish",
+  "Закрыть настройки": "Sozlamalarni yopish",
+  "Настройки": "Sozlamalar",
+  "Выберите оформление и язык": "Ko‘rinish va tilni tanlang",
+  "Оформление": "Ko‘rinish",
+  "Светлая": "Yorug‘",
+  "Тёмная": "Tungi",
+  "Язык": "Til",
+  "Настройки сохраняются автоматически": "Sozlamalar avtomatik saqlanadi",
+  "Разделы Control System": "Control System bo‘limlari",
+  "Команда": "Jamoa",
+  "Автомобили": "Avtomobillar",
+  "Управление менеджерами и их доступом к экосистеме Auto Sale Umar":
+    "Menejerlar va ularning Auto Sale Umar tizimiga kirishini boshqarish",
+  "Управление всей командой Auto Sale Umar, ролями и доступом к системе":
+    "Auto Sale Umar jamoasi, rollar va tizimga kirishni boshqarish",
+  "Добавить сотрудника": "Xodim qo‘shish",
+  "Загрузка сотрудников": "Xodimlar yuklanmoqda",
+  "Не удалось загрузить данные": "Ma’lumotlarni yuklab bo‘lmadi",
+  "Повторить": "Qayta urinish",
+  "Обзор доступа": "Kirish nazorati",
+  "Обновляется из D1": "D1 orqali yangilanadi",
+  "Статистика сотрудников": "Xodimlar statistikasi",
+  "Всего": "Jami",
+  "активных": "faol",
+  "Администраторы": "Administratorlar",
+  "доступ к управлению": "boshqaruv huquqi",
+  "Менеджеры": "Menejerlar",
+  "работа с клиентами": "mijozlar bilan ishlaydi",
+  "Заблокированы": "Bloklangan",
+  "без доступа": "kirish huquqisiz",
+  "Сотрудники": "Xodimlar",
+  "профиль": "profil",
+  "профилей": "profil",
+  "Сотрудников пока нет": "Hozircha xodimlar yo‘q",
+  "После создания они появятся здесь автоматически.":
+    "Yaratilgandan keyin ular bu yerda avtomatik ko‘rinadi.",
+  "Вы": "Siz",
+  "Супер-администратор защищён": "Super administrator himoyalangan",
+  "Управление сотрудником": "Xodimni boshqarish",
+  "Активен": "Faol",
+  "Заблокирован": "Bloklangan",
+  "Телефон": "Telefon",
+  "Не указан": "Ko‘rsatilmagan",
+  "Последний вход": "Oxirgi kirish",
+  "ПРОФИЛЬ СОТРУДНИКА": "XODIM PROFILI",
+  "Закрыть": "Yopish",
+  "Роль в системе": "Tizimdagi rol",
+  "Изменение применяется сразу": "O‘zgarish darhol qo‘llanadi",
+  "Менеджер": "Menejer",
+  "Автомобили, клиенты и визиты": "Avtomobillar, mijozlar va tashriflar",
+  "Администратор": "Administrator",
+  "Управление системой и менеджерами": "Tizim va menejerlarni boshqarish",
+  "Доступ": "Kirish huquqi",
+  "Блокировка прекращает доступ к системе": "Bloklash tizimga kirishni to‘xtatadi",
+  "Заблокировать доступ": "Kirishni bloklash",
+  "Восстановить доступ": "Kirishni tiklash",
+  "ДОСТУП СОЗДАН": "KIRISH YARATILDI",
+  "Профиль добавлен в Auto Sale Umar Control System. Передайте сотруднику логин и временный пароль.":
+    "Profil Auto Sale Umar Control System tizimiga qo‘shildi. Xodimga login va vaqtinchalik parolni bering.",
+  "Логин": "Login",
+  "Временный пароль": "Vaqtinchalik parol",
+  "Пароль показывается здесь для передачи сотруднику. Не публикуйте его и не отправляйте в общий чат.":
+    "Parol xodimga berish uchun shu yerda ko‘rsatiladi. Uni e’lon qilmang va umumiy chatga yubormang.",
+  "Скопировано": "Nusxalandi",
+  "Скопировать пароль": "Parolni nusxalash",
+  "Готово": "Tayyor",
+  "НОВЫЙ ДОСТУП": "YANGI KIRISH",
+  "Создайте защищённый профиль для команды Auto Sale Umar.":
+    "Auto Sale Umar jamoasi uchun himoyalangan profil yarating.",
+  "Имя и фамилия": "Ism va familiya",
+  "Например, Akmal Karimov": "Masalan, Akmal Karimov",
+  "Электронная почта": "Elektron pochta",
+  "Работа с автомобилями, клиентами и визитами":
+    "Avtomobillar, mijozlar va tashriflar bilan ishlash",
+  "Отмена": "Bekor qilish",
+  "Создаём профиль…": "Profil yaratilmoqda…",
+  "Создать сотрудника": "Xodim yaratish",
 };
 
 function initials(name: string): string {
@@ -104,13 +194,13 @@ function initials(name: string): string {
   return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
 
-function formatLastLogin(value: string | null): string {
-  if (!value) return "Ещё не входил";
+function formatLastLogin(value: string | null, language: Language): string {
+  if (!value) return language === "uz" ? "Hali tizimga kirmagan" : "Ещё не входил";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Нет данных";
+  if (Number.isNaN(date.getTime())) return language === "uz" ? "Ma’lumot yo‘q" : "Нет данных";
 
-  return new Intl.DateTimeFormat("ru-RU", {
+  return new Intl.DateTimeFormat(language === "uz" ? "uz-UZ" : "ru-RU", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -122,8 +212,37 @@ function normalizeClientEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <span className={styles.menuGlyph} data-open={open} aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3a9 9 0 1 0 9 9c0-.5-.04-1-.12-1.47A7 7 0 0 1 12 3Z" />
+    </svg>
+  );
+}
+
 export default function StaffPage() {
   const [theme, setTheme] = useState<Theme>("light");
+  const [language, setLanguage] = useState<Language>("ru");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [summary, setSummary] = useState<StaffSummary>(EMPTY_SUMMARY);
   const [viewerRole, setViewerRole] = useState<StaffRole | null>(null);
@@ -143,12 +262,17 @@ export default function StaffPage() {
   const [updatingMember, setUpdatingMember] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const t = useCallback(
+    (russian: string) => (language === "uz" ? (UZ_COPY[russian] ?? russian) : russian),
+    [language],
+  );
+
   const loadStaff = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/v1/staff", {
+      const response = await fetch("/api/staff", {
         method: "GET",
         credentials: "same-origin",
         cache: "no-store",
@@ -165,7 +289,11 @@ export default function StaffPage() {
       const data = (await response.json()) as StaffResponse;
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Не удалось загрузить сотрудников.");
+        throw new Error(
+          document.documentElement.lang === "uz"
+            ? "Xodimlarni yuklab bo‘lmadi."
+            : (data.error || "Не удалось загрузить сотрудников."),
+        );
       }
 
       setStaff(Array.isArray(data.staff) ? data.staff : []);
@@ -176,7 +304,9 @@ export default function StaffPage() {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Не удалось загрузить сотрудников. Попробуйте ещё раз.",
+          : document.documentElement.lang === "uz"
+            ? "Xodimlarni yuklab bo‘lmadi. Qayta urinib ko‘ring."
+            : "Не удалось загрузить сотрудников. Попробуйте ещё раз.",
       );
     } finally {
       setLoading(false);
@@ -233,8 +363,9 @@ export default function StaffPage() {
     }
   }, [applyTheme]);
 
-  const toggleTheme = () => {
-    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+  const changeTheme = (nextTheme: Theme) => {
+    if (nextTheme === theme) return;
+
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const transitionDocument = document as ViewTransitionDocument;
 
@@ -248,14 +379,39 @@ export default function StaffPage() {
     applyTheme(nextTheme);
   };
 
+  const applyLanguage = useCallback((nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    document.documentElement.lang = nextLanguage;
+
+    try {
+      window.localStorage.setItem("asu-language", nextLanguage);
+    } catch {
+      // The browser language remains the fallback.
+    }
+  }, []);
+
   useEffect(() => {
-    if (!createOpen && !selectedMember) return;
+    let nextLanguage: Language = navigator.language.toLowerCase().startsWith("uz") ? "uz" : "ru";
+
+    try {
+      const stored = window.localStorage.getItem("asu-language");
+      if (stored === "ru" || stored === "uz") nextLanguage = stored;
+    } catch {
+      // Continue with the browser language.
+    }
+
+    applyLanguage(nextLanguage);
+  }, [applyLanguage]);
+
+  useEffect(() => {
+    if (!settingsOpen && !createOpen && !selectedMember) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || creating || updatingMember) return;
+      setSettingsOpen(false);
       setCreateOpen(false);
       setSelectedMember(null);
       setActionError(null);
@@ -267,27 +423,28 @@ export default function StaffPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [createOpen, selectedMember, creating, updatingMember]);
+  }, [settingsOpen, createOpen, selectedMember, creating, updatingMember]);
 
   const subtitle = useMemo(() => {
     if (scope === "sales_managers") {
-      return "Управление менеджерами и их доступом к экосистеме Auto Sale Umar";
+      return t("Управление менеджерами и их доступом к экосистеме Auto Sale Umar");
     }
-    return "Управление всей командой Auto Sale Umar, ролями и доступом к системе";
-  }, [scope]);
+    return t("Управление всей командой Auto Sale Umar, ролями и доступом к системе");
+  }, [scope, t]);
 
   const roleOptions = useMemo(() => {
     if (viewerRole === "super_admin") {
       return [
-        { value: "sales_manager" as const, label: "Менеджер" },
-        { value: "admin" as const, label: "Администратор" },
+        { value: "sales_manager" as const, label: t("Менеджер") },
+        { value: "admin" as const, label: t("Администратор") },
       ];
     }
 
-    return [{ value: "sales_manager" as const, label: "Менеджер" }];
-  }, [viewerRole]);
+    return [{ value: "sales_manager" as const, label: t("Менеджер") }];
+  }, [viewerRole, t]);
 
   const openCreate = () => {
+    setSettingsOpen(false);
     setForm({
       ...EMPTY_FORM,
       role: viewerRole === "admin" ? "sales_manager" : EMPTY_FORM.role,
@@ -306,6 +463,7 @@ export default function StaffPage() {
 
   const openMemberActions = (member: StaffMember) => {
     if (member.role === "super_admin") return;
+    setSettingsOpen(false);
     setActionError(null);
     setSelectedMember(member);
   };
@@ -323,7 +481,7 @@ export default function StaffPage() {
     setActionError(null);
 
     try {
-      const response = await fetch("/api/v1/staff", {
+      const response = await fetch("/api/staff", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",
@@ -349,11 +507,19 @@ export default function StaffPage() {
       try {
         data = JSON.parse(responseText) as UpdateStaffResponse;
       } catch {
-        throw new Error(`Сервер вернул некорректный ответ (${response.status}).`);
+        throw new Error(
+          language === "uz"
+            ? `Server noto‘g‘ri javob qaytardi (${response.status}).`
+            : `Сервер вернул некорректный ответ (${response.status}).`,
+        );
       }
 
       if (!response.ok || !data.success || !data.staff) {
-        throw new Error(data.error || "Не удалось обновить сотрудника.");
+        throw new Error(
+          language === "uz"
+            ? "Xodimni yangilab bo‘lmadi."
+            : (data.error || "Не удалось обновить сотрудника."),
+        );
       }
 
       setSelectedMember(data.staff);
@@ -362,7 +528,9 @@ export default function StaffPage() {
       setActionError(
         caught instanceof Error
           ? caught.message
-          : "Не удалось обновить сотрудника. Попробуйте ещё раз.",
+          : language === "uz"
+            ? "Xodimni yangilab bo‘lmadi. Qayta urinib ko‘ring."
+            : "Не удалось обновить сотрудника. Попробуйте ещё раз.",
       );
     } finally {
       setUpdatingMember(false);
@@ -378,12 +546,16 @@ export default function StaffPage() {
     const phone = form.phone.trim();
 
     if (fullName.length < 2) {
-      setFormError("Введите имя сотрудника.");
+      setFormError(language === "uz" ? "Xodim ismini kiriting." : "Введите имя сотрудника.");
       return;
     }
 
     if (!email || !email.includes("@")) {
-      setFormError("Введите корректную электронную почту.");
+      setFormError(
+        language === "uz"
+          ? "To‘g‘ri elektron pochta manzilini kiriting."
+          : "Введите корректную электронную почту.",
+      );
       return;
     }
 
@@ -391,7 +563,7 @@ export default function StaffPage() {
     setFormError(null);
 
     try {
-      const response = await fetch("/api/v1/staff", {
+      const response = await fetch("/api/staff", {
         method: "POST",
         credentials: "same-origin",
         headers: {
@@ -414,7 +586,11 @@ export default function StaffPage() {
       const data = (await response.json()) as CreateStaffResponse;
 
       if (!response.ok || !data.success || !data.staff || !data.temporaryPassword) {
-        throw new Error(data.error || "Не удалось создать сотрудника.");
+        throw new Error(
+          language === "uz"
+            ? "Xodimni yaratib bo‘lmadi."
+            : (data.error || "Не удалось создать сотрудника."),
+        );
       }
 
       setCreatedMember(data.staff);
@@ -425,7 +601,9 @@ export default function StaffPage() {
       setFormError(
         caught instanceof Error
           ? caught.message
-          : "Не удалось создать сотрудника. Попробуйте ещё раз.",
+          : language === "uz"
+            ? "Xodimni yaratib bo‘lmadi. Qayta urinib ko‘ring."
+            : "Не удалось создать сотрудника. Попробуйте ещё раз.",
       );
     } finally {
       setCreating(false);
@@ -449,7 +627,7 @@ export default function StaffPage() {
       <div className={styles.ambient} aria-hidden="true" />
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
-          <a className={styles.backButton} href="/" aria-label="Вернуться на сайт">
+          <a className={styles.backButton} href="/" aria-label={t("Вернуться на сайт")}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -474,33 +652,108 @@ export default function StaffPage() {
           <button
             className={styles.themeButton}
             type="button"
-            onClick={toggleTheme}
-            aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
-            title={theme === "light" ? "Тёмная тема" : "Светлая тема"}
+            data-active={settingsOpen}
+            onClick={() => setSettingsOpen((current) => !current)}
+            aria-label={settingsOpen ? t("Закрыть настройки") : t("Открыть настройки")}
+            aria-expanded={settingsOpen}
+            aria-controls="staff-interface-options"
           >
-            <span className={styles.themeIconStage} aria-hidden="true">
-              <svg className={styles.moonIcon} viewBox="0 0 24 24">
-                <path d="M12 3a9 9 0 1 0 9 9c0-.5-.04-1-.12-1.47A7 7 0 0 1 12 3Z" />
-              </svg>
-              <svg className={styles.sunIcon} viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
-              </svg>
-            </span>
+            <MenuIcon open={settingsOpen} />
           </button>
         </div>
+
+        <section
+          className={styles.settingsMenu}
+          id="staff-interface-options"
+          data-open={settingsOpen}
+          aria-hidden={!settingsOpen}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="staff-options-title"
+        >
+          <header className={styles.settingsHeader}>
+            <p>CONTROL SYSTEM</p>
+            <h2 id="staff-options-title">{t("Настройки")}</h2>
+            <span>{t("Выберите оформление и язык")}</span>
+          </header>
+
+          <div className={styles.settingsContent}>
+            <div className={styles.settingsBlock}>
+              <span className={styles.settingsLabel}>{t("Оформление")}</span>
+              <div className={styles.settingsSegments}>
+                <button
+                  type="button"
+                  data-selected={theme === "light"}
+                  onClick={() => changeTheme("light")}
+                  aria-pressed={theme === "light"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  <SunIcon />
+                  <span>{t("Светлая")}</span>
+                </button>
+                <button
+                  type="button"
+                  data-selected={theme === "dark"}
+                  onClick={() => changeTheme("dark")}
+                  aria-pressed={theme === "dark"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  <MoonIcon />
+                  <span>{t("Тёмная")}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.settingsBlock}>
+              <span className={styles.settingsLabel}>{t("Язык")}</span>
+              <div className={styles.settingsSegments}>
+                <button
+                  type="button"
+                  data-selected={language === "ru"}
+                  onClick={() => applyLanguage("ru")}
+                  aria-pressed={language === "ru"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  Русский
+                </button>
+                <button
+                  type="button"
+                  data-selected={language === "uz"}
+                  onClick={() => applyLanguage("uz")}
+                  aria-pressed={language === "uz"}
+                  tabIndex={settingsOpen ? 0 : -1}
+                >
+                  O‘zbekcha
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <footer className={styles.settingsFooter}>
+            {t("Настройки сохраняются автоматически")}
+          </footer>
+        </section>
       </header>
 
-      <nav className={styles.sectionNav} aria-label="Разделы Control System">
+      <button
+        className={styles.settingsBackdrop}
+        data-open={settingsOpen}
+        type="button"
+        onClick={() => setSettingsOpen(false)}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
+
+      <nav className={styles.sectionNav} aria-label={t("Разделы Control System")}>
         <a
           className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`}
           href="/admin/staff/"
           aria-current="page"
         >
-          Команда
+          {t("Команда")}
         </a>
         <a className={styles.sectionNavItem} href="/admin/cars/">
-          Автомобили
+          {t("Автомобили")}
         </a>
       </nav>
 
@@ -512,7 +765,7 @@ export default function StaffPage() {
               <span className={styles.livePill}><i aria-hidden="true" />D1 ONLINE</span>
             </div>
             <p className={styles.eyebrow}>AUTO SALE UMAR</p>
-            <h1>Команда</h1>
+            <h1>{t("Команда")}</h1>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
 
@@ -520,12 +773,12 @@ export default function StaffPage() {
             <span className={styles.addIcon} aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
             </span>
-            <span>Добавить сотрудника</span>
+            <span>{t("Добавить сотрудника")}</span>
           </button>
         </div>
 
         {loading ? (
-          <div className={styles.loadingGrid} aria-label="Загрузка сотрудников">
+          <div className={styles.loadingGrid} aria-label={t("Загрузка сотрудников")}>
             <div className={styles.skeletonMetric} />
             <div className={styles.skeletonMetric} />
             <div className={styles.skeletonMetric} />
@@ -534,47 +787,49 @@ export default function StaffPage() {
         ) : error ? (
           <section className={styles.errorCard} role="alert">
             <div>
-              <p>Не удалось загрузить данные</p>
+              <p>{t("Не удалось загрузить данные")}</p>
               <span>{error}</span>
             </div>
             <button type="button" onClick={() => void loadStaff()}>
-              Повторить
+              {t("Повторить")}
             </button>
           </section>
         ) : (
           <>
             <div className={styles.dashboardLabel}>
-              <span>Обзор доступа</span>
-              <small>Обновляется из D1</small>
+              <span>{t("Обзор доступа")}</span>
+              <small>{t("Обновляется из D1")}</small>
             </div>
-            <section className={styles.metrics} aria-label="Статистика сотрудников">
+            <section className={styles.metrics} aria-label={t("Статистика сотрудников")}>
               <article className={styles.metricCard}>
-                <span>Всего</span>
+                <span>{t("Всего")}</span>
                 <strong>{summary.total}</strong>
-                <small>{summary.active} активных</small>
+                <small>{summary.active} {t("активных")}</small>
               </article>
               <article className={styles.metricCard}>
-                <span>Администраторы</span>
+                <span>{t("Администраторы")}</span>
                 <strong>{summary.admins}</strong>
-                <small>доступ к управлению</small>
+                <small>{t("доступ к управлению")}</small>
               </article>
               <article className={styles.metricCard}>
-                <span>Менеджеры</span>
+                <span>{t("Менеджеры")}</span>
                 <strong>{summary.managers}</strong>
-                <small>работа с клиентами</small>
+                <small>{t("работа с клиентами")}</small>
               </article>
               <article className={styles.metricCard}>
-                <span>Заблокированы</span>
+                <span>{t("Заблокированы")}</span>
                 <strong>{summary.blocked}</strong>
-                <small>без доступа</small>
+                <small>{t("без доступа")}</small>
               </article>
             </section>
 
             <section className={styles.staffSection}>
               <div className={styles.sectionHeading}>
                 <div>
-                  <p>Сотрудники</p>
-                  <span>{summary.total === 1 ? "1 профиль" : `${summary.total} профилей`}</span>
+                  <p>{t("Сотрудники")}</p>
+                  <span>
+                    {summary.total} {summary.total === 1 ? t("профиль") : t("профилей")}
+                  </span>
                 </div>
                 <span className={styles.liveBadge}>
                   <i aria-hidden="true" />
@@ -584,14 +839,14 @@ export default function StaffPage() {
 
               {staff.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <strong>Сотрудников пока нет</strong>
-                  <span>После создания они появятся здесь автоматически.</span>
+                  <strong>{t("Сотрудников пока нет")}</strong>
+                  <span>{t("После создания они появятся здесь автоматически.")}</span>
                 </div>
               ) : (
                 <div className={styles.staffList}>
                   {staff.map((member, index) => {
                     const active = member.status === "active";
-                    const roleLabel = ROLE_LABELS[member.role] ?? member.role;
+                    const roleLabel = ROLE_LABELS[language][member.role] ?? member.role;
 
                     return (
                       <article
@@ -608,7 +863,7 @@ export default function StaffPage() {
                             <div>
                               <div className={styles.nameLine}>
                                 <h2>{member.fullName}</h2>
-                                {member.isCurrentUser ? <span className={styles.youBadge}>Вы</span> : null}
+                                {member.isCurrentUser ? <span className={styles.youBadge}>{t("Вы")}</span> : null}
                               </div>
                               <p>{member.email}</p>
                             </div>
@@ -616,11 +871,11 @@ export default function StaffPage() {
                               className={styles.moreButton}
                               type="button"
                               disabled={member.role === "super_admin"}
-                              aria-label={`Действия для ${member.fullName}`}
+                              aria-label={`${language === "uz" ? "Amallar" : "Действия для"} ${member.fullName}`}
                               title={
                                 member.role === "super_admin"
-                                  ? "Супер-администратор защищён"
-                                  : "Управление сотрудником"
+                                  ? t("Супер-администратор защищён")
+                                  : t("Управление сотрудником")
                               }
                               onClick={() => openMemberActions(member)}
                             >
@@ -632,18 +887,18 @@ export default function StaffPage() {
                             <span className={styles.roleBadge}>{roleLabel}</span>
                             <span className={active ? styles.activeBadge : styles.blockedBadge}>
                               <i aria-hidden="true" />
-                              {active ? "Активен" : "Заблокирован"}
+                              {active ? t("Активен") : t("Заблокирован")}
                             </span>
                           </div>
 
                           <div className={styles.memberMeta}>
                             <div>
-                              <span>Телефон</span>
-                              <strong>{member.phone || "Не указан"}</strong>
+                              <span>{t("Телефон")}</span>
+                              <strong>{member.phone || t("Не указан")}</strong>
                             </div>
                             <div>
-                              <span>Последний вход</span>
-                              <strong>{formatLastLogin(member.lastLoginAt)}</strong>
+                              <span>{t("Последний вход")}</span>
+                              <strong>{formatLastLogin(member.lastLoginAt, language)}</strong>
                             </div>
                           </div>
                         </div>
@@ -675,7 +930,7 @@ export default function StaffPage() {
                   {initials(selectedMember.fullName)}
                 </div>
                 <div>
-                  <p className={styles.modalEyebrow}>ПРОФИЛЬ СОТРУДНИКА</p>
+                  <p className={styles.modalEyebrow}>{t("ПРОФИЛЬ СОТРУДНИКА")}</p>
                   <h2 id="staff-actions-title">{selectedMember.fullName}</h2>
                   <span>{selectedMember.email}</span>
                 </div>
@@ -685,7 +940,7 @@ export default function StaffPage() {
                 type="button"
                 onClick={closeMemberActions}
                 disabled={updatingMember}
-                aria-label="Закрыть"
+                aria-label={t("Закрыть")}
               >
                 ×
               </button>
@@ -693,20 +948,20 @@ export default function StaffPage() {
 
             <div className={styles.actionFacts}>
               <div>
-                <span>Телефон</span>
-                <strong>{selectedMember.phone || "Не указан"}</strong>
+                <span>{t("Телефон")}</span>
+                <strong>{selectedMember.phone || t("Не указан")}</strong>
               </div>
               <div>
-                <span>Последний вход</span>
-                <strong>{formatLastLogin(selectedMember.lastLoginAt)}</strong>
+                <span>{t("Последний вход")}</span>
+                <strong>{formatLastLogin(selectedMember.lastLoginAt, language)}</strong>
               </div>
             </div>
 
             {viewerRole === "super_admin" ? (
               <div className={styles.actionBlock}>
                 <div className={styles.actionBlockTitle}>
-                  <span>Роль в системе</span>
-                  <small>Изменение применяется сразу</small>
+                  <span>{t("Роль в системе")}</span>
+                  <small>{t("Изменение применяется сразу")}</small>
                 </div>
                 <div className={styles.actionChoices}>
                   <button
@@ -715,8 +970,8 @@ export default function StaffPage() {
                     disabled={updatingMember}
                     onClick={() => void updateMember({ role: "sales_manager" })}
                   >
-                    <strong>Менеджер</strong>
-                    <span>Автомобили, клиенты и визиты</span>
+                    <strong>{t("Менеджер")}</strong>
+                    <span>{t("Автомобили, клиенты и визиты")}</span>
                   </button>
                   <button
                     type="button"
@@ -724,8 +979,8 @@ export default function StaffPage() {
                     disabled={updatingMember}
                     onClick={() => void updateMember({ role: "admin" })}
                   >
-                    <strong>Администратор</strong>
-                    <span>Управление системой и менеджерами</span>
+                    <strong>{t("Администратор")}</strong>
+                    <span>{t("Управление системой и менеджерами")}</span>
                   </button>
                 </div>
               </div>
@@ -733,8 +988,8 @@ export default function StaffPage() {
 
             <div className={styles.actionBlock}>
               <div className={styles.actionBlockTitle}>
-                <span>Доступ</span>
-                <small>Блокировка прекращает доступ к системе</small>
+                <span>{t("Доступ")}</span>
+                <small>{t("Блокировка прекращает доступ к системе")}</small>
               </div>
               <button
                 className={selectedMember.status === "active" ? styles.blockButton : styles.restoreButton}
@@ -749,7 +1004,9 @@ export default function StaffPage() {
                 {updatingMember ? (
                   <span className={styles.spinner} aria-hidden="true" />
                 ) : null}
-                {selectedMember.status === "active" ? "Заблокировать доступ" : "Восстановить доступ"}
+                {selectedMember.status === "active"
+                  ? t("Заблокировать доступ")
+                  : t("Восстановить доступ")}
               </button>
             </div>
 
@@ -773,33 +1030,33 @@ export default function StaffPage() {
             {createdMember && temporaryPassword ? (
               <div className={styles.successView}>
                 <div className={styles.successIcon} aria-hidden="true">✓</div>
-                <p className={styles.modalEyebrow}>ДОСТУП СОЗДАН</p>
+                <p className={styles.modalEyebrow}>{t("ДОСТУП СОЗДАН")}</p>
                 <h2 id="create-staff-title">{createdMember.fullName}</h2>
                 <p className={styles.modalLead}>
-                  Профиль добавлен в Auto Sale Umar Control System. Передайте сотруднику логин и временный пароль.
+                  {t("Профиль добавлен в Auto Sale Umar Control System. Передайте сотруднику логин и временный пароль.")}
                 </p>
 
                 <div className={styles.credentialCard}>
                   <div>
-                    <span>Логин</span>
+                    <span>{t("Логин")}</span>
                     <strong>{createdMember.email}</strong>
                   </div>
                   <div>
-                    <span>Временный пароль</span>
+                    <span>{t("Временный пароль")}</span>
                     <strong className={styles.passwordValue}>{temporaryPassword}</strong>
                   </div>
                 </div>
 
                 <p className={styles.securityNote}>
-                  Пароль показывается здесь для передачи сотруднику. Не публикуйте его и не отправляйте в общий чат.
+                  {t("Пароль показывается здесь для передачи сотруднику. Не публикуйте его и не отправляйте в общий чат.")}
                 </p>
 
                 <div className={styles.successActions}>
                   <button className={styles.secondaryButton} type="button" onClick={() => void copyPassword()}>
-                    {copied ? "Скопировано" : "Скопировать пароль"}
+                    {copied ? t("Скопировано") : t("Скопировать пароль")}
                   </button>
                   <button className={styles.primaryButton} type="button" onClick={closeCreate}>
-                    Готово
+                    {t("Готово")}
                   </button>
                 </div>
               </div>
@@ -807,16 +1064,16 @@ export default function StaffPage() {
               <>
                 <div className={styles.modalHeader}>
                   <div>
-                    <p className={styles.modalEyebrow}>НОВЫЙ ДОСТУП</p>
-                    <h2 id="create-staff-title">Добавить сотрудника</h2>
-                    <p>Создайте защищённый профиль для команды Auto Sale Umar.</p>
+                    <p className={styles.modalEyebrow}>{t("НОВЫЙ ДОСТУП")}</p>
+                    <h2 id="create-staff-title">{t("Добавить сотрудника")}</h2>
+                    <p>{t("Создайте защищённый профиль для команды Auto Sale Umar.")}</p>
                   </div>
                   <button
                     className={styles.closeButton}
                     type="button"
                     onClick={closeCreate}
                     disabled={creating}
-                    aria-label="Закрыть"
+                    aria-label={t("Закрыть")}
                   >
                     ×
                   </button>
@@ -824,12 +1081,12 @@ export default function StaffPage() {
 
                 <form className={styles.staffForm} onSubmit={(event) => void createStaff(event)}>
                   <label className={styles.field}>
-                    <span>Имя и фамилия</span>
+                    <span>{t("Имя и фамилия")}</span>
                     <input
                       type="text"
                       autoComplete="name"
                       maxLength={100}
-                      placeholder="Например, Akmal Karimov"
+                      placeholder={t("Например, Akmal Karimov")}
                       value={form.fullName}
                       onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
                       disabled={creating}
@@ -838,7 +1095,7 @@ export default function StaffPage() {
 
                   <div className={styles.formGrid}>
                     <label className={styles.field}>
-                      <span>Электронная почта</span>
+                      <span>{t("Электронная почта")}</span>
                       <input
                         type="email"
                         inputMode="email"
@@ -853,7 +1110,7 @@ export default function StaffPage() {
                     </label>
 
                     <label className={styles.field}>
-                      <span>Телефон</span>
+                      <span>{t("Телефон")}</span>
                       <input
                         type="tel"
                         inputMode="tel"
@@ -868,7 +1125,7 @@ export default function StaffPage() {
                   </div>
 
                   <fieldset className={styles.rolePicker}>
-                    <legend>Роль в системе</legend>
+                    <legend>{t("Роль в системе")}</legend>
                     <div>
                       {roleOptions.map((option) => (
                         <label
@@ -889,8 +1146,8 @@ export default function StaffPage() {
                             <strong>{option.label}</strong>
                             <small>
                               {option.value === "admin"
-                                ? "Управление системой и менеджерами"
-                                : "Работа с автомобилями, клиентами и визитами"}
+                                ? t("Управление системой и менеджерами")
+                                : t("Работа с автомобилями, клиентами и визитами")}
                             </small>
                           </span>
                           <i aria-hidden="true" />
@@ -903,11 +1160,11 @@ export default function StaffPage() {
 
                   <div className={styles.modalActions}>
                     <button className={styles.secondaryButton} type="button" onClick={closeCreate} disabled={creating}>
-                      Отмена
+                      {t("Отмена")}
                     </button>
                     <button className={styles.primaryButton} type="submit" disabled={creating}>
                       {creating ? <span className={styles.spinner} aria-hidden="true" /> : null}
-                      {creating ? "Создаём профиль…" : "Создать сотрудника"}
+                      {creating ? t("Создаём профиль…") : t("Создать сотрудника")}
                     </button>
                   </div>
                 </form>
