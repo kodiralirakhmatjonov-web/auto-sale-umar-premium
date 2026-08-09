@@ -1,10 +1,10 @@
 import { clearSessionCookie, json } from "../_lib/auth";
 
-export function onRequestPost(): Response {
+export function onRequestPost(context: { request: Request }): Response {
   return json(
     { success: true },
     200,
-    { "set-cookie": clearSessionCookie() },
+    { "set-cookie": clearSessionCookie(context.request.url) },
   );
 }
 

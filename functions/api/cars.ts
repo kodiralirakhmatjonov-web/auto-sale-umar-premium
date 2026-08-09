@@ -730,7 +730,8 @@ export async function onRequestPost(context: {
       throw new Error("D1 did not return the created car id.");
     }
 
-    createdCarId = created.id;
+    const confirmedCarId = created.id;
+    createdCarId = confirmedCarId;
 
     const hasSpecs = Boolean(
       engineText || fuel.ru || transmissionLabelsValue.ru || drivetrain.ru || seats,
@@ -751,7 +752,7 @@ export async function onRequestPost(context: {
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
       )
         .bind(
-          createdCarId,
+          confirmedCarId,
           engineText,
           fuel.ru,
           fuel.uz,
@@ -781,7 +782,7 @@ export async function onRequestPost(context: {
         ) VALUES (?1, ?2, ?3, ?4, ?5, 1, 1, 0)`,
       )
         .bind(
-          createdCarId,
+          confirmedCarId,
           colorNameRu,
           colorNameUz,
           interiorColorRu,
@@ -790,7 +791,7 @@ export async function onRequestPost(context: {
         .run();
     }
 
-    const car = await getCarById(env, createdCarId);
+    const car = await getCarById(env, confirmedCarId);
     if (!car) {
       throw new Error("Created car could not be loaded.");
     }
@@ -800,6 +801,7 @@ export async function onRequestPost(context: {
         success: true,
         message: "Автомобиль добавлен.",
         car: toPublicCar(car),
+        writeVerified: true,
       },
       201,
     );

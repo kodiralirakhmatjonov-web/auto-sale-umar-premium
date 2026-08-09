@@ -87,7 +87,7 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
       },
     },
     200,
-    { "set-cookie": sessionCookie(token) },
+    { "set-cookie": sessionCookie(token, request.url) },
   );
 }
 
