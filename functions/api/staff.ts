@@ -246,6 +246,22 @@ async function updateStaffMember(
       throw new Error("D1 did not return the updated staff row.");
     }
 
+    if (nextStatus === "blocked") {
+      try {
+        await env.DB.prepare(
+          `UPDATE sessions
+           SET revoked_at = ?1
+           WHERE user_id = ?2
+             AND revoked_at IS NULL`,
+        )
+          .bind(now, targetId)
+          .run();
+      } catch (sessionError) {
+        // The status check still denies the user on every request.
+        console.error("Staff session revocation failed", sessionError);
+      }
+    }
+
     return json({
       success: true,
       message: "Профиль сотрудника обновлён.",

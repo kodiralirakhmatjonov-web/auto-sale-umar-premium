@@ -4,7 +4,7 @@ import {
   type Env,
 } from "../_lib/auth";
 
-type CarStatus =
+export type CarStatus =
   | "in_stock"
   | "in_showroom"
   | "in_transit"
@@ -13,7 +13,7 @@ type CarStatus =
   | "sold"
   | "hidden";
 
-type Currency = "USD" | "UZS" | "EUR";
+export type Currency = "USD" | "UZS" | "EUR";
 
 interface CreateCarBody {
   brand?: unknown;
@@ -64,8 +64,9 @@ interface D1ListStatementLike {
   all<T = Record<string, unknown>>(): Promise<D1ListResult<T>>;
 }
 
-interface CarListRow {
+export interface CarListRow {
   id: number;
+  slug: string;
   brand: string;
   model: string;
   year: number | null;
@@ -106,7 +107,7 @@ interface BrandRow {
   name: string;
 }
 
-function normalizeText(value: unknown, maxLength = 500): string {
+export function normalizeText(value: unknown, maxLength = 500): string {
   if (typeof value !== "string") return "";
   return value.trim().slice(0, maxLength);
 }
@@ -141,7 +142,7 @@ function parseBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
 }
 
-function isCarStatus(value: string): value is CarStatus {
+export function isCarStatus(value: string): value is CarStatus {
   return [
     "in_stock",
     "in_showroom",
@@ -157,7 +158,7 @@ function isCurrency(value: string): value is Currency {
   return value === "USD" || value === "UZS" || value === "EUR";
 }
 
-function validCountryCode(value: string): boolean {
+export function validCountryCode(value: string): boolean {
   return value === "" || /^[A-Z]{2}$/.test(value);
 }
 
@@ -223,9 +224,10 @@ function drivetrainLabels(value: string | null): { ru: string | null; uz: string
   return { ru: value, uz: value };
 }
 
-function toPublicCar(row: CarListRow) {
+export function toStaffCar(row: CarListRow) {
   return {
     id: row.id,
+    slug: row.slug,
     brand: row.brand,
     model: row.model,
     year: row.year,
@@ -263,9 +265,44 @@ function toPublicCar(row: CarListRow) {
   };
 }
 
-const CAR_SELECT = `
+export function toPublicCatalogCar(row: CarListRow) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    brand: row.brand,
+    model: row.model,
+    year: row.year,
+    trim: row.trim,
+    status: row.status,
+    countryCode: row.country_code,
+    arrivalDate: row.arrival_date,
+    price: row.price,
+    currency: row.currency,
+    priceOnRequest: row.price_on_request === 1,
+    mileageKm: row.mileage_km,
+    fuelType: row.fuel_type,
+    driveType: row.drive_type,
+    transmission: row.transmission,
+    engineText: row.engine_text,
+    seats: row.seats,
+    exteriorColor: row.exterior_color,
+    interiorColor: row.interior_color,
+    shortDescriptionRu: row.short_description_ru,
+    shortDescriptionUz: row.short_description_uz,
+    descriptionRu: row.description_ru,
+    descriptionUz: row.description_uz,
+    isNew: row.is_new === 1,
+    isNewArrival: row.is_new_arrival === 1,
+    isFeatured: row.is_featured === 1,
+    updatedAt: row.updated_at,
+    coverUrl: row.cover_url,
+  };
+}
+
+export const CAR_SELECT = `
   SELECT
     c.id,
+    c.slug,
     b.name AS brand,
     c.model,
     c.model_year AS year,
@@ -393,6 +430,10 @@ export async function onRequestGet(context: {
     return json({ success: false, error: "Требуется вход в систему." }, 401);
   }
 
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    return json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403);
+  }
+
   const url = new URL(request.url);
   const q = normalizeText(url.searchParams.get("q"), 120);
   const rawStatus = normalizeText(url.searchParams.get("status"), 30);
@@ -480,7 +521,7 @@ export async function onRequestGet(context: {
         role: currentUser.role,
       },
       total: countRow?.count ?? rows.length,
-      cars: rows.map(toPublicCar),
+      cars: rows.map(toStaffCar),
     });
   } catch (error) {
     console.error("Cars list failed", error);
@@ -507,6 +548,10 @@ export async function onRequestPost(context: {
   const currentUser = await getAuthenticatedUser(request, env);
   if (!currentUser) {
     return json({ success: false, error: "Требуется вход в систему." }, 401);
+  }
+
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    return json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403);
   }
 
   let body: CreateCarBody;
@@ -800,7 +845,7 @@ export async function onRequestPost(context: {
       {
         success: true,
         message: "Автомобиль добавлен.",
-        car: toPublicCar(car),
+        car: toStaffCar(car),
         writeVerified: true,
       },
       201,

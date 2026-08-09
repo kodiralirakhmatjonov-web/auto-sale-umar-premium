@@ -1,5 +1,5 @@
 import {
-  createSessionToken,
+  createDatabaseSession,
   isValidEmail,
   json,
   normalizeEmail,
@@ -12,6 +12,7 @@ import {
 interface LoginBody {
   email?: string;
   password?: string;
+  client?: "web" | "mobile";
 }
 
 export async function onRequestPost(context: { request: Request; env: Env }): Promise<Response> {
@@ -64,17 +65,22 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
     return json({ success: false, error: "Для этой учётной записи не назначена допустимая роль." }, 403);
   }
 
-  const token = await createSessionToken(
-    { userId: user.id, email: user.email, role: user.role },
-    env.AUTH_PEPPER,
-  );
+  const client = body.client === "mobile" ? "mobile" : "web";
   const now = new Date().toISOString();
+  let session;
 
-  await env.DB.prepare(
-    "UPDATE users SET last_login_at = ?1, updated_at = ?1 WHERE id = ?2",
-  )
-    .bind(now, user.id)
-    .run();
+  try {
+    await env.DB.prepare(
+      "UPDATE users SET last_login_at = ?1, updated_at = ?1 WHERE id = ?2",
+    )
+      .bind(now, user.id)
+      .run();
+
+    session = await createDatabaseSession(request, env, user.id);
+  } catch (error) {
+    console.error("Session creation failed", error);
+    return json({ success: false, error: "Не удалось создать защищённую сессию." }, 500);
+  }
 
   return json(
     {
@@ -85,9 +91,20 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
         fullName: user.full_name,
         role: user.role,
       },
+      ...(client === "mobile"
+        ? {
+            session: {
+              token: session.token,
+              tokenType: "Bearer",
+              expiresAt: session.expiresAt,
+            },
+          }
+        : {}),
     },
     200,
-    { "set-cookie": sessionCookie(token, request.url) },
+    client === "web"
+      ? { "set-cookie": sessionCookie(session.token, request.url, session.expiresAt) }
+      : undefined,
   );
 }
 

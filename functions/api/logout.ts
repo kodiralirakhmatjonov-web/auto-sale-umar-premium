@@ -1,6 +1,20 @@
-import { clearSessionCookie, json } from "../_lib/auth";
+import {
+  clearSessionCookie,
+  json,
+  revokePresentedSession,
+  type Env,
+} from "../_lib/auth";
 
-export function onRequestPost(context: { request: Request }): Response {
+export async function onRequestPost(context: {
+  request: Request;
+  env: Env;
+}): Promise<Response> {
+  try {
+    await revokePresentedSession(context.request, context.env);
+  } catch (error) {
+    console.error("Session revocation failed", error);
+  }
+
   return json(
     { success: true },
     200,
