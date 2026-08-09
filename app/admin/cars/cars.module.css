@@ -435,6 +435,7 @@
 
   cursor: pointer;
   white-space: nowrap;
+  text-decoration: none;
 
   transition:
     transform 220ms var(--spring),
@@ -476,9 +477,7 @@
   border: 1px solid var(--line);
   border-radius: 34px;
 
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  -webkit-backdrop-filter: blur(30px) saturate(158%);
-  backdrop-filter: blur(30px) saturate(158%);
+  background: var(--solid);
 
   box-shadow: var(--shadow-card);
 
@@ -695,6 +694,334 @@
   background: var(--line);
 }
 
+.successBanner {
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 9px 9px 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--success) 28%, var(--line));
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--success) 8%, var(--solid));
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.45;
+  animation: contentIn 520ms var(--spring) both;
+}
+
+.successMark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--success);
+}
+
+.successMark svg,
+.successBanner button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.successBanner button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+}
+
+.loadError {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 20px;
+  padding: 10px 10px 10px 17px;
+  border: 1px solid rgba(210, 67, 67, .18);
+  border-radius: 19px;
+  color: #a23d3d;
+  background: rgba(210, 67, 67, .065);
+  font-size: 14px;
+}
+
+.page[data-theme="dark"] .loadError {
+  color: #f09b9b;
+}
+
+.loadError button,
+.emptyReset {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 17px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text) !important;
+  background: var(--solid);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.skeletonGrid,
+.carsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.skeletonCard {
+  min-height: 360px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 27px;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.skeletonCard span,
+.skeletonCard i {
+  display: block;
+  border-radius: 18px;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--text) 4%, transparent) 20%,
+    color-mix(in srgb, var(--text) 9%, transparent) 40%,
+    color-mix(in srgb, var(--text) 4%, transparent) 60%
+  );
+  background-size: 220% 100%;
+  animation: skeletonMove 1.35s ease-in-out infinite;
+}
+
+.skeletonCard span {
+  height: 205px;
+}
+
+.skeletonCard i {
+  width: 72%;
+  height: 18px;
+  margin-top: 18px;
+}
+
+.skeletonCard i:last-child {
+  width: 46%;
+  height: 13px;
+  margin-top: 10px;
+}
+
+.carCard {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--surface-soft);
+  box-shadow: 0 10px 30px rgba(20, 23, 28, .045);
+  transition:
+    transform 260ms var(--spring),
+    border-color 260ms var(--ease),
+    box-shadow 260ms var(--ease),
+    background-color 560ms var(--ease);
+}
+
+.carCardCreated {
+  border-color: color-mix(in srgb, var(--success) 60%, var(--line));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 10%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .carCard:hover {
+    transform: translateY(-3px);
+    border-color: var(--line-strong);
+    box-shadow: 0 18px 42px rgba(20, 23, 28, .08);
+  }
+}
+
+.carMedia {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 5%, var(--solid));
+}
+
+.carMedia img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.carMediaFallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  background:
+    radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--text) 7%, transparent), transparent 58%),
+    var(--surface-soft);
+}
+
+.carMediaFallback svg {
+  width: 46%;
+  height: auto;
+}
+
+.statusBadge,
+.publishBadge {
+  position: absolute;
+  top: 12px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+  border: 1px solid rgba(255,255,255,.26);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(10, 10, 11, .72);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  font-size: 11px;
+  font-weight: 680;
+  box-shadow: 0 7px 20px rgba(0,0,0,.10);
+}
+
+.statusBadge {
+  left: 12px;
+}
+
+.publishBadge {
+  right: 12px;
+}
+
+.publishBadge[data-published="false"] {
+  color: #161719;
+  background: rgba(255,255,255,.78);
+}
+
+.statusBadge[data-status="in_stock"],
+.statusBadge[data-status="in_showroom"] {
+  background: rgba(55, 124, 82, .82);
+}
+
+.statusBadge[data-status="in_transit"],
+.statusBadge[data-status="made_to_order"] {
+  background: rgba(62, 92, 149, .82);
+}
+
+.statusBadge[data-status="reserved"] {
+  background: rgba(155, 102, 34, .84);
+}
+
+.statusBadge[data-status="sold"],
+.statusBadge[data-status="hidden"] {
+  background: rgba(63, 65, 69, .82);
+}
+
+.carContent {
+  padding: 20px;
+}
+
+.carTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.carBrand,
+.priceLabel {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.carTitleRow h3 {
+  margin: 5px 0 0;
+  font-size: clamp(24px, 2.2vw, 32px);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.carYear {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-2);
+  background: var(--solid);
+  font-size: 12px;
+}
+
+.carTrim {
+  min-height: 20px;
+  margin: 9px 0 0;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.carFacts {
+  min-height: 42px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.carFacts span {
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  font-size: 11px;
+}
+
+.carFooter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+}
+
+.carFooter strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+}
+
+.stockMeta {
+  display: grid;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: 10px;
+  text-align: right;
+}
+
 .emptyState {
   max-width: 660px;
   margin: 0 auto;
@@ -736,6 +1063,22 @@
   color: var(--text-2);
   font-size: 16px;
   line-height: 1.56;
+}
+
+.emptyReset {
+  margin-top: 24px;
+}
+
+.primaryCta:focus-visible,
+.roundButton:focus-visible,
+.filterButton:focus-visible,
+.statusChip:focus-visible,
+.optionButton:focus-visible,
+.emptyReset:focus-visible,
+.loadError button:focus-visible,
+.successBanner button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: 3px;
 }
 
 .emptyMeta {
@@ -1110,6 +1453,13 @@
     border-radius: 30px;
   }
 
+  .successBanner {
+    grid-template-columns: 36px minmax(0, 1fr) 44px;
+    margin-top: 24px;
+    border-radius: 21px;
+    font-size: 13px;
+  }
+
   .catalogTop {
     align-items: flex-start;
   }
@@ -1154,6 +1504,22 @@
 
   .emptyState {
     padding: 52px 4px 48px;
+  }
+
+  .carsGrid,
+  .skeletonGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .carContent {
+    padding: 18px;
+  }
+
+  .loadError {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 15px;
   }
 
   .sheet {
@@ -1266,6 +1632,11 @@
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+
+  .skeletonCard span,
+  .skeletonCard i {
+    animation: none !important;
+  }
 }
 
 @keyframes headerIn {
@@ -1324,6 +1695,11 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes skeletonMove {
+  from { background-position: 110% 0; }
+  to { background-position: -110% 0; }
 }
 
 @keyframes scrimIn {

@@ -4,8 +4,49 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./cars.module.css";
 
 type Theme = "light" | "dark";
-type StatusFilter = "all" | "in_stock" | "in_transit" | "reserved" | "sold";
+type CarStatus =
+  | "in_stock"
+  | "in_showroom"
+  | "in_transit"
+  | "made_to_order"
+  | "reserved"
+  | "sold"
+  | "hidden";
+type StatusFilter = "all" | CarStatus;
 type CountryFilter = "all" | "KR" | "US" | "CA" | "AE";
+
+interface CarRecord {
+  id: number;
+  slug: string;
+  brand: string;
+  model: string;
+  year: number | null;
+  trim: string | null;
+  vin: string | null;
+  stockNumber: string | null;
+  status: CarStatus;
+  countryCode: string | null;
+  arrivalDate: string | null;
+  price: number | null;
+  currency: "USD" | "UZS" | "EUR";
+  priceOnRequest: boolean;
+  mileageKm: number;
+  engineText: string | null;
+  exteriorColor: string | null;
+  interiorColor: string | null;
+  isPublic: boolean;
+  isFeatured: boolean;
+  isNewArrival: boolean;
+  updatedAt: string;
+  coverUrl: string | null;
+}
+
+interface CarsApiResponse {
+  success?: boolean;
+  error?: string;
+  total?: number;
+  cars?: CarRecord[];
+}
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (updateCallback: () => void) => {
@@ -17,9 +58,12 @@ type ViewTransitionDocument = Document & {
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: "all", label: "Все" },
   { value: "in_stock", label: "В наличии" },
+  { value: "in_showroom", label: "В шоуруме" },
   { value: "in_transit", label: "В пути" },
+  { value: "made_to_order", label: "Под заказ" },
   { value: "reserved", label: "Резерв" },
   { value: "sold", label: "Проданы" },
+  { value: "hidden", label: "Скрытые" },
 ];
 
 const COUNTRY_FILTERS: Array<{ value: CountryFilter; label: string }> = [
@@ -30,6 +74,42 @@ const COUNTRY_FILTERS: Array<{ value: CountryFilter; label: string }> = [
   { value: "AE", label: "ОАЭ" },
 ];
 
+const STATUS_LABELS: Record<CarStatus, string> = {
+  in_stock: "В наличии",
+  in_showroom: "В шоуруме",
+  in_transit: "В пути",
+  made_to_order: "Под заказ",
+  reserved: "Резерв",
+  sold: "Продан",
+  hidden: "Скрыт",
+};
+
+const COUNTRY_LABELS: Record<string, string> = {
+  KR: "Корея",
+  US: "США",
+  CA: "Канада",
+  AE: "ОАЭ",
+};
+
+function formatPrice(car: CarRecord): string {
+  if (car.priceOnRequest || car.price == null) return "Цена по запросу";
+  return new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: car.currency,
+    maximumFractionDigits: 0,
+  }).format(car.price);
+}
+
+function formatCarCount(value: number): string {
+  const mod10 = value % 10;
+  const mod100 = value % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${value} автомобиль`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return `${value} автомобиля`;
+  }
+  return `${value} автомобилей`;
+}
+
 export default function CarsPage() {
   const [theme, setTheme] = useState<Theme>("light");
   const [authReady, setAuthReady] = useState(false);
@@ -38,9 +118,13 @@ export default function CarsPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [country, setCountry] = useState<CountryFilter>("all");
-
+  const [cars, setCars] = useState<CarRecord[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [createdCarId, setCreatedCarId] = useState<number | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [addNoticeOpen, setAddNoticeOpen] = useState(false);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -99,52 +183,70 @@ export default function CarsPage() {
   }, [applyTheme]);
 
   useEffect(() => {
-    let cancelled = false;
+    const created = new URLSearchParams(window.location.search).get("created");
+    const parsed = created ? Number(created) : Number.NaN;
+    if (Number.isSafeInteger(parsed) && parsed > 0) setCreatedCarId(parsed);
+  }, []);
 
-    async function verifySession() {
+  useEffect(() => {
+    const controller = new AbortController();
+    const delay = window.setTimeout(async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      const params = new URLSearchParams();
+      if (query.trim()) params.set("q", query.trim());
+      if (status !== "all") params.set("status", status);
+      if (country !== "all") params.set("country", country);
+      const endpoint = `/api/v1/cars${params.size ? `?${params.toString()}` : ""}`;
+
       try {
-        const response = await fetch("/api/staff", {
+        const response = await fetch(endpoint, {
           method: "GET",
           credentials: "same-origin",
           cache: "no-store",
-          headers: {
-            Accept: "application/json",
-          },
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
         });
+        const data = (await response.json().catch(() => null)) as CarsApiResponse | null;
 
         if (response.status === 401) {
           window.location.replace("/admin/login/");
           return;
         }
 
-        if (!response.ok) {
-          throw new Error("Не удалось проверить защищённую сессию.");
+        if (response.status === 403) {
+          setAuthError(data?.error || "У вашей роли нет доступа к автомобилям.");
+          return;
         }
 
-        if (!cancelled) {
-          setAuthReady(true);
-          setAuthError(null);
+        if (!response.ok || !data?.success || !Array.isArray(data.cars)) {
+          throw new Error(data?.error || "Не удалось загрузить автомобили из D1.");
         }
+
+        setCars(data.cars);
+        setTotal(typeof data.total === "number" ? data.total : data.cars.length);
+        setAuthReady(true);
+        setAuthError(null);
       } catch (error) {
-        if (!cancelled) {
-          setAuthError(
-            error instanceof Error
-              ? error.message
-              : "Не удалось проверить защищённую сессию.",
-          );
-        }
+        if (controller.signal.aborted) return;
+        setAuthReady(true);
+        setLoadError(
+          error instanceof Error ? error.message : "Не удалось загрузить автомобили из D1.",
+        );
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-    }
-
-    void verifySession();
+    }, query.trim() ? 280 : 0);
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(delay);
+      controller.abort();
     };
-  }, []);
+  }, [country, query, reloadToken, status]);
 
   useEffect(() => {
-    if (!filtersOpen && !addNoticeOpen) return;
+    if (!filtersOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -152,7 +254,6 @@ export default function CarsPage() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setFiltersOpen(false);
-      setAddNoticeOpen(false);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -161,7 +262,7 @@ export default function CarsPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [addNoticeOpen, filtersOpen]);
+  }, [filtersOpen]);
 
   function toggleTheme() {
     const nextTheme: Theme = theme === "light" ? "dark" : "light";
@@ -191,7 +292,7 @@ export default function CarsPage() {
             <ShieldIcon />
           </span>
           <p className={styles.accessEyebrow}>AUTO SALE UMAR</p>
-          <h1>Нет соединения с Control System</h1>
+          <h1>Раздел автомобилей недоступен</h1>
           <p>{authError}</p>
           <button type="button" onClick={() => window.location.reload()}>
             Повторить
@@ -264,19 +365,36 @@ export default function CarsPage() {
             </p>
           </div>
 
-          <button
+          <a
             className={styles.primaryCta}
-            type="button"
-            onClick={() => setAddNoticeOpen(true)}
+            href="/admin/cars/new/"
           >
             <span className={styles.ctaIcon}>
               <PlusIcon />
             </span>
             <span>Добавить автомобиль</span>
-          </button>
+          </a>
         </section>
 
-        <section className={styles.catalog} aria-label="Каталог автомобилей">
+        {createdCarId ? (
+          <div className={styles.successBanner} role="status">
+            <span className={styles.successMark}>
+              <CheckIcon />
+            </span>
+            <span>
+              Автомобиль сохранён в D1. Запись №{createdCarId} уже находится в общем каталоге.
+            </span>
+            <button type="button" onClick={() => setCreatedCarId(null)} aria-label="Закрыть">
+              <CloseSmallIcon />
+            </button>
+          </div>
+        ) : null}
+
+        <section
+          className={styles.catalog}
+          aria-label="Каталог автомобилей"
+          aria-busy={loading}
+        >
           <div className={styles.catalogTop}>
             <div>
               <p className={styles.sectionKicker}>БАЗА АВТОМОБИЛЕЙ</p>
@@ -284,7 +402,7 @@ export default function CarsPage() {
             </div>
 
             <span className={styles.catalogCount}>
-              {authReady ? "0 автомобилей" : "Проверка доступа…"}
+              {authReady ? formatCarCount(total) : "Проверка доступа…"}
             </span>
           </div>
 
@@ -344,27 +462,130 @@ export default function CarsPage() {
 
           <div className={styles.divider} />
 
-          <div className={styles.emptyState}>
-            <div className={styles.carSymbol} aria-hidden="true">
-              <CarOutlineIcon />
+          {loadError ? (
+            <div className={styles.loadError} role="alert">
+              <span>{loadError}</span>
+              <button type="button" onClick={() => setReloadToken((value) => value + 1)}>
+                Повторить
+              </button>
             </div>
-            <p className={styles.emptyEyebrow}>БАЗА ГОТОВА К НАПОЛНЕНИЮ</p>
-            <h3>Здесь появятся автомобили</h3>
-            <p>
-              Мы не добавляем демонстрационные машины. После подключения формы
-              и D1 здесь будут только реальные автомобили Auto Sale Umar.
-            </p>
+          ) : null}
 
-            <div className={styles.emptyMeta}>
-              <span>
-                <i />
-                В наличии
-              </span>
-              <span>В пути</span>
-              <span>Резерв</span>
-              <span>Проданы</span>
+          {loading && cars.length === 0 ? (
+            <div className={styles.skeletonGrid} aria-label="Загрузка автомобилей">
+              {[0, 1, 2].map((item) => (
+                <div className={styles.skeletonCard} key={item} aria-hidden="true">
+                  <span />
+                  <i />
+                  <i />
+                </div>
+              ))}
             </div>
-          </div>
+          ) : null}
+
+          {cars.length > 0 ? (
+            <div className={styles.carsGrid}>
+              {cars.map((car) => (
+                <article
+                  className={`${styles.carCard} ${
+                    car.id === createdCarId ? styles.carCardCreated : ""
+                  }`}
+                  key={car.id}
+                >
+                  <div className={styles.carMedia}>
+                    {car.coverUrl ? (
+                      <img
+                        src={car.coverUrl}
+                        alt={`${car.brand} ${car.model}`}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className={styles.carMediaFallback} aria-hidden="true">
+                        <CarOutlineIcon />
+                      </div>
+                    )}
+
+                    <span className={styles.statusBadge} data-status={car.status}>
+                      {STATUS_LABELS[car.status]}
+                    </span>
+
+                    <span className={styles.publishBadge} data-published={car.isPublic}>
+                      {car.isPublic ? "Опубликован" : "Черновик"}
+                    </span>
+                  </div>
+
+                  <div className={styles.carContent}>
+                    <div className={styles.carTitleRow}>
+                      <div>
+                        <p className={styles.carBrand}>{car.brand}</p>
+                        <h3>{car.model}</h3>
+                      </div>
+                      {car.year ? <span className={styles.carYear}>{car.year}</span> : null}
+                    </div>
+
+                    {car.trim ? <p className={styles.carTrim}>{car.trim}</p> : null}
+
+                    <div className={styles.carFacts}>
+                      {car.countryCode ? (
+                        <span>{COUNTRY_LABELS[car.countryCode] ?? car.countryCode}</span>
+                      ) : null}
+                      {car.engineText ? <span>{car.engineText}</span> : null}
+                      {car.exteriorColor ? <span>{car.exteriorColor}</span> : null}
+                    </div>
+
+                    <div className={styles.carFooter}>
+                      <div>
+                        <span className={styles.priceLabel}>Цена</span>
+                        <strong>{formatPrice(car)}</strong>
+                      </div>
+                      <div className={styles.stockMeta}>
+                        <span>{car.stockNumber || `ID ${car.id}`}</span>
+                        {car.vin ? <span>VIN · {car.vin.slice(-6)}</span> : null}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+
+          {!loading && !loadError && cars.length === 0 ? (
+            <div className={styles.emptyState}>
+              <div className={styles.carSymbol} aria-hidden="true">
+                <CarOutlineIcon />
+              </div>
+              <p className={styles.emptyEyebrow}>
+                {query || activeFilterCount > 0 ? "НИЧЕГО НЕ НАЙДЕНО" : "БАЗА ГОТОВА К НАПОЛНЕНИЮ"}
+              </p>
+              <h3>
+                {query || activeFilterCount > 0
+                  ? "Измените поиск или фильтры"
+                  : "Добавьте первый автомобиль"}
+              </h3>
+              <p>
+                {query || activeFilterCount > 0
+                  ? "В D1 нет автомобилей, соответствующих выбранным условиям."
+                  : "После сохранения здесь появятся только реальные автомобили AutoSale Umar."}
+              </p>
+
+              {query || activeFilterCount > 0 ? (
+                <button
+                  className={styles.emptyReset}
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    resetFilters();
+                  }}
+                >
+                  Сбросить поиск
+                </button>
+              ) : (
+                <a className={styles.emptyReset} href="/admin/cars/new/">
+                  Добавить автомобиль
+                </a>
+              )}
+            </div>
+          ) : null}
         </section>
       </div>
 
@@ -452,53 +673,6 @@ export default function CarsPage() {
         </div>
       ) : null}
 
-      {addNoticeOpen ? (
-        <div className={styles.modalLayer} role="presentation">
-          <button
-            className={styles.scrim}
-            type="button"
-            onClick={() => setAddNoticeOpen(false)}
-            aria-label="Закрыть"
-          />
-
-          <section
-            className={`${styles.sheet} ${styles.compactSheet}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="add-car-title"
-          >
-            <div className={styles.sheetHandle} />
-            <div className={styles.sheetHeader}>
-              <div>
-                <p className={styles.sheetEyebrow}>СЛЕДУЮЩИЙ ЭТАП</p>
-                <h2 id="add-car-title">Новый автомобиль</h2>
-              </div>
-
-              <button
-                className={styles.sheetClose}
-                type="button"
-                onClick={() => setAddNoticeOpen(false)}
-                aria-label="Закрыть"
-              >
-                <CloseIcon />
-              </button>
-            </div>
-
-            <p className={styles.noticeText}>
-              Каталог готов. Следующим файлом подключим полноценную форму
-              добавления автомобиля без изменения текущей авторизации.
-            </p>
-
-            <button
-              className={styles.primaryAction}
-              type="button"
-              onClick={() => setAddNoticeOpen(false)}
-            >
-              Понятно
-            </button>
-          </section>
-        </div>
-      ) : null}
     </main>
   );
 }
@@ -567,6 +741,21 @@ function CloseSmallIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="m6.5 6.5 7 7M13.5 6.5l-7 7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path
+        d="m4.5 10.2 3.4 3.4 7.6-7.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
