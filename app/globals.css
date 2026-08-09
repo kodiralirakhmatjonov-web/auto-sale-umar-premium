@@ -439,7 +439,7 @@ main {
 
 .section-heading.row {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
 }
@@ -576,7 +576,7 @@ main {
 .car-info {
   padding: 20px;
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
 }
