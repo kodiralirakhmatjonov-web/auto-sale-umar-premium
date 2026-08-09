@@ -1247,3 +1247,442 @@
   from { opacity: 0; transform: translateY(14px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* cars/new v2 — focused mobile creation flow */
+.toolbar {
+  top: 6px;
+  margin-top: 8px;
+}
+
+.brandTile {
+  flex-basis: 138px;
+  min-height: 124px;
+  grid-template-rows: 72px auto;
+}
+
+.brandLogoWrap {
+  height: 72px;
+}
+
+.brandLogo {
+  max-width: 112px;
+  max-height: 68px;
+}
+
+.brandLogo[data-brand="Mercedes-Benz"] {
+  max-width: 78px;
+  max-height: 78px;
+}
+
+.brandLogo[data-brand="Rolls-Royce"] {
+  max-width: 100px;
+  max-height: 66px;
+}
+
+.brandLogo[data-brand="BMW"] {
+  max-width: 82px;
+  max-height: 82px;
+}
+
+.brandLogo[data-brand="Lamborghini"] {
+  max-width: 82px;
+  max-height: 82px;
+}
+
+.segmentGridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.inlineTopField {
+  width: min(100%, 420px);
+  margin-top: 18px;
+}
+
+.performanceGrid {
+  margin-top: 22px;
+}
+
+.variantStack {
+  display: grid;
+  gap: 16px;
+}
+
+.variantCard {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 25px;
+  background: var(--surface-2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+.page[data-theme="dark"] .variantCard {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.variantHeader {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.variantHeader > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.variantHeader > div > span {
+  color: var(--tertiary);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .18em;
+}
+
+.variantHeader strong {
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1.08;
+  letter-spacing: -.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantHeader > button {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 640;
+  cursor: pointer;
+}
+
+.colorBlock + .colorBlock,
+.colorBlock + .fieldGrid,
+.fieldGrid + .photoBlock,
+.photoBlock + .photoBlock {
+  margin-top: 18px;
+}
+
+.swatchRail {
+  margin: 10px -4px 10px;
+  padding: 4px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.swatchRail::-webkit-scrollbar,
+.photoRail::-webkit-scrollbar {
+  display: none;
+}
+
+.swatchButton {
+  position: relative;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.swatchButton > span {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 1px solid rgba(60,60,67,.14);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.28);
+}
+
+.swatchButton[data-selected="true"] {
+  border-color: var(--text);
+}
+
+.swatchButton[data-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 2px solid var(--surface-2);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.photoBlock {
+  min-width: 0;
+}
+
+.photoBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.photoBlockHeader > span {
+  color: var(--secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.photoBlockHeader > button,
+.addVariantButton {
+  min-height: 42px;
+  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 170ms var(--spring), background 170ms ease;
+}
+
+.photoBlockHeader > button:active,
+.addVariantButton:active {
+  transform: scale(.97);
+}
+
+.photoBlockHeader svg,
+.addVariantButton svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.photoRail {
+  min-width: 0;
+  margin-top: 10px;
+  padding-bottom: 2px;
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.photoRail[data-empty="true"] {
+  min-height: 104px;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 54%, transparent);
+}
+
+.photoEmpty {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--tertiary);
+  background: var(--surface);
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.photoPreview {
+  position: relative;
+  flex: 0 0 126px;
+  width: 126px;
+  height: 94px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--surface);
+}
+
+.photoPreview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.photoPreview > button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(10,10,11,.66);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.photoIndex {
+  position: absolute;
+  left: 7px;
+  bottom: 7px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(10,10,11,.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 9px;
+  font-weight: 720;
+  letter-spacing: .08em;
+}
+
+.addVariantButton {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  border-style: dashed;
+  border-radius: 18px;
+  background: transparent;
+  font-size: 15px;
+}
+
+.instagramField {
+  margin-top: 18px;
+}
+
+.switchRow[data-disabled="true"] {
+  cursor: default;
+  opacity: .46;
+}
+
+.switchRow[data-disabled="true"] .switchTrack {
+  background: color-mix(in srgb, var(--tertiary) 35%, transparent);
+}
+
+@media (max-width: 900px) {
+  .statusGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .toolbar {
+    top: 0;
+    margin-top: 6px;
+  }
+
+  .shell {
+    padding-top: 32px;
+  }
+
+  .brandTile {
+    flex-basis: 120px;
+    min-height: 112px;
+    grid-template-rows: 66px auto;
+  }
+
+  .brandLogoWrap {
+    height: 66px;
+  }
+
+  .brandLogo {
+    max-width: 102px;
+    max-height: 62px;
+  }
+
+  .brandLogo[data-brand="Mercedes-Benz"] {
+    max-width: 72px;
+    max-height: 72px;
+  }
+
+  .brandLogo[data-brand="BMW"],
+  .brandLogo[data-brand="Lamborghini"] {
+    max-width: 76px;
+    max-height: 76px;
+  }
+
+  .statusGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .variantCard {
+    padding: 17px 14px 15px;
+    border-radius: 22px;
+  }
+
+  .variantHeader strong {
+    font-size: 20px;
+  }
+
+  .variantHeader > button {
+    max-width: 112px;
+    white-space: normal;
+    text-align: right;
+  }
+
+  .swatchButton {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .photoPreview {
+    flex-basis: 112px;
+    width: 112px;
+    height: 84px;
+  }
+
+  .photoBlockHeader > button {
+    min-height: 40px;
+    padding-inline: 11px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  .segmentGridTwo,
+  .statusGrid,
+  .segmentGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .variantHeader {
+    gap: 10px;
+  }
+
+  .photoBlockHeader {
+    align-items: flex-start;
+  }
+}

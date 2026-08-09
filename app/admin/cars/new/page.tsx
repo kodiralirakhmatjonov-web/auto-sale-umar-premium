@@ -13,15 +13,9 @@ import styles from "./new-car.module.css";
 
 type Theme = "light" | "dark";
 type Language = "ru" | "uz";
-type CarStatus =
-  | "in_stock"
-  | "in_showroom"
-  | "in_transit"
-  | "made_to_order"
-  | "reserved"
-  | "sold"
-  | "hidden";
+type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved";
 type Currency = "USD" | "UZS" | "EUR";
+type PhotoGroup = "exterior" | "interior";
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (updateCallback: () => void) => {
@@ -30,37 +24,59 @@ type ViewTransitionDocument = Document & {
   };
 };
 
+interface PhotoDraft {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
+
+interface VariantDraft {
+  localId: string;
+  exteriorSwatch: string;
+  exteriorColorName: string;
+  interiorSwatch: string;
+  interiorColorName: string;
+  vin: string;
+  stockNumber: string;
+  quantity: string;
+  exteriorPhotos: PhotoDraft[];
+  interiorPhotos: PhotoDraft[];
+}
+
 interface FormState {
   brand: string;
   model: string;
   year: string;
   trim: string;
-  vin: string;
-  stockNumber: string;
   status: CarStatus;
   countryCode: string;
   arrivalDate: string;
-
+  isNew: boolean;
   mileageKm: string;
+
   engineText: string;
+  engineDisplacementL: string;
   fuelType: string;
   driveType: string;
   transmission: string;
   seats: string;
-  exteriorColor: string;
-  interiorColor: string;
+  horsepowerHp: string;
+  torqueNm: string;
+  acceleration0100: string;
+  topSpeedKmh: string;
+  fuelConsumptionL100: string;
+  electricRangeKm: string;
 
   price: string;
   currency: Currency;
   priceOnRequest: boolean;
+  instagramUrl: string;
 
   shortDescriptionRu: string;
   shortDescriptionUz: string;
   descriptionRu: string;
   descriptionUz: string;
 
-  isNew: boolean;
-  isNewArrival: boolean;
   isPublic: boolean;
   isFeatured: boolean;
 }
@@ -73,9 +89,13 @@ interface CreateCarResponse {
     id?: number;
     brand?: string;
     model?: string;
-    vin?: string | null;
-    stockNumber?: string | null;
+    variants?: Array<{ id: number; index: number }>;
   };
+}
+
+interface MediaResponse {
+  success?: boolean;
+  error?: string;
 }
 
 interface MeResponse {
@@ -102,10 +122,8 @@ const STATUS_OPTIONS: Array<{ value: CarStatus; label: Record<Language, string> 
   { value: "in_stock", label: { ru: "В наличии", uz: "Mavjud" } },
   { value: "in_showroom", label: { ru: "В шоуруме", uz: "Shourumda" } },
   { value: "in_transit", label: { ru: "В пути", uz: "Yo‘lda" } },
-  { value: "made_to_order", label: { ru: "Под заказ", uz: "Buyurtma asosida" } },
   { value: "reserved", label: { ru: "Резерв", uz: "Band qilingan" } },
-  { value: "sold", label: { ru: "Продан", uz: "Sotilgan" } },
-  { value: "hidden", label: { ru: "Скрыт", uz: "Yashirilgan" } },
+  { value: "made_to_order", label: { ru: "Под заказ", uz: "Buyurtma asosida" } },
 ];
 
 const COUNTRY_OPTIONS = [
@@ -115,23 +133,43 @@ const COUNTRY_OPTIONS = [
   { value: "AE", label: { ru: "ОАЭ", uz: "BAA" } },
 ] as const;
 
+const EXTERIOR_SWATCHES = [
+  { value: "#111214", label: "Black" },
+  { value: "#f4f4f0", label: "White" },
+  { value: "#7b7e82", label: "Gray" },
+  { value: "#b7bbc0", label: "Silver" },
+  { value: "#193b73", label: "Blue" },
+  { value: "#7f2024", label: "Red" },
+  { value: "#2c4738", label: "Green" },
+  { value: "#5f493b", label: "Brown" },
+] as const;
+
+const INTERIOR_SWATCHES = [
+  { value: "#111214", label: "Black" },
+  { value: "#ece9df", label: "Ivory" },
+  { value: "#c7ad86", label: "Beige" },
+  { value: "#68483a", label: "Brown" },
+  { value: "#7d2828", label: "Red" },
+  { value: "#9b5c31", label: "Orange" },
+  { value: "#73767a", label: "Gray" },
+] as const;
+
 const UZ_COPY: Record<string, string> = {
   "Не удалось проверить защищённую сессию.": "Himoyalangan sessiyani tekshirib bo‘lmadi.",
-  "У вашей роли нет права добавлять автомобили.":
-    "Sizning rolingizga avtomobil qo‘shish huquqi berilmagan.",
+  "У вашей роли нет права добавлять автомобили.": "Sizning rolingizga avtomobil qo‘shish huquqi berilmagan.",
   "Выберите марку автомобиля.": "Avtomobil brendini tanlang.",
   "Укажите модель автомобиля.": "Avtomobil modelini kiriting.",
   "Проверьте год автомобиля.": "Avtomobil yilini tekshiring.",
-  "VIN должен содержать 11–17 допустимых латинских символов и цифр.":
-    "VIN 11–17 ta ruxsat etilgan lotin harfi va raqamdan iborat bo‘lishi kerak.",
   "Проверьте дату прибытия.": "Yetib kelish sanasini tekshiring.",
   "Проверьте пробег.": "Yurgan masofani tekshiring.",
   "Проверьте количество мест.": "O‘rindiqlar sonini tekshiring.",
-  "Цена должна быть целым положительным числом.":
-    "Narx musbat butun son bo‘lishi kerak.",
+  "Цена должна быть целым положительным числом.": "Narx musbat butun son bo‘lishi kerak.",
+  "Добавьте хотя бы одну фотографию кузова перед публикацией.": "E’lon qilishdan oldin kuzovning kamida bitta suratini qo‘shing.",
+  "Проверьте ссылку Instagram.": "Instagram havolasini tekshiring.",
+  "Укажите VIN корректно или оставьте поле пустым.": "VIN ni to‘g‘ri kiriting yoki maydonni bo‘sh qoldiring.",
   "Не удалось добавить автомобиль.": "Avtomobilni qo‘shib bo‘lmadi.",
-  "D1 не подтвердил ID созданного автомобиля. Переход отменён.":
-    "D1 yaratilgan avtomobil ID raqamini tasdiqlamadi. O‘tish bekor qilindi.",
+  "Не удалось загрузить фотографии.": "Suratlarni yuklab bo‘lmadi.",
+  "D1 не подтвердил ID созданного автомобиля.": "D1 yaratilgan avtomobil ID raqamini tasdiqlamadi.",
   "Проверка сессии": "Sessiya tekshirilmoqda",
   "Назад к автомобилям": "Avtomobillarga qaytish",
   "Открыть настройки": "Sozlamalarni ochish",
@@ -145,29 +183,28 @@ const UZ_COPY: Record<string, string> = {
   "Настройки сохраняются автоматически": "Sozlamalar avtomatik saqlanadi",
   "CONTROL SYSTEM · АВТОМОБИЛИ": "CONTROL SYSTEM · AVTOMOBILLAR",
   "Новый автомобиль": "Yangi avtomobil",
-  "Одна форма. После сохранения автомобиль появится в D1 только после подтверждённой записи.":
-    "Bitta shakl. Saqlangandan keyin avtomobil faqat D1 yozuvni tasdiqlagach paydo bo‘ladi.",
+  "Быстрая форма: основные данные один раз, цвета и фотографии — отдельными вариантами.": "Tezkor shakl: asosiy ma’lumotlar bir marta, ranglar va suratlar esa alohida variantlarda.",
   "Автомобиль": "Avtomobil",
-  "Сначала выберите марку, затем укажите модель.":
-    "Avval brendni tanlang, keyin modelni kiriting.",
+  "Сначала выберите марку, затем укажите модель.": "Avval brendni tanlang, keyin modelni kiriting.",
   "Марка автомобиля": "Avtomobil brendi",
   "Марка": "Brend",
   "Выберите выше": "Yuqoridan tanlang",
   "Модель *": "Model *",
   "Комплектация": "Komplektatsiya",
   "Год": "Yil",
-  "Внутренний номер": "Ichki raqam",
+  "Состояние": "Holati",
+  "Новый": "Yangi",
+  "С пробегом": "Yurgan",
   "Поставка": "Yetkazib berish",
-  "Статус и источник поставки используются в каталоге и фильтрах.":
-    "Holat va yetkazib berish manbasi katalog hamda filtrlarda ishlatiladi.",
+  "Статус управляет полями формы: дата прибытия показывается только когда она имеет смысл.": "Holat shakldagi maydonlarni boshqaradi: yetib kelish sanasi faqat kerak bo‘lganda ko‘rsatiladi.",
   "Статус": "Holat",
   "Страна поставки": "Yetkazib beruvchi davlat",
-  "Дата прибытия": "Yetib kelish sanasi",
+  "Ожидаемая дата прибытия": "Kutilayotgan yetib kelish sanasi",
   "Пробег, км": "Yurgan masofa, km",
   "Характеристики": "Xususiyatlar",
-  "Основные данные, которые будут видны в карточке автомобиля.":
-    "Avtomobil kartasida ko‘rinadigan asosiy ma’lumotlar.",
+  "Самые востребованные параметры для продажи: двигатель, мощность, 0–100, максимальная скорость и расход.": "Sotuvda eng ko‘p so‘raladigan ma’lumotlar: dvigatel, quvvat, 0–100, maksimal tezlik va sarf.",
   "Двигатель": "Dvigatel",
+  "Объём, л": "Hajmi, l",
   "Топливо": "Yoqilg‘i",
   "Не указано": "Ko‘rsatilmagan",
   "Бензин": "Benzin",
@@ -182,72 +219,101 @@ const UZ_COPY: Record<string, string> = {
   "Вариатор": "Variator",
   "Механика": "Mexanika",
   "Мест": "O‘rindiqlar",
+  "Мощность, л.с.": "Quvvat, ot kuchi",
+  "Крутящий момент, Н·м": "Aylanish momenti, N·m",
+  "0–100 км/ч, сек": "0–100 km/soat, sek",
+  "Макс. скорость, км/ч": "Maks. tezlik, km/soat",
+  "Расход, л/100 км": "Sarf, l/100 km",
+  "Запас хода EV, км": "EV yurish masofasi, km",
+  "Цвета и фотографии": "Ranglar va suratlar",
+  "Один автомобиль может иметь несколько цветовых вариантов. Фото кузова и салона хранятся раздельно.": "Bitta avtomobil bir nechta rang variantiga ega bo‘lishi mumkin. Kuzov va salon suratlari alohida saqlanadi.",
   "Цвет кузова": "Kuzov rangi",
+  "Название цвета кузова": "Kuzov rangining nomi",
   "Цвет салона": "Salon rangi",
-  "Цена и публикация": "Narx va e’lon",
-  "По умолчанию автомобиль не публикуется до добавления фотографий.":
-    "Standart holatda suratlar qo‘shilmaguncha avtomobil e’lon qilinmaydi.",
+  "Название цвета салона": "Salon rangining nomi",
+  "VIN": "VIN",
+  "Внутренний номер": "Ichki raqam",
+  "Количество": "Miqdor",
+  "Кузов · фотографии": "Kuzov · suratlar",
+  "Салон · фотографии": "Salon · suratlar",
+  "Добавить фото": "Surat qo‘shish",
+  "Удалить вариант": "Variantni o‘chirish",
+  "Добавить цвет": "Rang qo‘shish",
+  "Цена, обзор и публикация": "Narx, sharh va e’lon",
+  "Видео в базу не загружается: здесь хранится ссылка на основной Instagram-обзор.": "Video bazaga yuklanmaydi: bu yerda asosiy Instagram sharhiga havola saqlanadi.",
   "Цена": "Narx",
   "Валюта": "Valyuta",
   "Цена по запросу": "Narx so‘rov asosida",
-  "Вместо числа в публичной карточке показывается запрос цены.":
-    "Ommaviy kartada raqam o‘rniga narx so‘rovi ko‘rsatiladi.",
-  "Используется для классификации автомобиля.": "Avtomobilni tasniflash uchun ishlatiladi.",
-  "Новое поступление": "Yangi kelgan",
-  "Разрешает выводить автомобиль в блоке последних поступлений.":
-    "Avtomobilni so‘nggi kelganlar bo‘limida ko‘rsatishga ruxsat beradi.",
+  "Вместо числа в публичной карточке показывается запрос цены.": "Ommaviy kartada raqam o‘rniga narx so‘rovi ko‘rsatiladi.",
+  "Instagram-обзор": "Instagram sharhi",
   "Рекомендуемый": "Tavsiya etilgan",
-  "Поднимает автомобиль выше в административном каталоге.":
-    "Avtomobilni boshqaruv katalogida yuqoriroqqa chiqaradi.",
+  "Поднимает автомобиль выше в каталоге.": "Avtomobilni katalogda yuqoriroqqa chiqaradi.",
   "Опубликовать на сайте": "Saytda e’lon qilish",
-  "Оставьте выключенным, пока не добавлены качественные фотографии.":
-    "Sifatli suratlar qo‘shilmaguncha o‘chiq qoldiring.",
+  "Доступно после добавления хотя бы одной фотографии кузова.": "Kuzovning kamida bitta surati qo‘shilgandan keyin mavjud.",
   "Описание": "Tavsif",
-  "Русская и узбекская версии хранятся отдельно.":
-    "Ruscha va o‘zbekcha versiyalar alohida saqlanadi.",
+  "Русская и узбекская версии хранятся отдельно.": "Ruscha va o‘zbekcha versiyalar alohida saqlanadi.",
   "Коротко · RU": "Qisqa · RU",
   "Краткое описание для карточки": "Karta uchun qisqa tavsif",
   "Описание · RU": "Tavsif · RU",
   "Полное описание автомобиля": "Avtomobilning to‘liq tavsifi",
   "Марка не выбрана": "Brend tanlanmagan",
   "НОВЫЙ АВТОМОБИЛЬ": "YANGI AVTOMOBIL",
-  "Сохраняем в D1…": "D1 bazasiga saqlanmoqda…",
+  "Сохраняем данные…": "Ma’lumotlar saqlanmoqda…",
+  "Загружаем фото": "Suratlar yuklanmoqda",
   "Сохранить автомобиль": "Avtomobilni saqlash",
   "Автомобиль сохранён": "Avtomobil saqlandi",
-  "D1 подтвердил запись": "D1 yozuvni tasdiqladi",
+  "D1 + R2 подтвердили запись": "D1 + R2 yozuvni tasdiqladi",
 };
+
+function createVariant(index = 0): VariantDraft {
+  return {
+    localId: crypto.randomUUID(),
+    exteriorSwatch: index === 0 ? "#111214" : "#f4f4f0",
+    exteriorColorName: "",
+    interiorSwatch: "#111214",
+    interiorColorName: "",
+    vin: "",
+    stockNumber: "",
+    quantity: "1",
+    exteriorPhotos: [],
+    interiorPhotos: [],
+  };
+}
 
 const INITIAL_FORM: FormState = {
   brand: "",
   model: "",
-  year: "",
+  year: "2026",
   trim: "",
-  vin: "",
-  stockNumber: "",
   status: "in_stock",
   countryCode: "KR",
   arrivalDate: "",
-
+  isNew: true,
   mileageKm: "0",
+
   engineText: "",
+  engineDisplacementL: "",
   fuelType: "",
   driveType: "",
-  transmission: "",
+  transmission: "automatic",
   seats: "",
-  exteriorColor: "",
-  interiorColor: "",
+  horsepowerHp: "",
+  torqueNm: "",
+  acceleration0100: "",
+  topSpeedKmh: "",
+  fuelConsumptionL100: "",
+  electricRangeKm: "",
 
   price: "",
   currency: "USD",
   priceOnRequest: false,
+  instagramUrl: "",
 
   shortDescriptionRu: "",
   shortDescriptionUz: "",
   descriptionRu: "",
   descriptionUz: "",
 
-  isNew: true,
-  isNewArrival: true,
   isPublic: false,
   isFeatured: false,
 };
@@ -256,14 +322,32 @@ function normalizeUpper(value: string, maxLength: number): string {
   return value.toUpperCase().replace(/\s{2,}/g, " ").slice(0, maxLength);
 }
 
+function looksLikeInstagramUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  try {
+    const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const url = new URL(candidate);
+    return /(^|\.)instagram\.com$/i.test(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isValidVin(value: string): boolean {
+  return !value || /^[A-HJ-NPR-Z0-9]{11,17}$/.test(value);
+}
+
 export default function NewCarPage() {
   const [theme, setTheme] = useState<Theme>("light");
   const [language, setLanguage] = useState<Language>("ru");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [variants, setVariants] = useState<VariantDraft[]>(() => [createVariant()]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingText, setSavingText] = useState<string | null>(null);
   const [createdCar, setCreatedCar] = useState<{ id: number; title: string } | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
 
@@ -277,22 +361,30 @@ export default function NewCarPage() {
     [form.brand],
   );
 
+  const totalExteriorPhotos = useMemo(
+    () => variants.reduce((total, variant) => total + variant.exteriorPhotos.length, 0),
+    [variants],
+  );
+
+  const totalPhotos = useMemo(
+    () => variants.reduce(
+      (total, variant) => total + variant.exteriorPhotos.length + variant.interiorPhotos.length,
+      0,
+    ),
+    [variants],
+  );
+
+  const showArrivalDate = form.status === "in_transit" || form.status === "made_to_order" || form.status === "reserved";
+
   const applyTheme = useCallback((nextTheme: Theme) => {
     setTheme(nextTheme);
-
-    try {
-      localStorage.setItem("asu-theme", nextTheme);
-    } catch {
-      // Theme persistence is optional.
-    }
-
+    try { localStorage.setItem("asu-theme", nextTheme); } catch {}
     const color = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
     document.documentElement.dataset.asuTheme = nextTheme;
     document.documentElement.style.colorScheme = nextTheme;
     document.documentElement.style.backgroundColor = color;
     document.body.dataset.asuTheme = nextTheme;
     document.body.style.backgroundColor = color;
-
     let themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (!themeMeta) {
       themeMeta = document.createElement("meta");
@@ -305,17 +397,9 @@ export default function NewCarPage() {
   useEffect(() => {
     try {
       const rootTheme = document.documentElement.dataset.asuTheme;
-      if (rootTheme === "light" || rootTheme === "dark") {
-        applyTheme(rootTheme);
-        return;
-      }
-
+      if (rootTheme === "light" || rootTheme === "dark") return applyTheme(rootTheme);
       const stored = localStorage.getItem("asu-theme");
-      if (stored === "light" || stored === "dark") {
-        applyTheme(stored);
-        return;
-      }
-
+      if (stored === "light" || stored === "dark") return applyTheme(stored);
       applyTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     } catch {
       applyTheme("light");
@@ -325,30 +409,20 @@ export default function NewCarPage() {
   const applyLanguage = useCallback((nextLanguage: Language) => {
     setLanguage(nextLanguage);
     document.documentElement.lang = nextLanguage;
-
-    try {
-      localStorage.setItem("asu-language", nextLanguage);
-    } catch {
-      // The browser language remains the fallback.
-    }
+    try { localStorage.setItem("asu-language", nextLanguage); } catch {}
   }, []);
 
   useEffect(() => {
     let nextLanguage: Language = navigator.language.toLowerCase().startsWith("uz") ? "uz" : "ru";
-
     try {
       const stored = localStorage.getItem("asu-language");
       if (stored === "ru" || stored === "uz") nextLanguage = stored;
-    } catch {
-      // Continue with the browser language.
-    }
-
+    } catch {}
     applyLanguage(nextLanguage);
   }, [applyLanguage]);
 
   useEffect(() => {
     let cancelled = false;
-
     async function verifySession() {
       try {
         const response = await fetch("/api/me", {
@@ -357,56 +431,37 @@ export default function NewCarPage() {
           headers: { Accept: "application/json" },
         });
         const data = (await response.json().catch(() => null)) as MeResponse | null;
-
         if (response.status === 401) {
           location.replace("/admin/login/");
           return;
         }
-
-        if (!response.ok) {
-          throw new Error(data?.error || t("Не удалось проверить защищённую сессию."));
-        }
-
+        if (!response.ok) throw new Error(data?.error || t("Не удалось проверить защищённую сессию."));
         if (data?.user?.role !== "super_admin" && data?.user?.role !== "admin") {
           throw new Error(t("У вашей роли нет права добавлять автомобили."));
         }
-
         if (!cancelled) {
           setAuthReady(true);
           setError(null);
         }
       } catch (requestError) {
-        if (!cancelled) {
-          setError(
-            requestError instanceof Error
-              ? requestError.message
-              : t("Не удалось проверить защищённую сессию."),
-          );
-        }
+        if (!cancelled) setError(requestError instanceof Error ? requestError.message : t("Не удалось проверить защищённую сессию."));
       }
     }
-
     void verifySession();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [t]);
 
   useEffect(() => {
-    if (!error) return;
-    errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (error) errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [error]);
 
   useEffect(() => {
     if (!settingsOpen) return;
-
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setSettingsOpen(false);
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -414,17 +469,26 @@ export default function NewCarPage() {
     };
   }, [settingsOpen]);
 
+  useEffect(() => {
+    return () => {
+      for (const variant of variants) {
+        for (const photo of [...variant.exteriorPhotos, ...variant.interiorPhotos]) {
+          URL.revokeObjectURL(photo.previewUrl);
+        }
+      }
+    };
+    // We only need final cleanup on unmount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function changeTheme(nextTheme: Theme) {
     if (nextTheme === theme) return;
-
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const transitionDocument = document as ViewTransitionDocument;
-
     if (!reducedMotion && transitionDocument.startViewTransition) {
       transitionDocument.startViewTransition(() => applyTheme(nextTheme));
       return;
     }
-
     applyTheme(nextTheme);
   }
 
@@ -437,14 +501,11 @@ export default function NewCarPage() {
   }
 
   function setUpperText(
-    key: "model" | "vin" | "stockNumber",
+    key: "model",
     event: ChangeEvent<HTMLInputElement>,
     maxLength: number,
   ) {
-    setForm((current) => ({
-      ...current,
-      [key]: normalizeUpper(event.target.value, maxLength),
-    }));
+    setForm((current) => ({ ...current, [key]: normalizeUpper(event.target.value, maxLength) }));
     setError(null);
   }
 
@@ -453,46 +514,143 @@ export default function NewCarPage() {
     setError(null);
   }
 
+  function updateVariant(localId: string, patch: Partial<VariantDraft>) {
+    setVariants((current) => current.map((variant) => variant.localId === localId ? { ...variant, ...patch } : variant));
+    setError(null);
+  }
+
+  function removeVariant(localId: string) {
+    setVariants((current) => {
+      if (current.length <= 1) return current;
+      const target = current.find((variant) => variant.localId === localId);
+      if (target) {
+        for (const photo of [...target.exteriorPhotos, ...target.interiorPhotos]) {
+          URL.revokeObjectURL(photo.previewUrl);
+        }
+      }
+      return current.filter((variant) => variant.localId !== localId);
+    });
+  }
+
+  function addVariant() {
+    setVariants((current) => [...current, createVariant(current.length)]);
+    setError(null);
+  }
+
+  function addPhotos(localId: string, group: PhotoGroup, files: FileList | null) {
+    if (!files?.length) return;
+    const accepted = Array.from(files)
+      .filter((file) => file.type.startsWith("image/"))
+      .slice(0, 16)
+      .map<PhotoDraft>((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+
+    setVariants((current) => current.map((variant) => {
+      if (variant.localId !== localId) return variant;
+      const key = group === "exterior" ? "exteriorPhotos" : "interiorPhotos";
+      const next = [...variant[key], ...accepted].slice(0, 16);
+      const keptIds = new Set(next.map((photo) => photo.id));
+      for (const photo of accepted) {
+        if (!keptIds.has(photo.id)) URL.revokeObjectURL(photo.previewUrl);
+      }
+      return { ...variant, [key]: next };
+    }));
+    setError(null);
+  }
+
+  function removePhoto(localId: string, group: PhotoGroup, photoId: string) {
+    setVariants((current) => current.map((variant) => {
+      if (variant.localId !== localId) return variant;
+      const key = group === "exterior" ? "exteriorPhotos" : "interiorPhotos";
+      const target = variant[key].find((photo) => photo.id === photoId);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return { ...variant, [key]: variant[key].filter((photo) => photo.id !== photoId) };
+    }));
+  }
+
   function validate(): string | null {
     if (!form.brand) return t("Выберите марку автомобиля.");
     if (!form.model.trim()) return t("Укажите модель автомобиля.");
 
-    if (form.year) {
-      const year = Number(form.year);
-      if (!Number.isInteger(year) || year < 1900 || year > 2100) {
-        return t("Проверьте год автомобиля.");
-      }
-    }
+    const year = Number(form.year);
+    if (!Number.isInteger(year) || year < 1900 || year > 2100) return t("Проверьте год автомобиля.");
 
-    const vin = form.vin.trim().toUpperCase();
-    if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) {
-      return t("VIN должен содержать 11–17 допустимых латинских символов и цифр.");
-    }
-
-    if (form.arrivalDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.arrivalDate)) {
+    if (showArrivalDate && form.arrivalDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.arrivalDate)) {
       return t("Проверьте дату прибытия.");
     }
 
-    if (form.mileageKm) {
+    if (!form.isNew) {
       const mileage = Number(form.mileageKm);
       if (!Number.isSafeInteger(mileage) || mileage < 0) return t("Проверьте пробег.");
     }
 
     if (form.seats) {
       const seats = Number(form.seats);
-      if (!Number.isInteger(seats) || seats < 1 || seats > 99) {
-        return t("Проверьте количество мест.");
-      }
+      if (!Number.isInteger(seats) || seats < 1 || seats > 99) return t("Проверьте количество мест.");
     }
 
     if (!form.priceOnRequest && form.price) {
       const price = Number(form.price);
-      if (!Number.isSafeInteger(price) || price < 0) {
-        return t("Цена должна быть целым положительным числом.");
-      }
+      if (!Number.isSafeInteger(price) || price < 0) return t("Цена должна быть целым положительным числом.");
+    }
+
+    if (!looksLikeInstagramUrl(form.instagramUrl)) return t("Проверьте ссылку Instagram.");
+
+    for (const variant of variants) {
+      if (!isValidVin(variant.vin.trim().toUpperCase())) return t("Укажите VIN корректно или оставьте поле пустым.");
+      const quantity = Number(variant.quantity || "1");
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return t("Проверьте количество мест.");
+    }
+
+    if (form.isPublic && totalExteriorPhotos === 0) {
+      return t("Добавьте хотя бы одну фотографию кузова перед публикацией.");
     }
 
     return null;
+  }
+
+  async function uploadPhoto(params: {
+    carId: number;
+    variantId: number;
+    group: PhotoGroup;
+    photo: PhotoDraft;
+    sortOrder: number;
+    isCover: boolean;
+  }) {
+    const data = new FormData();
+    data.set("carId", String(params.carId));
+    data.set("variantId", String(params.variantId));
+    data.set("group", params.group);
+    data.set("sortOrder", String(params.sortOrder));
+    data.set("isCover", params.isCover ? "1" : "0");
+    data.set("file", params.photo.file, params.photo.file.name);
+
+    const response = await fetch("/api/car-media", {
+      method: "POST",
+      credentials: "same-origin",
+      body: data,
+    });
+    const result = (await response.json().catch(() => null)) as MediaResponse | null;
+    if (response.status === 401) {
+      location.replace("/admin/login/");
+      throw new Error("Unauthorized");
+    }
+    if (!response.ok || !result?.success) throw new Error(result?.error || t("Не удалось загрузить фотографии."));
+  }
+
+  async function publishCar(carId: number) {
+    const response = await fetch("/api/cars", {
+      method: "PATCH",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ id: carId, isPublic: true }),
+    });
+    const data = (await response.json().catch(() => null)) as CreateCarResponse | null;
+    if (!response.ok || !data?.success) throw new Error(data?.error || t("Не удалось добавить автомобиль."));
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -506,85 +664,122 @@ export default function NewCarPage() {
     }
 
     setSaving(true);
+    setSavingText(t("Сохраняем данные…"));
     setError(null);
 
     try {
       const payload = {
         brand: form.brand,
         model: form.model.trim().toUpperCase(),
-        year: form.year ? Number(form.year) : null,
+        year: Number(form.year),
         trim: form.trim.trim() || null,
-        vin: form.vin.trim().toUpperCase() || null,
-        stockNumber: form.stockNumber.trim().toUpperCase() || null,
         status: form.status,
         countryCode: form.countryCode,
-        arrivalDate: form.arrivalDate || null,
+        arrivalDate: showArrivalDate ? (form.arrivalDate || null) : null,
+        mileageKm: form.isNew ? 0 : Number(form.mileageKm || "0"),
+        isNew: form.isNew,
 
-        mileageKm: form.mileageKm ? Number(form.mileageKm) : 0,
         engineText: form.engineText.trim() || null,
+        engineDisplacementL: form.engineDisplacementL || null,
         fuelType: form.fuelType || null,
         driveType: form.driveType || null,
-        transmission: form.transmission || null,
+        transmission: form.transmission || "automatic",
         seats: form.seats ? Number(form.seats) : null,
-        exteriorColor: form.exteriorColor.trim() || null,
-        interiorColor: form.interiorColor.trim() || null,
+        horsepowerHp: form.horsepowerHp || null,
+        torqueNm: form.torqueNm || null,
+        acceleration0100: form.acceleration0100 || null,
+        topSpeedKmh: form.topSpeedKmh || null,
+        fuelConsumptionL100: form.fuelConsumptionL100 || null,
+        electricRangeKm: form.electricRangeKm || null,
 
         price: form.priceOnRequest || !form.price ? null : Number(form.price),
         currency: form.currency,
         priceOnRequest: form.priceOnRequest || !form.price,
+        instagramUrl: form.instagramUrl.trim() || null,
 
         shortDescriptionRu: form.shortDescriptionRu.trim() || null,
         shortDescriptionUz: form.shortDescriptionUz.trim() || null,
         descriptionRu: form.descriptionRu.trim() || null,
         descriptionUz: form.descriptionUz.trim() || null,
 
-        isNew: form.isNew,
-        isNewArrival: form.isNewArrival,
-        isPublic: form.isPublic,
+        isPublic: false,
         isFeatured: form.isFeatured,
+        variants: variants.map((variant) => ({
+          exteriorColorName: variant.exteriorColorName.trim() || null,
+          exteriorSwatch: variant.exteriorSwatch,
+          interiorColorName: variant.interiorColorName.trim() || null,
+          interiorSwatch: variant.interiorSwatch,
+          vin: variant.vin.trim().toUpperCase() || null,
+          stockNumber: variant.stockNumber.trim().toUpperCase() || null,
+          quantity: Number(variant.quantity || "1"),
+        })),
       };
 
       const response = await fetch("/api/cars", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = (await response.json().catch(() => null)) as CreateCarResponse | null;
 
       if (response.status === 401) {
         location.replace("/admin/login/");
         return;
       }
-
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.error || t("Не удалось добавить автомобиль."));
-      }
+      if (!response.ok || !data?.success) throw new Error(data?.error || t("Не удалось добавить автомобиль."));
 
       const createdId = data.car?.id;
-      if (!Number.isInteger(createdId) || !createdId) {
-        throw new Error(t("D1 не подтвердил ID созданного автомобиля. Переход отменён."));
+      if (!Number.isInteger(createdId) || !createdId) throw new Error(t("D1 не подтвердил ID созданного автомобиля."));
+
+      const createdVariants = data.car?.variants ?? [];
+      if (createdVariants.length !== variants.length) throw new Error("D1 не подтвердил все цветовые варианты.");
+
+      let uploaded = 0;
+      const total = totalPhotos;
+      for (let index = 0; index < variants.length; index += 1) {
+        const draft = variants[index];
+        const dbVariant = createdVariants.find((variant) => variant.index === index);
+        if (!dbVariant) throw new Error("D1 не подтвердил цветовой вариант.");
+
+        for (let photoIndex = 0; photoIndex < draft.exteriorPhotos.length; photoIndex += 1) {
+          setSavingText(`${t("Загружаем фото")} ${uploaded + 1}/${total}`);
+          await uploadPhoto({
+            carId: createdId,
+            variantId: dbVariant.id,
+            group: "exterior",
+            photo: draft.exteriorPhotos[photoIndex],
+            sortOrder: photoIndex,
+            isCover: index === 0 && photoIndex === 0,
+          });
+          uploaded += 1;
+        }
+
+        for (let photoIndex = 0; photoIndex < draft.interiorPhotos.length; photoIndex += 1) {
+          setSavingText(`${t("Загружаем фото")} ${uploaded + 1}/${total}`);
+          await uploadPhoto({
+            carId: createdId,
+            variantId: dbVariant.id,
+            group: "interior",
+            photo: draft.interiorPhotos[photoIndex],
+            sortOrder: photoIndex,
+            isCover: false,
+          });
+          uploaded += 1;
+        }
       }
+
+      if (form.isPublic) await publishCar(createdId);
 
       const title = `${data.car?.brand || form.brand} ${data.car?.model || form.model}`.trim();
       setCreatedCar({ id: createdId, title });
-
-      window.setTimeout(() => {
-        location.assign(`/admin/cars/?created=${createdId}`);
-      }, 850);
+      window.setTimeout(() => location.assign(`/admin/cars/?created=${createdId}`), 950);
     } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t("Не удалось добавить автомобиль."),
-      );
+      setError(requestError instanceof Error ? requestError.message : t("Не удалось добавить автомобиль."));
     } finally {
       setSaving(false);
+      setSavingText(null);
     }
   }
 
@@ -600,14 +795,9 @@ export default function NewCarPage() {
     <main className={styles.page} data-theme={theme}>
       <header className={styles.toolbar}>
         <div className={styles.toolbarInner}>
-          <a
-            className={styles.roundControl}
-            href="/admin/cars/"
-            aria-label={t("Назад к автомобилям")}
-          >
+          <a className={styles.roundControl} href="/admin/cars/" aria-label={t("Назад к автомобилям")}>
             <ChevronLeftIcon />
           </a>
-
           <a className={styles.wordmarkLink} href="/admin/cars/" aria-label="Auto Sale Umar">
             <img
               className={styles.wordmark}
@@ -615,7 +805,6 @@ export default function NewCarPage() {
               alt="Auto Sale Umar"
             />
           </a>
-
           <button
             className={styles.roundControl}
             type="button"
@@ -643,105 +832,50 @@ export default function NewCarPage() {
             <h2 id="new-car-options-title">{t("Настройки")}</h2>
             <span>{t("Выберите оформление и язык")}</span>
           </header>
-
           <div className={styles.settingsContent}>
             <div className={styles.settingsBlock}>
               <span className={styles.settingsLabel}>{t("Оформление")}</span>
               <div className={styles.settingsSegments}>
-                <button
-                  type="button"
-                  data-selected={theme === "light"}
-                  onClick={() => changeTheme("light")}
-                  aria-pressed={theme === "light"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  <SunIcon />
-                  <span>{t("Светлая")}</span>
+                <button type="button" data-selected={theme === "light"} onClick={() => changeTheme("light")} aria-pressed={theme === "light"} tabIndex={settingsOpen ? 0 : -1}>
+                  <SunIcon /><span>{t("Светлая")}</span>
                 </button>
-                <button
-                  type="button"
-                  data-selected={theme === "dark"}
-                  onClick={() => changeTheme("dark")}
-                  aria-pressed={theme === "dark"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  <MoonIcon />
-                  <span>{t("Тёмная")}</span>
+                <button type="button" data-selected={theme === "dark"} onClick={() => changeTheme("dark")} aria-pressed={theme === "dark"} tabIndex={settingsOpen ? 0 : -1}>
+                  <MoonIcon /><span>{t("Тёмная")}</span>
                 </button>
               </div>
             </div>
-
             <div className={styles.settingsBlock}>
               <span className={styles.settingsLabel}>{t("Язык")}</span>
               <div className={styles.settingsSegments}>
-                <button
-                  type="button"
-                  data-selected={language === "ru"}
-                  onClick={() => applyLanguage("ru")}
-                  aria-pressed={language === "ru"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  Русский
-                </button>
-                <button
-                  type="button"
-                  data-selected={language === "uz"}
-                  onClick={() => applyLanguage("uz")}
-                  aria-pressed={language === "uz"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  O‘zbekcha
-                </button>
+                <button type="button" data-selected={language === "ru"} onClick={() => applyLanguage("ru")} aria-pressed={language === "ru"} tabIndex={settingsOpen ? 0 : -1}>Русский</button>
+                <button type="button" data-selected={language === "uz"} onClick={() => applyLanguage("uz")} aria-pressed={language === "uz"} tabIndex={settingsOpen ? 0 : -1}>O‘zbekcha</button>
               </div>
             </div>
           </div>
-
-          <footer className={styles.settingsFooter}>
-            {t("Настройки сохраняются автоматически")}
-          </footer>
+          <footer className={styles.settingsFooter}>{t("Настройки сохраняются автоматически")}</footer>
         </section>
       </header>
 
-      <button
-        className={styles.settingsBackdrop}
-        data-open={settingsOpen}
-        type="button"
-        onClick={() => setSettingsOpen(false)}
-        tabIndex={-1}
-        aria-hidden="true"
-      />
+      <button className={styles.settingsBackdrop} data-open={settingsOpen} type="button" onClick={() => setSettingsOpen(false)} tabIndex={-1} aria-hidden="true" />
 
       <div className={styles.shell}>
         <section className={styles.intro}>
           <p className={styles.eyebrow}>{t("CONTROL SYSTEM · АВТОМОБИЛИ")}</p>
           <h1>{t("Новый автомобиль")}</h1>
-          <p className={styles.introText}>
-            {t("Одна форма. После сохранения автомобиль появится в D1 только после подтверждённой записи.")}
-          </p>
+          <p className={styles.introText}>{t("Быстрая форма: основные данные один раз, цвета и фотографии — отдельными вариантами.")}</p>
         </section>
 
         {error ? (
           <div ref={errorRef} className={styles.errorBanner} role="alert">
-            <span className={styles.errorIcon}>!</span>
-            <span>{error}</span>
+            <span className={styles.errorIcon}>!</span><span>{error}</span>
           </div>
         ) : null}
 
         <form className={styles.form} onSubmit={submit} noValidate>
           <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <p className={styles.sectionKicker}>01</p>
-                <h2>{t("Автомобиль")}</h2>
-              </div>
-              <p>{t("Сначала выберите марку, затем укажите модель.")}</p>
-            </div>
+            <SectionHeader number="01" title={t("Автомобиль")} detail={t("Сначала выберите марку, затем укажите модель.")} />
 
-            <div
-              className={styles.brandRail}
-              role="listbox"
-              aria-label={t("Марка автомобиля")}
-            >
+            <div className={styles.brandRail} role="listbox" aria-label={t("Марка автомобиля")}>
               {BRANDS.map((brand) => {
                 const active = form.brand === brand.value;
                 return (
@@ -754,19 +888,10 @@ export default function NewCarPage() {
                     aria-selected={active}
                   >
                     <span className={styles.brandLogoWrap} aria-hidden="true">
-                      <img
-                        className={styles.brandLogo}
-                        src={brand.logo}
-                        alt=""
-                        draggable={false}
-                      />
+                      <img className={styles.brandLogo} data-brand={brand.value} src={brand.logo} alt="" draggable={false} />
                     </span>
                     <span className={styles.brandName}>{brand.value}</span>
-                    {active ? (
-                      <span className={styles.brandCheck} aria-hidden="true">
-                        <CheckIcon />
-                      </span>
-                    ) : null}
+                    {active ? <span className={styles.brandCheck} aria-hidden="true"><CheckIcon /></span> : null}
                   </button>
                 );
               })}
@@ -775,104 +900,50 @@ export default function NewCarPage() {
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
                 <span>{t("Марка")}</span>
-                <input
-                  value={selectedBrand?.value ?? ""}
-                  readOnly
-                  placeholder={t("Выберите выше")}
-                />
+                <input value={selectedBrand?.value ?? ""} readOnly placeholder={t("Выберите выше")} />
               </label>
-
               <label className={styles.field}>
                 <span>{t("Модель *")}</span>
-                <input
-                  value={form.model}
-                  onChange={(event) => setUpperText("model", event, 100)}
-                  placeholder="GV80"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  required
-                />
+                <input value={form.model} onChange={(event) => setUpperText("model", event, 100)} placeholder="GV80" autoCapitalize="characters" />
               </label>
-
               <label className={styles.field}>
                 <span>{t("Комплектация")}</span>
-                <input
-                  value={form.trim}
-                  onChange={(event) => setText("trim", event)}
-                  placeholder="3.5T AWD Prestige"
-                />
+                <input value={form.trim} onChange={(event) => setText("trim", event)} placeholder="3.5T Prestige" />
               </label>
-
               <label className={styles.field}>
                 <span>{t("Год")}</span>
-                <input
-                  value={form.year}
-                  onChange={(event) => setText("year", event)}
-                  inputMode="numeric"
-                  placeholder="2026"
-                  maxLength={4}
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span>VIN</span>
-                <input
-                  value={form.vin}
-                  onChange={(event) => setUpperText("vin", event, 17)}
-                  placeholder="KMUHBDSB7TU000001"
-                  autoCapitalize="characters"
-                  autoCorrect="off"
-                  spellCheck={false}
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span>{t("Внутренний номер")}</span>
-                <input
-                  value={form.stockNumber}
-                  onChange={(event) => setUpperText("stockNumber", event, 80)}
-                  placeholder="ASU-1024"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                />
+                <input value={form.year} onChange={(event) => setText("year", event)} inputMode="numeric" placeholder="2026" />
               </label>
             </div>
+
+            <div className={styles.controlGroup}>
+              <span className={styles.controlLabel}>{t("Состояние")}</span>
+              <div className={styles.segmentGridTwo}>
+                <button className={`${styles.segment} ${form.isNew ? styles.segmentActive : ""}`} type="button" onClick={() => setForm((current) => ({ ...current, isNew: true, mileageKm: "0" }))}>{t("Новый")}</button>
+                <button className={`${styles.segment} ${!form.isNew ? styles.segmentActive : ""}`} type="button" onClick={() => setForm((current) => ({ ...current, isNew: false }))}>{t("С пробегом")}</button>
+              </div>
+            </div>
+
+            {!form.isNew ? (
+              <label className={`${styles.field} ${styles.inlineTopField}`}>
+                <span>{t("Пробег, км")}</span>
+                <input value={form.mileageKm} onChange={(event) => setText("mileageKm", event)} inputMode="numeric" placeholder="45000" />
+              </label>
+            ) : null}
           </section>
 
           <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <p className={styles.sectionKicker}>02</p>
-                <h2>{t("Поставка")}</h2>
-              </div>
-              <p>{t("Статус и источник поставки используются в каталоге и фильтрах.")}</p>
-            </div>
+            <SectionHeader number="02" title={t("Поставка")} detail={t("Статус управляет полями формы: дата прибытия показывается только когда она имеет смысл.")} />
 
             <div className={styles.controlGroup}>
               <span className={styles.controlLabel}>{t("Статус")}</span>
-              <div className={styles.segmentGrid}>
+              <div className={styles.statusGrid}>
                 {STATUS_OPTIONS.map((option) => (
                   <button
                     key={option.value}
-                    type="button"
                     className={`${styles.segment} ${form.status === option.value ? styles.segmentActive : ""}`}
-                    onClick={() => setForm((current) => ({ ...current, status: option.value }))}
-                  >
-                    {option.label[language]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>{t("Страна поставки")}</span>
-              <div className={styles.segmentGrid}>
-                {COUNTRY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
                     type="button"
-                    className={`${styles.segment} ${form.countryCode === option.value ? styles.segmentActive : ""}`}
-                    onClick={() => setForm((current) => ({ ...current, countryCode: option.value }))}
+                    onClick={() => setForm((current) => ({ ...current, status: option.value, arrivalDate: option.value === "in_stock" || option.value === "in_showroom" ? "" : current.arrivalDate }))}
                   >
                     {option.label[language]}
                   </button>
@@ -882,46 +953,33 @@ export default function NewCarPage() {
 
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                <span>{t("Дата прибытия")}</span>
-                <input
-                  className={styles.dateInput}
-                  type="date"
-                  value={form.arrivalDate}
-                  onChange={(event) => setText("arrivalDate", event)}
-                />
+                <span>{t("Страна поставки")}</span>
+                <select value={form.countryCode} onChange={(event) => setText("countryCode", event)}>
+                  {COUNTRY_OPTIONS.map((country) => <option key={country.value} value={country.value}>{country.label[language]}</option>)}
+                </select>
               </label>
 
-              <label className={styles.field}>
-                <span>{t("Пробег, км")}</span>
-                <input
-                  value={form.mileageKm}
-                  onChange={(event) => setText("mileageKm", event)}
-                  inputMode="numeric"
-                  placeholder="0"
-                />
-              </label>
+              {showArrivalDate ? (
+                <label className={styles.field}>
+                  <span>{t("Ожидаемая дата прибытия")}</span>
+                  <input className={styles.dateInput} type="date" value={form.arrivalDate} onChange={(event) => setText("arrivalDate", event)} />
+                </label>
+              ) : null}
             </div>
           </section>
 
           <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <p className={styles.sectionKicker}>03</p>
-                <h2>{t("Характеристики")}</h2>
-              </div>
-              <p>{t("Основные данные, которые будут видны в карточке автомобиля.")}</p>
-            </div>
+            <SectionHeader number="03" title={t("Характеристики")} detail={t("Самые востребованные параметры для продажи: двигатель, мощность, 0–100, максимальная скорость и расход.")} />
 
             <div className={styles.fieldGrid}>
-              <label className={`${styles.field} ${styles.fieldWide}`}>
+              <label className={styles.field}>
                 <span>{t("Двигатель")}</span>
-                <input
-                  value={form.engineText}
-                  onChange={(event) => setText("engineText", event)}
-                  placeholder="3.5 T-GDI · 375 л.с."
-                />
+                <input value={form.engineText} onChange={(event) => setText("engineText", event)} placeholder="3.5 T-GDi V6" />
               </label>
-
+              <label className={styles.field}>
+                <span>{t("Объём, л")}</span>
+                <input value={form.engineDisplacementL} onChange={(event) => setText("engineDisplacementL", event)} inputMode="decimal" placeholder="3.5" />
+              </label>
               <label className={styles.field}>
                 <span>{t("Топливо")}</span>
                 <select value={form.fuelType} onChange={(event) => setText("fuelType", event)}>
@@ -933,173 +991,97 @@ export default function NewCarPage() {
                   <option value="electric">{t("Электро")}</option>
                 </select>
               </label>
-
               <label className={styles.field}>
                 <span>{t("Привод")}</span>
                 <select value={form.driveType} onChange={(event) => setText("driveType", event)}>
                   <option value="">{t("Не указано")}</option>
-                  <option value="AWD">AWD</option>
-                  <option value="4WD">4WD</option>
-                  <option value="RWD">RWD</option>
-                  <option value="FWD">FWD</option>
+                  <option value="AWD">AWD</option><option value="4WD">4WD</option><option value="RWD">RWD</option><option value="FWD">FWD</option>
                 </select>
               </label>
+            </div>
 
-              <label className={styles.field}>
-                <span>{t("Коробка")}</span>
-                <select value={form.transmission} onChange={(event) => setText("transmission", event)}>
-                  <option value="">{t("Не указано")}</option>
-                  <option value="automatic">{t("Автомат")}</option>
-                  <option value="robot">{t("Робот")}</option>
-                  <option value="cvt">{t("Вариатор")}</option>
-                  <option value="manual">{t("Механика")}</option>
-                </select>
-              </label>
+            <div className={styles.controlGroup}>
+              <span className={styles.controlLabel}>{t("Коробка")}</span>
+              <div className={styles.segmentGrid}>
+                {[{ v: "automatic", l: "Автомат" }, { v: "robot", l: "Робот" }, { v: "cvt", l: "Вариатор" }, { v: "manual", l: "Механика" }].map((item) => (
+                  <button key={item.v} className={`${styles.segment} ${form.transmission === item.v ? styles.segmentActive : ""}`} type="button" onClick={() => setForm((current) => ({ ...current, transmission: item.v }))}>{t(item.l)}</button>
+                ))}
+              </div>
+            </div>
 
-              <label className={styles.field}>
-                <span>{t("Мест")}</span>
-                <input
-                  value={form.seats}
-                  onChange={(event) => setText("seats", event)}
-                  inputMode="numeric"
-                  placeholder="5"
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span>{t("Цвет кузова")}</span>
-                <input
-                  value={form.exteriorColor}
-                  onChange={(event) => setText("exteriorColor", event)}
-                  placeholder="Uyuni White"
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span>{t("Цвет салона")}</span>
-                <input
-                  value={form.interiorColor}
-                  onChange={(event) => setText("interiorColor", event)}
-                  placeholder="Obsidian Black"
-                />
-              </label>
+            <div className={`${styles.fieldGrid} ${styles.performanceGrid}`}>
+              <label className={styles.field}><span>{t("Мест")}</span><input value={form.seats} onChange={(event) => setText("seats", event)} inputMode="numeric" placeholder="5" /></label>
+              <label className={styles.field}><span>{t("Мощность, л.с.")}</span><input value={form.horsepowerHp} onChange={(event) => setText("horsepowerHp", event)} inputMode="numeric" placeholder="375" /></label>
+              <label className={styles.field}><span>{t("Крутящий момент, Н·м")}</span><input value={form.torqueNm} onChange={(event) => setText("torqueNm", event)} inputMode="numeric" placeholder="530" /></label>
+              <label className={styles.field}><span>{t("0–100 км/ч, сек")}</span><input value={form.acceleration0100} onChange={(event) => setText("acceleration0100", event)} inputMode="decimal" placeholder="5.5" /></label>
+              <label className={styles.field}><span>{t("Макс. скорость, км/ч")}</span><input value={form.topSpeedKmh} onChange={(event) => setText("topSpeedKmh", event)} inputMode="numeric" placeholder="240" /></label>
+              <label className={styles.field}><span>{t("Расход, л/100 км")}</span><input value={form.fuelConsumptionL100} onChange={(event) => setText("fuelConsumptionL100", event)} inputMode="decimal" placeholder="11.2" /></label>
+              <label className={styles.field}><span>{t("Запас хода EV, км")}</span><input value={form.electricRangeKm} onChange={(event) => setText("electricRangeKm", event)} inputMode="numeric" placeholder="" /></label>
             </div>
           </section>
 
           <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <p className={styles.sectionKicker}>04</p>
-                <h2>{t("Цена и публикация")}</h2>
-              </div>
-              <p>{t("По умолчанию автомобиль не публикуется до добавления фотографий.")}</p>
+            <SectionHeader number="04" title={t("Цвета и фотографии")} detail={t("Один автомобиль может иметь несколько цветовых вариантов. Фото кузова и салона хранятся раздельно.")} />
+
+            <div className={styles.variantStack}>
+              {variants.map((variant, index) => (
+                <article key={variant.localId} className={styles.variantCard}>
+                  <div className={styles.variantHeader}>
+                    <div><span>{String(index + 1).padStart(2, "0")}</span><strong>{variant.exteriorColorName || `${t("Цвет кузова")} ${index + 1}`}</strong></div>
+                    {variants.length > 1 ? <button type="button" onClick={() => removeVariant(variant.localId)}>{t("Удалить вариант")}</button> : null}
+                  </div>
+
+                  <ColorPicker label={t("Цвет кузова")} nameLabel={t("Название цвета кузова")} palette={EXTERIOR_SWATCHES} value={variant.exteriorSwatch} name={variant.exteriorColorName} onColor={(value) => updateVariant(variant.localId, { exteriorSwatch: value })} onName={(value) => updateVariant(variant.localId, { exteriorColorName: value })} />
+                  <ColorPicker label={t("Цвет салона")} nameLabel={t("Название цвета салона")} palette={INTERIOR_SWATCHES} value={variant.interiorSwatch} name={variant.interiorColorName} onColor={(value) => updateVariant(variant.localId, { interiorSwatch: value })} onName={(value) => updateVariant(variant.localId, { interiorColorName: value })} />
+
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.field}><span>{t("VIN")}</span><input value={variant.vin} onChange={(event) => updateVariant(variant.localId, { vin: normalizeUpper(event.target.value, 17) })} autoCapitalize="characters" placeholder="SALKABB90TA346327" /></label>
+                    <label className={styles.field}><span>{t("Внутренний номер")}</span><input value={variant.stockNumber} onChange={(event) => updateVariant(variant.localId, { stockNumber: normalizeUpper(event.target.value, 80) })} placeholder="ASU-0261" /></label>
+                    <label className={styles.field}><span>{t("Количество")}</span><input value={variant.quantity} onChange={(event) => updateVariant(variant.localId, { quantity: event.target.value })} inputMode="numeric" placeholder="1" /></label>
+                  </div>
+
+                  <PhotoRail label={t("Кузов · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.exteriorPhotos} onFiles={(files) => addPhotos(variant.localId, "exterior", files)} onRemove={(photoId) => removePhoto(variant.localId, "exterior", photoId)} />
+                  <PhotoRail label={t("Салон · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.interiorPhotos} onFiles={(files) => addPhotos(variant.localId, "interior", files)} onRemove={(photoId) => removePhoto(variant.localId, "interior", photoId)} />
+                </article>
+              ))}
             </div>
+
+            <button className={styles.addVariantButton} type="button" onClick={addVariant}><PlusIcon />{t("Добавить цвет")}</button>
+          </section>
+
+          <section className={styles.section}>
+            <SectionHeader number="05" title={t("Цена, обзор и публикация")} detail={t("Видео в базу не загружается: здесь хранится ссылка на основной Instagram-обзор.")} />
 
             <div className={styles.priceRow}>
               <label className={`${styles.field} ${styles.priceField}`}>
                 <span>{t("Цена")}</span>
-                <input
-                  value={form.price}
-                  onChange={(event) => setText("price", event)}
-                  inputMode="numeric"
-                  placeholder="125000"
-                  disabled={form.priceOnRequest}
-                />
+                <input value={form.price} onChange={(event) => setText("price", event)} inputMode="numeric" placeholder="258000" disabled={form.priceOnRequest} />
               </label>
-
               <label className={`${styles.field} ${styles.currencyField}`}>
                 <span>{t("Валюта")}</span>
-                <select value={form.currency} onChange={(event) => setText("currency", event)}>
-                  <option value="USD">USD</option>
-                  <option value="UZS">UZS</option>
-                  <option value="EUR">EUR</option>
-                </select>
+                <select value={form.currency} onChange={(event) => setText("currency", event)}><option value="USD">USD</option><option value="UZS">UZS</option><option value="EUR">EUR</option></select>
               </label>
             </div>
 
+            <label className={`${styles.field} ${styles.instagramField}`}>
+              <span>{t("Instagram-обзор")}</span>
+              <input value={form.instagramUrl} onChange={(event) => setText("instagramUrl", event)} inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://www.instagram.com/reel/..." />
+            </label>
+
             <div className={styles.switchList}>
-              <SwitchRow
-                label={t("Цена по запросу")}
-                detail={t("Вместо числа в публичной карточке показывается запрос цены.")}
-                checked={form.priceOnRequest}
-                onChange={(checked) => setForm((current) => ({ ...current, priceOnRequest: checked }))}
-              />
-              <SwitchRow
-                label={t("Новый автомобиль")}
-                detail={t("Используется для классификации автомобиля.")}
-                checked={form.isNew}
-                onChange={(checked) => setForm((current) => ({ ...current, isNew: checked }))}
-              />
-              <SwitchRow
-                label={t("Новое поступление")}
-                detail={t("Разрешает выводить автомобиль в блоке последних поступлений.")}
-                checked={form.isNewArrival}
-                onChange={(checked) => setForm((current) => ({ ...current, isNewArrival: checked }))}
-              />
-              <SwitchRow
-                label={t("Рекомендуемый")}
-                detail={t("Поднимает автомобиль выше в административном каталоге.")}
-                checked={form.isFeatured}
-                onChange={(checked) => setForm((current) => ({ ...current, isFeatured: checked }))}
-              />
-              <SwitchRow
-                label={t("Опубликовать на сайте")}
-                detail={t("Оставьте выключенным, пока не добавлены качественные фотографии.")}
-                checked={form.isPublic}
-                onChange={(checked) => setForm((current) => ({ ...current, isPublic: checked }))}
-              />
+              <SwitchRow label={t("Цена по запросу")} detail={t("Вместо числа в публичной карточке показывается запрос цены.")} checked={form.priceOnRequest} onChange={(checked) => setForm((current) => ({ ...current, priceOnRequest: checked }))} />
+              <SwitchRow label={t("Рекомендуемый")} detail={t("Поднимает автомобиль выше в каталоге.")} checked={form.isFeatured} onChange={(checked) => setForm((current) => ({ ...current, isFeatured: checked }))} />
+              <SwitchRow label={t("Опубликовать на сайте")} detail={t("Доступно после добавления хотя бы одной фотографии кузова.")} checked={form.isPublic} disabled={totalExteriorPhotos === 0} onChange={(checked) => setForm((current) => ({ ...current, isPublic: checked }))} />
             </div>
           </section>
 
           <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <p className={styles.sectionKicker}>05</p>
-                <h2>{t("Описание")}</h2>
-              </div>
-              <p>{t("Русская и узбекская версии хранятся отдельно.")}</p>
-            </div>
-
+            <SectionHeader number="06" title={t("Описание")} detail={t("Русская и узбекская версии хранятся отдельно.")} />
             <div className={styles.fieldGrid}>
-              <label className={styles.field}>
-                <span>{t("Коротко · RU")}</span>
-                <textarea
-                  className={styles.shortTextarea}
-                  value={form.shortDescriptionRu}
-                  onChange={(event) => setText("shortDescriptionRu", event)}
-                  placeholder={t("Краткое описание для карточки")}
-                  maxLength={220}
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span>Qisqa · UZ</span>
-                <textarea
-                  className={styles.shortTextarea}
-                  value={form.shortDescriptionUz}
-                  onChange={(event) => setText("shortDescriptionUz", event)}
-                  placeholder="Kartochka uchun qisqa tavsif"
-                  maxLength={220}
-                />
-              </label>
-
-              <label className={`${styles.field} ${styles.fieldWide}`}>
-                <span>{t("Описание · RU")}</span>
-                <textarea
-                  value={form.descriptionRu}
-                  onChange={(event) => setText("descriptionRu", event)}
-                  placeholder={t("Полное описание автомобиля")}
-                />
-              </label>
-
-              <label className={`${styles.field} ${styles.fieldWide}`}>
-                <span>Tavsif · UZ</span>
-                <textarea
-                  value={form.descriptionUz}
-                  onChange={(event) => setText("descriptionUz", event)}
-                  placeholder="Avtomobilning to‘liq tavsifi"
-                />
-              </label>
+              <label className={styles.field}><span>{t("Коротко · RU")}</span><textarea className={styles.shortTextarea} value={form.shortDescriptionRu} onChange={(event) => setText("shortDescriptionRu", event)} placeholder={t("Краткое описание для карточки")} maxLength={220} /></label>
+              <label className={styles.field}><span>Qisqa · UZ</span><textarea className={styles.shortTextarea} value={form.shortDescriptionUz} onChange={(event) => setText("shortDescriptionUz", event)} placeholder="Kartochka uchun qisqa tavsif" maxLength={220} /></label>
+              <label className={`${styles.field} ${styles.fieldWide}`}><span>{t("Описание · RU")}</span><textarea value={form.descriptionRu} onChange={(event) => setText("descriptionRu", event)} placeholder={t("Полное описание автомобиля")} /></label>
+              <label className={`${styles.field} ${styles.fieldWide}`}><span>Tavsif · UZ</span><textarea value={form.descriptionUz} onChange={(event) => setText("descriptionUz", event)} placeholder="Avtomobilning to‘liq tavsifi" /></label>
             </div>
           </section>
 
@@ -1110,7 +1092,7 @@ export default function NewCarPage() {
             </div>
             <button className={styles.saveButton} type="submit" disabled={saving || !authReady}>
               {saving ? <span className={styles.spinner} aria-hidden="true" /> : <CheckIcon />}
-              <span>{saving ? t("Сохраняем в D1…") : t("Сохранить автомобиль")}</span>
+              <span>{saving ? (savingText || t("Сохраняем данные…")) : t("Сохранить автомобиль")}</span>
             </button>
           </div>
         </form>
@@ -1119,12 +1101,10 @@ export default function NewCarPage() {
       {createdCar ? (
         <div className={styles.successOverlay} role="status" aria-live="polite">
           <div className={styles.successCard}>
-            <span className={styles.successIcon}>
-              <CheckIcon />
-            </span>
+            <span className={styles.successIcon}><CheckIcon /></span>
             <p>{t("Автомобиль сохранён")}</p>
             <h2>{createdCar.title}</h2>
-            <span>{t("D1 подтвердил запись")} · ID {createdCar.id}</span>
+            <span>{t("D1 + R2 подтвердили запись")} · ID {createdCar.id}</span>
           </div>
         </div>
       ) : null}
@@ -1132,75 +1112,135 @@ export default function NewCarPage() {
   );
 }
 
+function SectionHeader({ number, title, detail }: { number: string; title: string; detail: string }) {
+  return (
+    <div className={styles.sectionHeader}>
+      <div><p className={styles.sectionKicker}>{number}</p><h2>{title}</h2></div>
+      <p>{detail}</p>
+    </div>
+  );
+}
+
+function ColorPicker({
+  label,
+  nameLabel,
+  palette,
+  value,
+  name,
+  onColor,
+  onName,
+}: {
+  label: string;
+  nameLabel: string;
+  palette: readonly { value: string; label: string }[];
+  value: string;
+  name: string;
+  onColor: (value: string) => void;
+  onName: (value: string) => void;
+}) {
+  return (
+    <div className={styles.colorBlock}>
+      <span className={styles.controlLabel}>{label}</span>
+      <div className={styles.swatchRail} role="radiogroup" aria-label={label}>
+        {palette.map((swatch) => (
+          <button
+            key={swatch.value}
+            className={styles.swatchButton}
+            data-selected={value === swatch.value}
+            type="button"
+            title={swatch.label}
+            aria-label={swatch.label}
+            aria-pressed={value === swatch.value}
+            onClick={() => onColor(swatch.value)}
+          >
+            <span style={{ backgroundColor: swatch.value }} />
+          </button>
+        ))}
+      </div>
+      <label className={styles.field}>
+        <span>{nameLabel}</span>
+        <input value={name} onChange={(event) => onName(event.target.value)} placeholder="Vik Black / Uyuni White" />
+      </label>
+    </div>
+  );
+}
+
+function PhotoRail({
+  label,
+  buttonLabel,
+  photos,
+  onFiles,
+  onRemove,
+}: {
+  label: string;
+  buttonLabel: string;
+  photos: PhotoDraft[];
+  onFiles: (files: FileList | null) => void;
+  onRemove: (photoId: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  return (
+    <div className={styles.photoBlock}>
+      <div className={styles.photoBlockHeader}>
+        <span>{label}</span>
+        <button type="button" onClick={() => inputRef.current?.click()}><PlusIcon />{buttonLabel}</button>
+        <input ref={inputRef} className={styles.hiddenFileInput} type="file" accept="image/*" multiple onChange={(event) => { onFiles(event.target.files); event.currentTarget.value = ""; }} />
+      </div>
+      <div className={styles.photoRail} data-empty={photos.length === 0}>
+        {photos.length === 0 ? <span className={styles.photoEmpty}>+</span> : photos.map((photo, index) => (
+          <figure key={photo.id} className={styles.photoPreview}>
+            <img src={photo.previewUrl} alt="" />
+            {index === 0 ? <span className={styles.photoIndex}>{String(index + 1).padStart(2, "0")}</span> : null}
+            <button type="button" aria-label="Удалить фото" onClick={() => onRemove(photo.id)}>×</button>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SwitchRow({
   label,
   detail,
   checked,
+  disabled = false,
   onChange,
 }: {
   label: string;
   detail: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className={styles.switchRow}>
-      <span className={styles.switchCopy}>
-        <strong>{label}</strong>
-        <small>{detail}</small>
-      </span>
-      <input
-        className={styles.switchInput}
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <span className={styles.switchTrack} aria-hidden="true">
-        <span className={styles.switchThumb} />
-      </span>
+    <label className={styles.switchRow} data-disabled={disabled}>
+      <span className={styles.switchCopy}><strong>{label}</strong><small>{detail}</small></span>
+      <input className={styles.switchInput} type="checkbox" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
+      <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchThumb} /></span>
     </label>
   );
 }
 
 function ChevronLeftIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M14.75 5.5 8.25 12l6.5 6.5" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.75 5.5 8.25 12l6.5 6.5" /></svg>;
 }
 
 function MenuIcon({ open }: { open: boolean }) {
-  return (
-    <span className={styles.menuGlyph} data-open={open} aria-hidden="true">
-      <i />
-      <i />
-      <i />
-    </span>
-  );
+  return <span className={styles.menuGlyph} data-open={open} aria-hidden="true"><i /><i /><i /></span>;
 }
 
 function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 15.2A8.1 8.1 0 0 1 8.8 4 8.25 8.25 0 1 0 20 15.2Z" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.1 8.1 0 0 1 8.8 4 8.25 8.25 0 1 0 20 15.2Z" /></svg>;
 }
 
 function SunIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.5" />
-      <path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M18.8 5.2l-1.5 1.5M6.7 17.3l-1.5 1.5" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" /><path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M18.8 5.2l-1.5 1.5M6.7 17.3l-1.5 1.5" /></svg>;
 }
 
 function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m5.5 12.4 4.2 4.2 8.8-9.1" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5.5 12.4 4.2 4.2 8.8-9.1" /></svg>;
+}
+
+function PlusIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
 }
