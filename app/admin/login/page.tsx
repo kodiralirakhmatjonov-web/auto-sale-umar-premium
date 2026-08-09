@@ -1,15 +1,63 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
 
 type Theme = "light" | "dark";
+type Language = "ru" | "uz";
 
 interface LoginResponse {
   success: boolean;
   error?: string;
 }
+
+const copy = {
+  ru: {
+    back: "Вернуться на сайт",
+    home: "Auto Sale Umar — на главную",
+    options: "Открыть настройки",
+    menuTitle: "Настройки интерфейса",
+    appearance: "Оформление",
+    light: "Светлая",
+    dark: "Тёмная",
+    language: "Язык",
+    russian: "Русский",
+    uzbek: "O‘zbekcha",
+    title: "Войти",
+    description: "Управление Auto Sale Umar доступно только сотрудникам.",
+    email: "Электронная почта",
+    password: "Пароль",
+    passwordPlaceholder: "Введите пароль",
+    submitting: "Проверяем…",
+    submit: "Войти",
+    session: "Защищённая сессия",
+    loginError: "Не удалось войти.",
+    networkError: "Нет связи с сервером. Проверьте подключение и повторите вход.",
+  },
+  uz: {
+    back: "Saytga qaytish",
+    home: "Auto Sale Umar — bosh sahifa",
+    options: "Sozlamalarni ochish",
+    menuTitle: "Interfeys sozlamalari",
+    appearance: "Ko‘rinish",
+    light: "Yorug‘",
+    dark: "Tungi",
+    language: "Til",
+    russian: "Русский",
+    uzbek: "O‘zbekcha",
+    title: "Kirish",
+    description: "Auto Sale Umar boshqaruvi faqat xodimlar uchun.",
+    email: "Elektron pochta",
+    password: "Parol",
+    passwordPlaceholder: "Parolni kiriting",
+    submitting: "Tekshirilmoqda…",
+    submit: "Kirish",
+    session: "Himoyalangan seans",
+    loginError: "Elektron pochta yoki parol noto‘g‘ri.",
+    networkError: "Server bilan aloqa yo‘q. Internetni tekshirib, qayta urinib ko‘ring.",
+  },
+} as const;
 
 function MoonIcon() {
   return (
@@ -35,6 +83,20 @@ function SunIcon() {
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M5 7.25h14M5 12h14M5 16.75h14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
         strokeLinecap="round"
       />
     </svg>
@@ -83,8 +145,12 @@ function LockIcon() {
 export default function AdminLoginPage() {
   const router = useRouter();
   const [theme, setTheme] = useState<Theme>("light");
+  const [language, setLanguage] = useState<Language>("ru");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const text = copy[language];
 
   const applyTheme = useCallback((nextTheme: Theme) => {
     setTheme(nextTheme);
@@ -131,9 +197,49 @@ export default function AdminLoginPage() {
     applyTheme(systemDark ? "dark" : "light");
   }, [applyTheme]);
 
-  function toggleTheme() {
-    applyTheme(theme === "light" ? "dark" : "light");
-  }
+  const applyLanguage = useCallback((nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    document.documentElement.lang = nextLanguage;
+
+    try {
+      window.localStorage.setItem("asu-language", nextLanguage);
+    } catch {
+      // The browser language remains the fallback.
+    }
+  }, []);
+
+  useEffect(() => {
+    let nextLanguage: Language = navigator.language.toLowerCase().startsWith("uz") ? "uz" : "ru";
+
+    try {
+      const stored = window.localStorage.getItem("asu-language");
+      if (stored === "ru" || stored === "uz") nextLanguage = stored;
+    } catch {
+      // Continue with the browser language.
+    }
+
+    applyLanguage(nextLanguage);
+  }, [applyLanguage]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function closeOnOutsidePress(event: PointerEvent) {
+      if (!toolbarRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -156,14 +262,14 @@ export default function AdminLoginPage() {
 
       const data = (await response.json()) as LoginResponse;
       if (!response.ok || !data.success) {
-        setError(data.error ?? "Не удалось войти.");
+        setError(language === "uz" ? text.loginError : (data.error ?? text.loginError));
         return;
       }
 
       router.replace("/admin/staff/");
       router.refresh();
     } catch {
-      setError("Нет связи с сервером. Проверьте подключение и повторите вход.");
+      setError(text.networkError);
     } finally {
       setLoading(false);
     }
@@ -173,41 +279,104 @@ export default function AdminLoginPage() {
     <main className={styles.page} data-theme={theme}>
       <div className={styles.mediaLayer} aria-hidden="true" />
 
-      <header className={styles.toolbar}>
-        <a className={styles.toolbarButton} href="/" aria-label="Вернуться на сайт">
-          <ArrowLeftIcon />
-        </a>
+      <div className={styles.toolbarShell} ref={toolbarRef}>
+        <header className={styles.toolbar}>
+          <a className={styles.toolbarButton} href="/" aria-label={text.back}>
+            <ArrowLeftIcon />
+          </a>
 
-        <a className={styles.wordmarkWrap} href="/" aria-label="Auto Sale Umar — на главную">
-          <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
-        </a>
+          <a className={styles.wordmarkWrap} href="/" aria-label={text.home}>
+            <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
+          </a>
 
-        <button
-          className={styles.toolbarButton}
-          type="button"
-          onClick={toggleTheme}
-          aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
-          aria-pressed={theme === "dark"}
+          <button
+            className={styles.toolbarButton}
+            data-active={menuOpen}
+            type="button"
+            onClick={() => setMenuOpen((current) => !current)}
+            aria-label={text.options}
+            aria-expanded={menuOpen}
+            aria-controls="login-interface-options"
+          >
+            <MenuIcon />
+          </button>
+        </header>
+
+        <section
+          className={styles.optionsMenu}
+          id="login-interface-options"
+          data-open={menuOpen}
+          aria-hidden={!menuOpen}
+          aria-label={text.menuTitle}
         >
-          <span className={styles.iconStage}>
-            <span className={styles.moonIcon}><MoonIcon /></span>
-            <span className={styles.sunIcon}><SunIcon /></span>
-          </span>
-        </button>
-      </header>
+          <p className={styles.menuTitle}>{text.menuTitle}</p>
+
+          <div className={styles.optionBlock}>
+            <span className={styles.optionLabel}>{text.appearance}</span>
+            <div className={styles.segmentedControl}>
+              <button
+                type="button"
+                data-selected={theme === "light"}
+                onClick={() => applyTheme("light")}
+                aria-pressed={theme === "light"}
+                tabIndex={menuOpen ? 0 : -1}
+              >
+                <SunIcon />
+                <span>{text.light}</span>
+              </button>
+              <button
+                type="button"
+                data-selected={theme === "dark"}
+                onClick={() => applyTheme("dark")}
+                aria-pressed={theme === "dark"}
+                tabIndex={menuOpen ? 0 : -1}
+              >
+                <MoonIcon />
+                <span>{text.dark}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.optionBlock}>
+            <span className={styles.optionLabel}>{text.language}</span>
+            <div className={styles.segmentedControl}>
+              <button
+                type="button"
+                data-selected={language === "ru"}
+                onClick={() => applyLanguage("ru")}
+                aria-pressed={language === "ru"}
+                tabIndex={menuOpen ? 0 : -1}
+              >
+                <span>RU</span>
+                <span>{text.russian}</span>
+              </button>
+              <button
+                type="button"
+                data-selected={language === "uz"}
+                onClick={() => applyLanguage("uz")}
+                aria-pressed={language === "uz"}
+                tabIndex={menuOpen ? 0 : -1}
+              >
+                <span>UZ</span>
+                <span>{text.uzbek}</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
 
       <section className={styles.content}>
         <section className={styles.loginSheet} aria-labelledby="login-title">
           <div className={styles.sheetHeading}>
             <p><span aria-hidden="true" /> CONTROL SYSTEM</p>
-            <h1 id="login-title">Войти</h1>
-            <div>Управление Auto Sale Umar доступно только сотрудникам.</div>
+            <h1 id="login-title">{text.title}</h1>
+            <div>{text.description}</div>
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit} aria-busy={loading}>
             <div className={styles.formGroup}>
               <label className={styles.field}>
-                <span>Электронная почта</span>
+                <span>{text.email}</span>
                 <input
                   name="email"
                   type="email"
@@ -225,13 +394,13 @@ export default function AdminLoginPage() {
               <span className={styles.fieldDivider} aria-hidden="true" />
 
               <label className={styles.field}>
-                <span>Пароль</span>
+                <span>{text.password}</span>
                 <input
                   name="password"
                   type="password"
                   autoComplete="current-password"
                   enterKeyHint="go"
-                  placeholder="Введите пароль"
+                  placeholder={text.passwordPlaceholder}
                   required
                 />
               </label>
@@ -241,16 +410,16 @@ export default function AdminLoginPage() {
 
             <button className={styles.submit} type="submit" disabled={loading}>
               {loading ? (
-                <><span className={styles.spinner} aria-hidden="true" /> Проверяем…</>
+                <><span className={styles.spinner} aria-hidden="true" /> {text.submitting}</>
               ) : (
-                "Войти"
+                text.submit
               )}
             </button>
           </form>
 
           <footer className={styles.sheetFooter}>
             <LockIcon />
-            <span>Защищённая сессия</span>
+            <span>{text.session}</span>
           </footer>
         </section>
       </section>
