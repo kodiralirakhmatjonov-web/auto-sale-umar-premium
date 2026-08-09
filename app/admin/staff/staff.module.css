@@ -330,11 +330,14 @@
 }
 
 .brand {
+  width: 100%;
+  max-width: var(--asu-admin-toolbar-logo-width, 205px);
+  height: var(--asu-admin-toolbar-logo-height, 50px);
   min-width: 0;
   justify-self: center;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   color: inherit;
   text-decoration: none;
 }
@@ -342,8 +345,8 @@
 .logoStack {
   position: relative;
   display: block;
-  width: min(var(--asu-admin-toolbar-logo-width), 100%);
-  height: var(--asu-admin-toolbar-logo-height);
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
@@ -1832,8 +1835,8 @@
   }
 
   .logoStack {
-    width: min(var(--asu-admin-toolbar-logo-width), 100%);
-    height: var(--asu-admin-toolbar-logo-height);
+    width: 100%;
+    height: 100%;
   }
 
   .content {
@@ -2438,8 +2441,8 @@
    ========================================================= */
 
 .logoStack {
-  width: min(var(--asu-admin-toolbar-logo-width), 100%);
-  height: var(--asu-admin-toolbar-logo-height);
+  width: 100%;
+  height: 100%;
 }
 
 .themeButton[data-active="true"] {
@@ -2716,8 +2719,8 @@
 
 @media (max-width: 420px) {
   .logoStack {
-    width: min(var(--asu-admin-toolbar-logo-width), 100%);
-    height: var(--asu-admin-toolbar-logo-height);
+    width: 100%;
+    height: 100%;
   }
 
   .settingsMenu {
