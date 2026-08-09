@@ -400,14 +400,16 @@
 }
 
 .shell {
-  width: min(100% - 28px, 980px);
+  width: min(calc(100% - 32px), 1040px);
+  min-width: 0;
   margin: 0 auto;
-  padding: 52px 0 48px;
+  padding: 50px 0 52px;
 }
 
 .intro {
-  max-width: 760px;
-  padding: 0 2px 34px;
+  max-width: 800px;
+  min-width: 0;
+  padding: 0 2px 32px;
 }
 
 .eyebrow,
@@ -421,20 +423,23 @@
 }
 
 .intro h1 {
+  max-width: 780px;
   margin: 10px 0 0;
-  font-size: clamp(42px, 8vw, 78px);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-  font-weight: 760;
+  font-size: clamp(48px, 7.2vw, 76px);
+  line-height: .94;
+  letter-spacing: -0.06em;
+  font-weight: 770;
+  overflow-wrap: normal;
 }
 
 .introText {
-  max-width: 660px;
+  max-width: 650px;
   margin: 18px 0 0;
   color: var(--secondary);
-  font-size: clamp(17px, 2.7vw, 21px);
-  line-height: 1.45;
+  font-size: clamp(17px, 2.2vw, 20px);
+  line-height: 1.48;
   letter-spacing: -0.018em;
+  overflow-wrap: break-word;
 }
 
 .errorBanner {
@@ -465,24 +470,42 @@
 }
 
 .form {
+  width: 100%;
+  min-width: 0;
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .section {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 28px;
   border: 1px solid var(--line);
-  border-radius: 32px;
-  background: var(--surface);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow:
+    0 14px 42px rgba(15, 18, 22, .045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.page[data-theme="dark"] .section {
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, .15),
+    inset 0 1px 0 rgba(255, 255, 255, .035);
 }
 
 .sectionHeader {
+  min-width: 0;
   margin-bottom: 24px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: clamp(22px, 5vw, 58px);
+}
+
+.sectionHeader > div {
+  min-width: 0;
 }
 
 .sectionHeader h2 {
@@ -494,22 +517,32 @@
 }
 
 .sectionHeader > p {
-  width: min(40%, 330px);
+  flex: 0 1 350px;
+  width: auto;
+  min-width: 0;
+  max-width: 350px;
   margin: 2px 0 0;
   color: var(--secondary);
   font-size: 14px;
   line-height: 1.45;
+  overflow-wrap: break-word;
 }
 
 .brandRail {
+  width: auto;
+  min-width: 0;
+  max-width: calc(100% + 56px);
   margin: 0 -28px 26px;
-  padding: 2px 28px 10px;
+  padding: 2px 28px 11px;
   display: flex;
   gap: 10px;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
 }
 
 .brandRail::-webkit-scrollbar {
@@ -518,18 +551,28 @@
 
 .brandTile {
   position: relative;
-  flex: 0 0 126px;
-  min-height: 92px;
-  padding: 14px 12px;
+  flex: 0 0 132px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 13px 12px 12px;
   display: grid;
-  place-items: center;
+  grid-template-rows: 64px auto;
+  align-items: center;
+  justify-items: center;
+  gap: 7px;
   scroll-snap-align: start;
   border: 1px solid var(--line);
-  border-radius: 23px;
+  border-radius: 24px;
   color: var(--text);
   background: var(--surface-2);
   cursor: pointer;
-  transition: transform 180ms var(--spring), border-color 180ms ease, background 180ms ease;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.58);
+  transition:
+    transform 180ms var(--spring),
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .brandTile:active {
@@ -537,47 +580,82 @@
 }
 
 .brandTileActive {
-  color: #fff;
-  border-color: #09090a;
-  background: #09090a;
+  border-color: color-mix(in srgb, var(--text) 72%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, var(--surface-2));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--text) 56%, transparent),
+    0 12px 28px rgba(18, 18, 20, .08),
+    inset 0 1px 0 rgba(255,255,255,.62);
 }
 
 .page[data-theme="dark"] .brandTileActive {
-  color: #08080a;
-  border-color: #f5f5f7;
-  background: #f5f5f7;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.52),
+    0 14px 30px rgba(0,0,0,.2),
+    inset 0 1px 0 rgba(255,255,255,.04);
 }
 
-.brandMark {
+.brandLogoWrap {
+  width: 100%;
+  height: 64px;
+  min-width: 0;
   display: grid;
   place-items: center;
-  gap: 0;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 820;
-  line-height: 0.95;
-  letter-spacing: 0.08em;
+  overflow: hidden;
 }
 
-.brandTile:nth-child(4) .brandMark,
-.brandTile:nth-child(9) .brandMark {
-  font-size: 10px;
+.brandLogo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 98px;
+  max-height: 58px;
+  object-fit: contain;
+  object-position: center;
+  filter: grayscale(1) contrast(1.08);
+  mix-blend-mode: multiply;
+  user-select: none;
+  pointer-events: none;
+}
+
+.page[data-theme="dark"] .brandLogo {
+  filter: grayscale(1) invert(1) contrast(1.08);
+  mix-blend-mode: screen;
+}
+
+.brandName {
+  width: 100%;
+  overflow: hidden;
+  color: var(--secondary);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 680;
+  letter-spacing: -.01em;
+}
+
+.brandTileActive .brandName {
+  color: var(--text);
 }
 
 .brandCheck {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  top: 8px;
+  right: 8px;
   width: 22px;
   height: 22px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  background: #0a0a0b;
+  box-shadow: 0 4px 10px rgba(0,0,0,.14);
 }
 
-.page[data-theme="dark"] .brandTileActive .brandCheck {
-  background: rgba(0, 0, 0, 0.08);
+.page[data-theme="dark"] .brandCheck {
+  color: #0a0a0b;
+  background: #f5f5f7;
 }
 
 .brandCheck svg {
@@ -587,6 +665,9 @@
 }
 
 .fieldGrid {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -986,44 +1067,86 @@
   }
 
   .shell {
-    width: min(100% - 24px, 980px);
-    padding-top: 38px;
+    width: min(calc(100% - 20px), 980px);
+    padding: 40px 0 42px;
   }
 
   .intro {
-    padding-bottom: 28px;
+    max-width: 100%;
+    padding: 0 4px 26px;
+  }
+
+  .eyebrow,
+  .sectionKicker {
+    font-size: 10px;
+    letter-spacing: .18em;
   }
 
   .intro h1 {
-    font-size: clamp(44px, 13vw, 64px);
+    max-width: 100%;
+    font-size: clamp(46px, 12.6vw, 58px);
+    line-height: .94;
+    letter-spacing: -.056em;
+  }
+
+  .introText {
+    max-width: 100%;
+    margin-top: 16px;
+    font-size: 17px;
+    line-height: 1.45;
   }
 
   .section {
-    padding: 22px 18px;
-    border-radius: 28px;
+    padding: 20px 16px 18px;
+    border-radius: 27px;
   }
 
   .sectionHeader {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     display: block;
+  }
+
+  .sectionHeader h2 {
+    margin-top: 5px;
+    font-size: 30px;
+    line-height: 1.02;
+    letter-spacing: -.042em;
   }
 
   .sectionHeader > p {
     width: 100%;
-    margin-top: 10px;
+    max-width: 32rem;
+    margin-top: 9px;
+    font-size: 14px;
+    line-height: 1.42;
   }
 
   .brandRail {
-    margin-left: -18px;
-    margin-right: -18px;
-    padding-left: 18px;
-    padding-right: 18px;
+    max-width: calc(100% + 32px);
+    margin: 0 -16px 22px;
+    padding: 2px 16px 9px;
+    gap: 9px;
   }
 
   .brandTile {
-    flex-basis: 114px;
-    min-height: 86px;
+    flex-basis: 112px;
+    min-height: 104px;
+    grid-template-rows: 57px auto;
+    padding: 11px 10px 10px;
     border-radius: 21px;
+  }
+
+  .brandLogoWrap {
+    height: 57px;
+  }
+
+  .brandLogo {
+    max-width: 86px;
+    max-height: 51px;
+  }
+
+  .brandName {
+    font-size: 10.5px;
   }
 
   .fieldGrid {

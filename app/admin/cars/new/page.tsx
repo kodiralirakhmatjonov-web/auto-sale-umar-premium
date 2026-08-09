@@ -87,15 +87,15 @@ interface MeResponse {
 }
 
 const BRANDS = [
-  { value: "Mercedes-Benz", mark: "MERCEDES\nBENZ" },
-  { value: "Range Rover", mark: "RANGE\nROVER" },
-  { value: "Rolls-Royce", mark: "ROLLS\nROYCE" },
-  { value: "Cadillac", mark: "CADILLAC" },
-  { value: "Lexus", mark: "LEXUS" },
-  { value: "Toyota", mark: "TOYOTA" },
-  { value: "Genesis", mark: "GENESIS" },
-  { value: "BMW", mark: "BMW" },
-  { value: "Lamborghini", mark: "LAMBORGHINI" },
+  { value: "Mercedes-Benz", logo: "/brands/mercedes-benz.jpg" },
+  { value: "Range Rover", logo: "/brands/range-rover.png" },
+  { value: "Rolls-Royce", logo: "/brands/rolls-royce.png" },
+  { value: "Cadillac", logo: "/brands/cadillac.png" },
+  { value: "Lexus", logo: "/brands/lexus.png" },
+  { value: "Toyota", logo: "/brands/toyota.png" },
+  { value: "Genesis", logo: "/brands/genesis.png" },
+  { value: "BMW", logo: "/brands/bmw.png" },
+  { value: "Lamborghini", logo: "/brands/lamborghini.png" },
 ] as const;
 
 const STATUS_OPTIONS: Array<{ value: CarStatus; label: Record<Language, string> }> = [
@@ -753,11 +753,15 @@ export default function NewCarPage() {
                     role="option"
                     aria-selected={active}
                   >
-                    <span className={styles.brandMark}>
-                      {brand.mark.split("\n").map((line) => (
-                        <span key={line}>{line}</span>
-                      ))}
+                    <span className={styles.brandLogoWrap} aria-hidden="true">
+                      <img
+                        className={styles.brandLogo}
+                        src={brand.logo}
+                        alt=""
+                        draggable={false}
+                      />
                     </span>
+                    <span className={styles.brandName}>{brand.value}</span>
                     {active ? (
                       <span className={styles.brandCheck} aria-hidden="true">
                         <CheckIcon />
