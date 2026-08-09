@@ -148,7 +148,7 @@ export default function StaffPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/staff", {
+      const response = await fetch("/api/v1/staff", {
         method: "GET",
         credentials: "same-origin",
         cache: "no-store",
@@ -323,7 +323,7 @@ export default function StaffPage() {
     setActionError(null);
 
     try {
-      const response = await fetch("/api/staff", {
+      const response = await fetch("/api/v1/staff", {
         method: "POST",
         credentials: "same-origin",
         cache: "no-store",
@@ -391,7 +391,7 @@ export default function StaffPage() {
     setFormError(null);
 
     try {
-      const response = await fetch("/api/staff", {
+      const response = await fetch("/api/v1/staff", {
         method: "POST",
         credentials: "same-origin",
         headers: {
