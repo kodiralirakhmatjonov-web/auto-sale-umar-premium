@@ -23,7 +23,7 @@ export interface SessionPayload {
 
 const encoder = new TextEncoder();
 const SESSION_COOKIE = "asu_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const PASSWORD_ITERATIONS = 100_000;
 
 function bytesToBase64Url(bytes: Uint8Array): string {
@@ -220,12 +220,28 @@ export function readCookie(request: Request, name = SESSION_COOKIE): string | nu
   return null;
 }
 
-export function sessionCookie(token: string): string {
-  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_MAX_AGE_SECONDS}`;
+function sessionCookieDomain(requestUrl?: string): string {
+  if (!requestUrl) return "";
+
+  try {
+    const hostname = new URL(requestUrl).hostname.toLowerCase();
+    if (hostname === "autosaleumar.com" || hostname.endsWith(".autosaleumar.com")) {
+      return "; Domain=autosaleumar.com";
+    }
+  } catch {
+    // Preview/local environments keep a host-only cookie.
+  }
+
+  return "";
 }
 
-export function clearSessionCookie(): string {
-  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
+export function sessionCookie(token: string, requestUrl?: string): string {
+  const expires = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000).toUTCString();
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_MAX_AGE_SECONDS}; Expires=${expires}${sessionCookieDomain(requestUrl)}`;
+}
+
+export function clearSessionCookie(requestUrl?: string): string {
+  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${sessionCookieDomain(requestUrl)}`;
 }
 
 export async function getAuthenticatedUser(request: Request, env: Env) {
