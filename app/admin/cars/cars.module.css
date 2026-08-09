@@ -136,7 +136,7 @@
 
 /* Header deliberately mirrors the login page's edge-to-edge behavior. */
 .header {
-  width: min(1180px, 100%);
+  width: min(var(--asu-admin-toolbar-max-width), calc(100vw - 20px));
   margin: 0 auto;
   position: relative;
   z-index: 20;
@@ -144,15 +144,20 @@
 }
 
 .headerInner {
-  min-height: 74px;
+  min-height: var(--asu-admin-toolbar-height);
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 52px;
+  grid-template-columns:
+    var(--asu-admin-toolbar-control-size)
+    minmax(0, 1fr)
+    var(--asu-admin-toolbar-control-size);
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: var(--asu-admin-toolbar-gap);
+  padding:
+    var(--asu-admin-toolbar-padding-block)
+    var(--asu-admin-toolbar-padding-inline);
 
   border: 1px solid var(--line);
-  border-radius: 37px;
+  border-radius: var(--asu-admin-toolbar-radius);
 
   background: color-mix(in srgb, var(--surface-strong) 94%, transparent);
   -webkit-backdrop-filter: blur(38px) saturate(178%);
@@ -175,8 +180,8 @@
 }
 
 .roundButton {
-  width: 52px;
-  height: 52px;
+  width: var(--asu-admin-toolbar-control-size);
+  height: var(--asu-admin-toolbar-control-size);
   display: grid;
   place-items: center;
 
@@ -214,15 +219,15 @@
 }
 
 .roundButton svg {
-  width: 27px;
-  height: 27px;
+  width: var(--asu-admin-toolbar-icon-size);
+  height: var(--asu-admin-toolbar-icon-size);
 }
 
 .wordmarkWrap {
   position: relative;
   min-width: 0;
-  width: min(310px, 100%);
-  height: 48px;
+  width: min(var(--asu-admin-toolbar-logo-width), 100%);
+  height: var(--asu-admin-toolbar-logo-height);
   margin: 0 auto;
   display: grid;
   place-items: center;
@@ -250,8 +255,12 @@
 
 .wordmark {
   position: absolute;
-  max-width: 100%;
-  max-height: 44px;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: contain;
   filter: none;
   transition:
@@ -304,7 +313,8 @@
 }
 
 .sectionNav {
-  width: min(420px, calc(100% - 10px));
+  width: min(var(--asu-admin-section-width), calc(100% - 20px));
+  min-height: var(--asu-admin-section-height);
   margin: 14px auto 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -684,7 +694,7 @@
 
 .page[data-theme="dark"] .statusChipActive {
   border-color: #f5f5f3;
-  color: #0a0a0b;
+  color: #0a0a0b !important;
   background: #f5f5f3;
 }
 
@@ -1125,6 +1135,12 @@
   animation: scrimIn 260ms var(--ease) both;
 }
 
+.page[data-theme="dark"] .scrim {
+  background: rgba(0, 0, 0, .68);
+  -webkit-backdrop-filter: blur(24px) saturate(90%);
+  backdrop-filter: blur(24px) saturate(90%);
+}
+
 .sheet {
   position: relative;
   z-index: 1;
@@ -1254,7 +1270,7 @@
 
 .page[data-theme="dark"] .optionButtonActive {
   border-color: #f5f5f3;
-  color: #0a0a0b;
+  color: #0a0a0b !important;
   background: #f5f5f3;
 }
 
@@ -1396,28 +1412,36 @@
   }
 
   .headerInner {
-    min-height: 70px;
-    grid-template-columns: 48px minmax(0, 1fr) 48px;
-    padding: 10px;
-    border-radius: 35px;
+    min-height: var(--asu-admin-toolbar-height);
+    grid-template-columns:
+      var(--asu-admin-toolbar-control-size)
+      minmax(0, 1fr)
+      var(--asu-admin-toolbar-control-size);
+    padding:
+      var(--asu-admin-toolbar-padding-block)
+      var(--asu-admin-toolbar-padding-inline);
+    border-radius: var(--asu-admin-toolbar-radius);
   }
 
   .roundButton {
-    width: 48px;
-    height: 48px;
+    width: var(--asu-admin-toolbar-control-size);
+    height: var(--asu-admin-toolbar-control-size);
   }
 
   .roundButton svg {
-    width: 25px;
-    height: 25px;
+    width: var(--asu-admin-toolbar-icon-size);
+    height: var(--asu-admin-toolbar-icon-size);
   }
 
   .wordmarkWrap {
-    height: 44px;
+    width: min(var(--asu-admin-toolbar-logo-width), 100%);
+    height: var(--asu-admin-toolbar-logo-height);
   }
 
   .wordmark {
-    max-height: 40px;
+    width: 100%;
+    height: 100%;
+    max-height: none;
   }
 
   .shell {
@@ -1728,7 +1752,8 @@
 }
 
 .wordmarkWrap {
-  width: min(330px, 100%);
+  width: min(var(--asu-admin-toolbar-logo-width), 100%);
+  height: var(--asu-admin-toolbar-logo-height);
 }
 
 .roundButton[data-active="true"] {
@@ -1772,8 +1797,8 @@
 }
 
 .settingsMenu {
-  width: min(540px, 100%);
-  height: clamp(470px, 68dvh, 620px);
+  width: min(var(--asu-admin-settings-width), 100%);
+  height: var(--asu-admin-settings-height);
   max-height: calc(100dvh - 112px - env(safe-area-inset-top));
   position: absolute;
   z-index: 5;
@@ -1787,7 +1812,7 @@
   -webkit-overflow-scrolling: touch;
   padding: 24px;
   border: 1px solid var(--line-strong);
-  border-radius: 36px;
+  border-radius: var(--asu-admin-settings-radius);
   color: var(--text);
   background: color-mix(in srgb, var(--solid) 97%, transparent);
   -webkit-backdrop-filter: blur(34px) saturate(145%);
@@ -1798,8 +1823,8 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  -webkit-clip-path: inset(0 0 94% 0 round 36px);
-  clip-path: inset(0 0 94% 0 round 36px);
+  -webkit-clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
+  clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
   transform: translateY(-18px) scale(.965);
   transform-origin: top center;
   transition:
@@ -1823,8 +1848,8 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  -webkit-clip-path: inset(0 0 0 0 round 36px);
-  clip-path: inset(0 0 0 0 round 36px);
+  -webkit-clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
+  clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
   transform: translateY(0) scale(1);
   transition:
     opacity 260ms var(--spring),
@@ -2000,21 +2025,22 @@
 
 @media (max-width: 760px) {
   .wordmarkWrap {
-    width: min(285px, 100%);
+    width: min(var(--asu-admin-toolbar-logo-width), 100%);
+    height: var(--asu-admin-toolbar-logo-height);
   }
 
   .settingsMenu {
     width: 100%;
-    height: clamp(470px, 68dvh, 620px);
+    height: var(--asu-admin-settings-height);
     padding: 22px 20px 18px;
-    border-radius: 32px;
-    -webkit-clip-path: inset(0 0 94% 0 round 32px);
-    clip-path: inset(0 0 94% 0 round 32px);
+    border-radius: var(--asu-admin-settings-radius);
+    -webkit-clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
+    clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
   }
 
   .settingsMenu[data-open="true"] {
-    -webkit-clip-path: inset(0 0 0 0 round 32px);
-    clip-path: inset(0 0 0 0 round 32px);
+    -webkit-clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
+    clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
   }
 
   .settingsContent {
