@@ -3,16 +3,15 @@
 import {
   type ChangeEvent,
   type FormEvent,
-  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import styles from "./new-car.module.css";
 
 type Theme = "light" | "dark";
-type Step = 1 | 2 | 3 | 4;
 type CarStatus = "in_stock" | "in_transit" | "reserved" | "sold";
 type Currency = "USD" | "UZS" | "EUR";
 
@@ -35,10 +34,10 @@ interface FormState {
   arrivalDate: string;
 
   mileageKm: string;
+  engineText: string;
   fuelType: string;
   driveType: string;
   transmission: string;
-  engineText: string;
   seats: string;
   exteriorColor: string;
   interiorColor: string;
@@ -46,50 +45,42 @@ interface FormState {
   price: string;
   currency: Currency;
   priceOnRequest: boolean;
-  isNew: boolean;
-  isNewArrival: boolean;
-  isPublic: boolean;
-  isFeatured: boolean;
 
   shortDescriptionRu: string;
   shortDescriptionUz: string;
   descriptionRu: string;
   descriptionUz: string;
+
+  isNew: boolean;
+  isNewArrival: boolean;
+  isPublic: boolean;
+  isFeatured: boolean;
 }
 
-const INITIAL_FORM: FormState = {
-  brand: "",
-  model: "",
-  year: "",
-  trim: "",
-  vin: "",
-  stockNumber: "",
-  status: "in_stock",
-  countryCode: "KR",
-  arrivalDate: "",
+interface CreateCarResponse {
+  success?: boolean;
+  error?: string;
+  message?: string;
+  car?: {
+    id?: number;
+    brand?: string;
+    model?: string;
+    vin?: string | null;
+    stockNumber?: string | null;
+  };
+}
 
-  mileageKm: "0",
-  fuelType: "",
-  driveType: "",
-  transmission: "",
-  engineText: "",
-  seats: "",
-  exteriorColor: "",
-  interiorColor: "",
-
-  price: "",
-  currency: "USD",
-  priceOnRequest: false,
-  isNew: true,
-  isNewArrival: true,
-  isPublic: false,
-  isFeatured: false,
-
-  shortDescriptionRu: "",
-  shortDescriptionUz: "",
-  descriptionRu: "",
-  descriptionUz: "",
-};
+const BRANDS = [
+  { value: "Mercedes-Benz", mark: "MERCEDES\nBENZ" },
+  { value: "Range Rover", mark: "RANGE\nROVER" },
+  { value: "Rolls-Royce", mark: "ROLLS\nROYCE" },
+  { value: "Cadillac", mark: "CADILLAC" },
+  { value: "Lexus", mark: "LEXUS" },
+  { value: "Toyota", mark: "TOYOTA" },
+  { value: "Genesis", mark: "GENESIS" },
+  { value: "BMW", mark: "BMW" },
+  { value: "Lamborghini", mark: "LAMBORGHINI" },
+] as const;
 
 const STATUS_OPTIONS: Array<{ value: CarStatus; label: string }> = [
   { value: "in_stock", label: "В наличии" },
@@ -103,36 +94,71 @@ const COUNTRY_OPTIONS = [
   { value: "US", label: "США" },
   { value: "CA", label: "Канада" },
   { value: "AE", label: "ОАЭ" },
-];
+] as const;
 
-const STEP_LABELS: Record<Step, string> = {
-  1: "Основное",
-  2: "Характеристики",
-  3: "Цена и публикация",
-  4: "Описание",
+const INITIAL_FORM: FormState = {
+  brand: "",
+  model: "",
+  year: "",
+  trim: "",
+  vin: "",
+  stockNumber: "",
+  status: "in_stock",
+  countryCode: "KR",
+  arrivalDate: "",
+
+  mileageKm: "0",
+  engineText: "",
+  fuelType: "",
+  driveType: "",
+  transmission: "",
+  seats: "",
+  exteriorColor: "",
+  interiorColor: "",
+
+  price: "",
+  currency: "USD",
+  priceOnRequest: false,
+
+  shortDescriptionRu: "",
+  shortDescriptionUz: "",
+  descriptionRu: "",
+  descriptionUz: "",
+
+  isNew: true,
+  isNewArrival: true,
+  isPublic: false,
+  isFeatured: false,
 };
+
+function normalizeUpper(value: string, maxLength: number): string {
+  return value.toUpperCase().replace(/\s{2,}/g, " ").slice(0, maxLength);
+}
 
 export default function NewCarPage() {
   const [theme, setTheme] = useState<Theme>("light");
   const [authReady, setAuthReady] = useState(false);
-  const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [createdCar, setCreatedCar] = useState<{ id: number; title: string } | null>(null);
+  const errorRef = useRef<HTMLDivElement | null>(null);
 
-  const progress = useMemo(() => `${step} / 4`, [step]);
+  const selectedBrand = useMemo(
+    () => BRANDS.find((brand) => brand.value === form.brand) ?? null,
+    [form.brand],
+  );
 
   const applyTheme = useCallback((nextTheme: Theme) => {
     setTheme(nextTheme);
 
     try {
-      window.localStorage.setItem("asu-theme", nextTheme);
+      localStorage.setItem("asu-theme", nextTheme);
     } catch {
       // Theme persistence is optional.
     }
 
-    const color = nextTheme === "light" ? "#f5f5f3" : "#0b0c0d";
-
+    const color = nextTheme === "light" ? "#f5f5f7" : "#0b0b0d";
     document.documentElement.dataset.asuTheme = nextTheme;
     document.documentElement.style.colorScheme = nextTheme;
     document.documentElement.style.backgroundColor = color;
@@ -156,15 +182,13 @@ export default function NewCarPage() {
         return;
       }
 
-      const stored = window.localStorage.getItem("asu-theme");
+      const stored = localStorage.getItem("asu-theme");
       if (stored === "light" || stored === "dark") {
         applyTheme(stored);
         return;
       }
 
-      applyTheme(
-        window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-      );
+      applyTheme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     } catch {
       applyTheme("light");
     }
@@ -173,17 +197,16 @@ export default function NewCarPage() {
   useEffect(() => {
     let cancelled = false;
 
-    async function verify() {
+    async function verifySession() {
       try {
         const response = await fetch("/api/me", {
-          method: "GET",
           credentials: "same-origin",
           cache: "no-store",
           headers: { Accept: "application/json" },
         });
 
         if (response.status === 401) {
-          window.location.replace("/admin/login/");
+          location.replace("/admin/login/");
           return;
         }
 
@@ -206,16 +229,20 @@ export default function NewCarPage() {
       }
     }
 
-    void verify();
-
+    void verifySession();
     return () => {
       cancelled = true;
     };
   }, []);
 
+  useEffect(() => {
+    if (!error) return;
+    errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
+
   function toggleTheme() {
     const nextTheme: Theme = theme === "light" ? "dark" : "light";
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const transitionDocument = document as ViewTransitionDocument;
 
     if (!reducedMotion && transitionDocument.startViewTransition) {
@@ -226,108 +253,81 @@ export default function NewCarPage() {
     applyTheme(nextTheme);
   }
 
-  function setTextField(
+  function setText(
     key: keyof FormState,
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) {
-    setForm((current) => ({
-      ...current,
-      [key]: event.target.value,
-    }));
+    setForm((current) => ({ ...current, [key]: event.target.value }));
     setError(null);
   }
 
-  function setBooleanField(
-    key: "priceOnRequest" | "isNew" | "isNewArrival" | "isPublic" | "isFeatured",
-    value: boolean,
+  function setUpperText(
+    key: "model" | "vin" | "stockNumber",
+    event: ChangeEvent<HTMLInputElement>,
+    maxLength: number,
   ) {
     setForm((current) => ({
       ...current,
-      [key]: value,
-      ...(key === "priceOnRequest" && value ? { price: "" } : {}),
+      [key]: normalizeUpper(event.target.value, maxLength),
     }));
     setError(null);
   }
 
-  function validateStep(target: Step): string | null {
-    if (target === 1) {
-      if (!form.brand.trim()) return "Укажите марку автомобиля.";
-      if (!form.model.trim()) return "Укажите модель автомобиля.";
+  function selectBrand(brand: string) {
+    setForm((current) => ({ ...current, brand }));
+    setError(null);
+  }
 
-      if (form.year) {
-        const year = Number(form.year);
-        if (!Number.isInteger(year) || year < 1900 || year > 2100) {
-          return "Проверьте год автомобиля.";
-        }
-      }
+  function validate(): string | null {
+    if (!form.brand) return "Выберите марку автомобиля.";
+    if (!form.model.trim()) return "Укажите модель автомобиля.";
 
-      const vin = form.vin.trim().toUpperCase();
-      if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) {
-        return "VIN должен содержать 11–17 допустимых латинских символов и цифр.";
+    if (form.year) {
+      const year = Number(form.year);
+      if (!Number.isInteger(year) || year < 1900 || year > 2100) {
+        return "Проверьте год автомобиля.";
       }
     }
 
-    if (target === 2) {
-      if (form.mileageKm) {
-        const mileage = Number(form.mileageKm);
-        if (!Number.isSafeInteger(mileage) || mileage < 0) {
-          return "Проверьте пробег.";
-        }
-      }
+    const vin = form.vin.trim().toUpperCase();
+    if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) {
+      return "VIN должен содержать 11–17 допустимых латинских символов и цифр.";
+    }
 
-      if (form.seats) {
-        const seats = Number(form.seats);
-        if (!Number.isInteger(seats) || seats < 1 || seats > 99) {
-          return "Проверьте количество мест.";
-        }
+    if (form.arrivalDate && !/^\d{4}-\d{2}-\d{2}$/.test(form.arrivalDate)) {
+      return "Проверьте дату прибытия.";
+    }
+
+    if (form.mileageKm) {
+      const mileage = Number(form.mileageKm);
+      if (!Number.isSafeInteger(mileage) || mileage < 0) return "Проверьте пробег.";
+    }
+
+    if (form.seats) {
+      const seats = Number(form.seats);
+      if (!Number.isInteger(seats) || seats < 1 || seats > 99) {
+        return "Проверьте количество мест.";
       }
     }
 
-    if (target === 3) {
-      if (!form.priceOnRequest && !form.price.trim()) {
-        return "Введите цену или включите «Цена по запросу».";
-      }
-
-      if (form.price) {
-        const price = Number(form.price);
-        if (!Number.isSafeInteger(price) || price < 0) {
-          return "Цена должна быть целым положительным числом.";
-        }
+    if (!form.priceOnRequest && form.price) {
+      const price = Number(form.price);
+      if (!Number.isSafeInteger(price) || price < 0) {
+        return "Цена должна быть целым положительным числом.";
       }
     }
 
     return null;
   }
 
-  function goNext() {
-    const validation = validateStep(step);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (saving) return;
+
+    const validation = validate();
     if (validation) {
       setError(validation);
       return;
-    }
-
-    setError(null);
-    setStep((current) => Math.min(4, current + 1) as Step);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function goBackStep() {
-    setError(null);
-    setStep((current) => Math.max(1, current - 1) as Step);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    for (const target of [1, 2, 3] as Step[]) {
-      const validation = validateStep(target);
-      if (validation) {
-        setStep(target);
-        setError(validation);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return;
-      }
     }
 
     setSaving(true);
@@ -335,37 +335,38 @@ export default function NewCarPage() {
 
     try {
       const payload = {
-        brand: form.brand.trim(),
-        model: form.model.trim(),
+        brand: form.brand,
+        model: form.model.trim().toUpperCase(),
         year: form.year ? Number(form.year) : null,
         trim: form.trim.trim() || null,
         vin: form.vin.trim().toUpperCase() || null,
-        stockNumber: form.stockNumber.trim() || null,
+        stockNumber: form.stockNumber.trim().toUpperCase() || null,
         status: form.status,
         countryCode: form.countryCode,
         arrivalDate: form.arrivalDate || null,
 
         mileageKm: form.mileageKm ? Number(form.mileageKm) : 0,
+        engineText: form.engineText.trim() || null,
         fuelType: form.fuelType || null,
         driveType: form.driveType || null,
         transmission: form.transmission || null,
-        engineText: form.engineText.trim() || null,
         seats: form.seats ? Number(form.seats) : null,
         exteriorColor: form.exteriorColor.trim() || null,
         interiorColor: form.interiorColor.trim() || null,
 
         price: form.priceOnRequest || !form.price ? null : Number(form.price),
         currency: form.currency,
-        priceOnRequest: form.priceOnRequest,
-        isNew: form.isNew,
-        isNewArrival: form.isNewArrival,
-        isPublic: form.isPublic,
-        isFeatured: form.isFeatured,
+        priceOnRequest: form.priceOnRequest || !form.price,
 
         shortDescriptionRu: form.shortDescriptionRu.trim() || null,
         shortDescriptionUz: form.shortDescriptionUz.trim() || null,
         descriptionRu: form.descriptionRu.trim() || null,
         descriptionUz: form.descriptionUz.trim() || null,
+
+        isNew: form.isNew,
+        isNewArrival: form.isNewArrival,
+        isPublic: form.isPublic,
+        isFeatured: form.isFeatured,
       };
 
       const response = await fetch("/api/cars", {
@@ -379,12 +380,10 @@ export default function NewCarPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = (await response.json().catch(() => null)) as
-        | { success?: boolean; error?: string; car?: { id?: number } }
-        | null;
+      const data = (await response.json().catch(() => null)) as CreateCarResponse | null;
 
       if (response.status === 401) {
-        window.location.replace("/admin/login/");
+        location.replace("/admin/login/");
         return;
       }
 
@@ -393,7 +392,16 @@ export default function NewCarPage() {
       }
 
       const createdId = data.car?.id;
-      window.location.assign(createdId ? `/admin/cars/?created=${createdId}` : "/admin/cars/");
+      if (!Number.isInteger(createdId) || !createdId) {
+        throw new Error("D1 не подтвердил ID созданного автомобиля. Переход отменён.");
+      }
+
+      const title = `${data.car?.brand || form.brand} ${data.car?.model || form.model}`.trim();
+      setCreatedCar({ id: createdId, title });
+
+      window.setTimeout(() => {
+        location.assign(`/admin/cars/?created=${createdId}`);
+      }, 850);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -405,536 +413,484 @@ export default function NewCarPage() {
     }
   }
 
+  if (!authReady && !error) {
+    return (
+      <main className={styles.loadingPage} data-theme={theme}>
+        <div className={styles.loadingDot} aria-label="Проверка сессии" />
+      </main>
+    );
+  }
+
   return (
     <main className={styles.page} data-theme={theme}>
-      <div className={styles.ambient} aria-hidden="true">
-        <span />
-        <span />
-      </div>
-
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <a className={styles.roundButton} href="/admin/cars/" aria-label="Назад к автомобилям">
-            <ArrowLeftIcon />
+      <header className={styles.toolbar}>
+        <div className={styles.toolbarInner}>
+          <a className={styles.roundControl} href="/admin/cars/" aria-label="Назад к автомобилям">
+            <ChevronLeftIcon />
           </a>
 
-          <a className={styles.wordmarkWrap} href="/admin/cars/" aria-label="Auto Sale Umar">
+          <a className={styles.wordmarkLink} href="/admin/cars/" aria-label="Auto Sale Umar">
             <img
               className={styles.wordmark}
-              src="/brand/asu-wordmark-black.png"
+              src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"}
               alt="Auto Sale Umar"
             />
           </a>
 
           <button
-            className={styles.roundButton}
+            className={styles.roundControl}
             type="button"
             onClick={toggleTheme}
             aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}
           >
-            <span className={styles.iconStage}>
-              <span className={styles.moonIcon}>
-                <MoonIcon />
-              </span>
-              <span className={styles.sunIcon}>
-                <SunIcon />
-              </span>
-            </span>
+            {theme === "light" ? <MoonIcon /> : <SunIcon />}
           </button>
         </div>
       </header>
 
       <div className={styles.shell}>
-        <div className={styles.topline}>
-          <span>НОВЫЙ АВТОМОБИЛЬ</span>
-          <span>{progress}</span>
-        </div>
-
-        <div className={styles.progressTrack} aria-hidden="true">
-          <span style={{ width: `${step * 25}%` }} />
-        </div>
-
-        <section className={styles.hero}>
-          <p>{STEP_LABELS[step]}</p>
-          <h1>
-            {step === 1
-              ? "Основные данные."
-              : step === 2
-                ? "Характеристики."
-                : step === 3
-                  ? "Цена и статус."
-                  : "Тексты для сайта."}
-          </h1>
-          <span>
-            Форма сохраняет данные в существующую структуру D1: cars, brands,
-            car_specs и car_variants. Фотографии подключим отдельным следующим этапом.
-          </span>
+        <section className={styles.intro}>
+          <p className={styles.eyebrow}>CONTROL SYSTEM · АВТОМОБИЛИ</p>
+          <h1>Новый автомобиль</h1>
+          <p className={styles.introText}>
+            Одна форма. После сохранения автомобиль появится в D1 только после подтверждённой записи.
+          </p>
         </section>
 
-        <form className={styles.formCard} onSubmit={submit}>
-          {!authReady && !error ? (
-            <div className={styles.loadingState}>Проверяем защищённый доступ…</div>
-          ) : null}
+        {error ? (
+          <div ref={errorRef} className={styles.errorBanner} role="alert">
+            <span className={styles.errorIcon}>!</span>
+            <span>{error}</span>
+          </div>
+        ) : null}
 
-          {step === 1 ? (
-            <div className={styles.stepPanel}>
-              <div className={styles.fieldGrid}>
-                <Field label="Марка" required>
-                  <input
-                    value={form.brand}
-                    onChange={(event) => setTextField("brand", event)}
-                    placeholder="Например, Genesis"
-                    autoComplete="off"
-                    maxLength={80}
-                  />
-                </Field>
-
-                <Field label="Модель" required>
-                  <input
-                    value={form.model}
-                    onChange={(event) => setTextField("model", event)}
-                    placeholder="GV80"
-                    autoComplete="off"
-                    maxLength={100}
-                  />
-                </Field>
-
-                <Field label="Год">
-                  <input
-                    value={form.year}
-                    onChange={(event) => setTextField("year", event)}
-                    placeholder="2026"
-                    inputMode="numeric"
-                    maxLength={4}
-                  />
-                </Field>
-
-                <Field label="Комплектация">
-                  <input
-                    value={form.trim}
-                    onChange={(event) => setTextField("trim", event)}
-                    placeholder="3.5T Prestige"
-                    maxLength={120}
-                  />
-                </Field>
-
-                <Field label="VIN">
-                  <input
-                    value={form.vin}
-                    onChange={(event) => setTextField("vin", event)}
-                    placeholder="17 символов"
-                    autoCapitalize="characters"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    maxLength={17}
-                  />
-                </Field>
-
-                <Field label="Внутренний номер">
-                  <input
-                    value={form.stockNumber}
-                    onChange={(event) => setTextField("stockNumber", event)}
-                    placeholder="Например, ASU-1024"
-                    autoCapitalize="characters"
-                    autoCorrect="off"
-                    maxLength={80}
-                  />
-                </Field>
-
-                <Field label="Дата прибытия" wide>
-                  <input
-                    type="date"
-                    value={form.arrivalDate}
-                    onChange={(event) => setTextField("arrivalDate", event)}
-                  />
-                </Field>
+        <form className={styles.form} onSubmit={submit} noValidate>
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionKicker}>01</p>
+                <h2>Автомобиль</h2>
               </div>
-
-              <div className={styles.choiceBlock}>
-                <p>Статус</p>
-                <div className={styles.choiceGrid}>
-                  {STATUS_OPTIONS.map((item) => (
-                    <button
-                      key={item.value}
-                      className={form.status === item.value ? styles.choiceActive : styles.choice}
-                      type="button"
-                      onClick={() => {
-                        setForm((current) => ({ ...current, status: item.value }));
-                        setError(null);
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.choiceBlock}>
-                <p>Страна поставки</p>
-                <div className={styles.choiceGrid}>
-                  {COUNTRY_OPTIONS.map((item) => (
-                    <button
-                      key={item.value}
-                      className={
-                        form.countryCode === item.value ? styles.choiceActive : styles.choice
-                      }
-                      type="button"
-                      onClick={() => {
-                        setForm((current) => ({ ...current, countryCode: item.value }));
-                        setError(null);
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <p>Сначала выберите марку, затем укажите модель.</p>
             </div>
-          ) : null}
 
-          {step === 2 ? (
-            <div className={styles.stepPanel}>
-              <div className={styles.fieldGrid}>
-                <Field label="Пробег, км">
-                  <input
-                    value={form.mileageKm}
-                    onChange={(event) => setTextField("mileageKm", event)}
-                    placeholder="0"
-                    inputMode="numeric"
-                  />
-                </Field>
-
-                <Field label="Количество мест">
-                  <input
-                    value={form.seats}
-                    onChange={(event) => setTextField("seats", event)}
-                    placeholder="5"
-                    inputMode="numeric"
-                  />
-                </Field>
-
-                <Field label="Топливо">
-                  <select
-                    value={form.fuelType}
-                    onChange={(event) => setTextField("fuelType", event)}
+            <div className={styles.brandRail} role="listbox" aria-label="Марка автомобиля">
+              {BRANDS.map((brand) => {
+                const active = form.brand === brand.value;
+                return (
+                  <button
+                    key={brand.value}
+                    className={`${styles.brandTile} ${active ? styles.brandTileActive : ""}`}
+                    type="button"
+                    onClick={() => selectBrand(brand.value)}
+                    role="option"
+                    aria-selected={active}
                   >
-                    <option value="">Не указано</option>
-                    <option value="gasoline">Бензин</option>
-                    <option value="diesel">Дизель</option>
-                    <option value="hybrid">Гибрид</option>
-                    <option value="phev">Plug-in Hybrid</option>
-                    <option value="electric">Электро</option>
-                  </select>
-                </Field>
+                    <span className={styles.brandMark}>
+                      {brand.mark.split("\n").map((line) => (
+                        <span key={line}>{line}</span>
+                      ))}
+                    </span>
+                    {active ? (
+                      <span className={styles.brandCheck} aria-hidden="true">
+                        <CheckIcon />
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
 
-                <Field label="Привод">
-                  <select
-                    value={form.driveType}
-                    onChange={(event) => setTextField("driveType", event)}
+            <div className={styles.fieldGrid}>
+              <label className={styles.field}>
+                <span>Марка</span>
+                <input value={selectedBrand?.value ?? ""} readOnly placeholder="Выберите выше" />
+              </label>
+
+              <label className={styles.field}>
+                <span>Модель *</span>
+                <input
+                  value={form.model}
+                  onChange={(event) => setUpperText("model", event, 100)}
+                  placeholder="GV80"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  required
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Комплектация</span>
+                <input
+                  value={form.trim}
+                  onChange={(event) => setText("trim", event)}
+                  placeholder="3.5T AWD Prestige"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Год</span>
+                <input
+                  value={form.year}
+                  onChange={(event) => setText("year", event)}
+                  inputMode="numeric"
+                  placeholder="2026"
+                  maxLength={4}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>VIN</span>
+                <input
+                  value={form.vin}
+                  onChange={(event) => setUpperText("vin", event, 17)}
+                  placeholder="KMUHBDSB7TU000001"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Внутренний номер</span>
+                <input
+                  value={form.stockNumber}
+                  onChange={(event) => setUpperText("stockNumber", event, 80)}
+                  placeholder="ASU-1024"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionKicker}>02</p>
+                <h2>Поставка</h2>
+              </div>
+              <p>Статус и источник поставки используются в каталоге и фильтрах.</p>
+            </div>
+
+            <div className={styles.controlGroup}>
+              <span className={styles.controlLabel}>Статус</span>
+              <div className={styles.segmentGrid}>
+                {STATUS_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`${styles.segment} ${form.status === option.value ? styles.segmentActive : ""}`}
+                    onClick={() => setForm((current) => ({ ...current, status: option.value }))}
                   >
-                    <option value="">Не указано</option>
-                    <option value="FWD">FWD</option>
-                    <option value="RWD">RWD</option>
-                    <option value="AWD">AWD</option>
-                    <option value="4WD">4WD</option>
-                  </select>
-                </Field>
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                <Field label="Коробка передач">
-                  <select
-                    value={form.transmission}
-                    onChange={(event) => setTextField("transmission", event)}
+            <div className={styles.controlGroup}>
+              <span className={styles.controlLabel}>Страна поставки</span>
+              <div className={styles.segmentGrid}>
+                {COUNTRY_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`${styles.segment} ${form.countryCode === option.value ? styles.segmentActive : ""}`}
+                    onClick={() => setForm((current) => ({ ...current, countryCode: option.value }))}
                   >
-                    <option value="">Не указано</option>
-                    <option value="automatic">Автомат</option>
-                    <option value="robot">Робот</option>
-                    <option value="cvt">Вариатор</option>
-                    <option value="manual">Механика</option>
-                  </select>
-                </Field>
-
-                <Field label="Двигатель">
-                  <input
-                    value={form.engineText}
-                    onChange={(event) => setTextField("engineText", event)}
-                    placeholder="3.5T V6 / 375 л.с."
-                    maxLength={180}
-                  />
-                </Field>
-
-                <Field label="Цвет кузова">
-                  <input
-                    value={form.exteriorColor}
-                    onChange={(event) => setTextField("exteriorColor", event)}
-                    placeholder="Чёрный"
-                    maxLength={100}
-                  />
-                </Field>
-
-                <Field label="Цвет салона">
-                  <input
-                    value={form.interiorColor}
-                    onChange={(event) => setTextField("interiorColor", event)}
-                    placeholder="Чёрный / коричневый"
-                    maxLength={100}
-                  />
-                </Field>
+                    {option.label}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : null}
 
-          {step === 3 ? (
-            <div className={styles.stepPanel}>
-              <div className={styles.priceGrid}>
-                <Field label="Цена">
-                  <input
-                    value={form.price}
-                    onChange={(event) => setTextField("price", event)}
-                    placeholder={form.priceOnRequest ? "Цена по запросу" : "Например, 89000"}
-                    inputMode="numeric"
-                    disabled={form.priceOnRequest}
-                  />
-                </Field>
+            <div className={styles.fieldGrid}>
+              <label className={styles.field}>
+                <span>Дата прибытия</span>
+                <input
+                  className={styles.dateInput}
+                  type="date"
+                  value={form.arrivalDate}
+                  onChange={(event) => setText("arrivalDate", event)}
+                />
+              </label>
 
-                <Field label="Валюта">
-                  <select
-                    value={form.currency}
-                    onChange={(event) => setTextField("currency", event)}
-                  >
-                    <option value="USD">USD</option>
-                    <option value="UZS">UZS</option>
-                    <option value="EUR">EUR</option>
-                  </select>
-                </Field>
-              </div>
-
-              <div className={styles.switchList}>
-                <SwitchRow
-                  title="Цена по запросу"
-                  description="Публичная цена не будет отображаться."
-                  checked={form.priceOnRequest}
-                  onChange={(value) => setBooleanField("priceOnRequest", value)}
+              <label className={styles.field}>
+                <span>Пробег, км</span>
+                <input
+                  value={form.mileageKm}
+                  onChange={(event) => setText("mileageKm", event)}
+                  inputMode="numeric"
+                  placeholder="0"
                 />
-                <SwitchRow
-                  title="Новый автомобиль"
-                  description="Машина учитывается как новая, даже если указан технический пробег."
-                  checked={form.isNew}
-                  onChange={(value) => setBooleanField("isNew", value)}
-                />
-                <SwitchRow
-                  title="Новое поступление"
-                  description="Используется для блока последних поступлений."
-                  checked={form.isNewArrival}
-                  onChange={(value) => setBooleanField("isNewArrival", value)}
-                />
-                <SwitchRow
-                  title="Опубликовать на сайте"
-                  description="Пока фотографии не добавлены, безопаснее оставить выключенным."
-                  checked={form.isPublic}
-                  onChange={(value) => setBooleanField("isPublic", value)}
-                />
-                <SwitchRow
-                  title="Выделить автомобиль"
-                  description="Для приоритетного отображения в будущих подборках."
-                  checked={form.isFeatured}
-                  onChange={(value) => setBooleanField("isFeatured", value)}
-                />
-              </div>
+              </label>
             </div>
-          ) : null}
+          </section>
 
-          {step === 4 ? (
-            <div className={styles.stepPanel}>
-              <div className={styles.textareaStack}>
-                <Field label="Короткое описание — RU">
-                  <textarea
-                    value={form.shortDescriptionRu}
-                    onChange={(event) => setTextField("shortDescriptionRu", event)}
-                    placeholder="Короткая строка для карточки автомобиля."
-                    rows={3}
-                    maxLength={220}
-                  />
-                </Field>
-
-                <Field label="Короткое описание — UZ">
-                  <textarea
-                    value={form.shortDescriptionUz}
-                    onChange={(event) => setTextField("shortDescriptionUz", event)}
-                    placeholder="Avtomobil kartasi uchun qisqa tavsif."
-                    rows={3}
-                    maxLength={220}
-                  />
-                </Field>
-
-                <Field label="Полное описание — RU">
-                  <textarea
-                    value={form.descriptionRu}
-                    onChange={(event) => setTextField("descriptionRu", event)}
-                    placeholder="Описание автомобиля для русской версии сайта…"
-                    rows={6}
-                    maxLength={10000}
-                  />
-                </Field>
-
-                <Field label="Полное описание — UZ">
-                  <textarea
-                    value={form.descriptionUz}
-                    onChange={(event) => setTextField("descriptionUz", event)}
-                    placeholder="Saytning o‘zbekcha versiyasi uchun tavsif…"
-                    rows={6}
-                    maxLength={10000}
-                  />
-                </Field>
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionKicker}>03</p>
+                <h2>Характеристики</h2>
               </div>
-
-              <section className={styles.review}>
-                <div>
-                  <p>ПРОВЕРКА</p>
-                  <h2>
-                    {form.brand || "Марка"} {form.model || "Модель"}
-                  </h2>
-                  <span>
-                    {[form.year, form.trim, form.countryCode, form.currency]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                </div>
-
-                <b>
-                  {form.priceOnRequest
-                    ? "По запросу"
-                    : form.price
-                      ? new Intl.NumberFormat("ru-RU").format(Number(form.price))
-                      : "Цена не указана"}
-                </b>
-              </section>
+              <p>Основные данные, которые будут видны в карточке автомобиля.</p>
             </div>
-          ) : null}
 
-          {error ? (
-            <div className={styles.errorMessage} role="alert">
-              {error}
+            <div className={styles.fieldGrid}>
+              <label className={`${styles.field} ${styles.fieldWide}`}>
+                <span>Двигатель</span>
+                <input
+                  value={form.engineText}
+                  onChange={(event) => setText("engineText", event)}
+                  placeholder="3.5 T-GDI · 375 л.с."
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Топливо</span>
+                <select value={form.fuelType} onChange={(event) => setText("fuelType", event)}>
+                  <option value="">Не указано</option>
+                  <option value="gasoline">Бензин</option>
+                  <option value="diesel">Дизель</option>
+                  <option value="hybrid">Гибрид</option>
+                  <option value="phev">Plug-in гибрид</option>
+                  <option value="electric">Электро</option>
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                <span>Привод</span>
+                <select value={form.driveType} onChange={(event) => setText("driveType", event)}>
+                  <option value="">Не указано</option>
+                  <option value="AWD">AWD</option>
+                  <option value="4WD">4WD</option>
+                  <option value="RWD">RWD</option>
+                  <option value="FWD">FWD</option>
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                <span>Коробка</span>
+                <select value={form.transmission} onChange={(event) => setText("transmission", event)}>
+                  <option value="">Не указано</option>
+                  <option value="automatic">Автомат</option>
+                  <option value="robot">Робот</option>
+                  <option value="cvt">Вариатор</option>
+                  <option value="manual">Механика</option>
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                <span>Мест</span>
+                <input
+                  value={form.seats}
+                  onChange={(event) => setText("seats", event)}
+                  inputMode="numeric"
+                  placeholder="5"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Цвет кузова</span>
+                <input
+                  value={form.exteriorColor}
+                  onChange={(event) => setText("exteriorColor", event)}
+                  placeholder="Uyuni White"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Цвет салона</span>
+                <input
+                  value={form.interiorColor}
+                  onChange={(event) => setText("interiorColor", event)}
+                  placeholder="Obsidian Black"
+                />
+              </label>
             </div>
-          ) : null}
+          </section>
 
-          <div className={styles.actions}>
-            {step > 1 ? (
-              <button
-                className={styles.secondaryButton}
-                type="button"
-                onClick={goBackStep}
-                disabled={saving}
-              >
-                Назад
-              </button>
-            ) : (
-              <a className={styles.secondaryButton} href="/admin/cars/">
-                Отмена
-              </a>
-            )}
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionKicker}>04</p>
+                <h2>Цена и публикация</h2>
+              </div>
+              <p>По умолчанию автомобиль не публикуется до добавления фотографий.</p>
+            </div>
 
-            {step < 4 ? (
-              <button
-                className={styles.primaryButton}
-                type="button"
-                onClick={goNext}
-                disabled={!authReady || saving}
-              >
-                Продолжить
-                <ArrowRightIcon />
-              </button>
-            ) : (
-              <button
-                className={styles.primaryButton}
-                type="submit"
-                disabled={!authReady || saving}
-              >
-                {saving ? "Сохраняем…" : "Добавить автомобиль"}
-                {!saving ? <ArrowRightIcon /> : null}
-              </button>
-            )}
+            <div className={styles.priceRow}>
+              <label className={`${styles.field} ${styles.priceField}`}>
+                <span>Цена</span>
+                <input
+                  value={form.price}
+                  onChange={(event) => setText("price", event)}
+                  inputMode="numeric"
+                  placeholder="125000"
+                  disabled={form.priceOnRequest}
+                />
+              </label>
+
+              <label className={`${styles.field} ${styles.currencyField}`}>
+                <span>Валюта</span>
+                <select value={form.currency} onChange={(event) => setText("currency", event)}>
+                  <option value="USD">USD</option>
+                  <option value="UZS">UZS</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </label>
+            </div>
+
+            <div className={styles.switchList}>
+              <SwitchRow
+                label="Цена по запросу"
+                detail="Вместо числа в публичной карточке показывается запрос цены."
+                checked={form.priceOnRequest}
+                onChange={(checked) => setForm((current) => ({ ...current, priceOnRequest: checked }))}
+              />
+              <SwitchRow
+                label="Новый автомобиль"
+                detail="Используется для классификации автомобиля."
+                checked={form.isNew}
+                onChange={(checked) => setForm((current) => ({ ...current, isNew: checked }))}
+              />
+              <SwitchRow
+                label="Новое поступление"
+                detail="Разрешает выводить автомобиль в блоке последних поступлений."
+                checked={form.isNewArrival}
+                onChange={(checked) => setForm((current) => ({ ...current, isNewArrival: checked }))}
+              />
+              <SwitchRow
+                label="Рекомендуемый"
+                detail="Поднимает автомобиль выше в административном каталоге."
+                checked={form.isFeatured}
+                onChange={(checked) => setForm((current) => ({ ...current, isFeatured: checked }))}
+              />
+              <SwitchRow
+                label="Опубликовать на сайте"
+                detail="Оставьте выключенным, пока не добавлены качественные фотографии."
+                checked={form.isPublic}
+                onChange={(checked) => setForm((current) => ({ ...current, isPublic: checked }))}
+              />
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionKicker}>05</p>
+                <h2>Описание</h2>
+              </div>
+              <p>Русская и узбекская версии хранятся отдельно.</p>
+            </div>
+
+            <div className={styles.fieldGrid}>
+              <label className={styles.field}>
+                <span>Коротко · RU</span>
+                <textarea
+                  className={styles.shortTextarea}
+                  value={form.shortDescriptionRu}
+                  onChange={(event) => setText("shortDescriptionRu", event)}
+                  placeholder="Краткое описание для карточки"
+                  maxLength={220}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Qisqa · UZ</span>
+                <textarea
+                  className={styles.shortTextarea}
+                  value={form.shortDescriptionUz}
+                  onChange={(event) => setText("shortDescriptionUz", event)}
+                  placeholder="Kartochka uchun qisqa tavsif"
+                  maxLength={220}
+                />
+              </label>
+
+              <label className={`${styles.field} ${styles.fieldWide}`}>
+                <span>Описание · RU</span>
+                <textarea
+                  value={form.descriptionRu}
+                  onChange={(event) => setText("descriptionRu", event)}
+                  placeholder="Полное описание автомобиля"
+                />
+              </label>
+
+              <label className={`${styles.field} ${styles.fieldWide}`}>
+                <span>Tavsif · UZ</span>
+                <textarea
+                  value={form.descriptionUz}
+                  onChange={(event) => setText("descriptionUz", event)}
+                  placeholder="Avtomobilning to‘liq tavsifi"
+                />
+              </label>
+            </div>
+          </section>
+
+          <div className={styles.saveDock}>
+            <div className={styles.saveMeta}>
+              <span>{form.brand || "Марка не выбрана"}</span>
+              <strong>{form.model || "НОВЫЙ АВТОМОБИЛЬ"}</strong>
+            </div>
+            <button className={styles.saveButton} type="submit" disabled={saving || !authReady}>
+              {saving ? <span className={styles.spinner} aria-hidden="true" /> : <CheckIcon />}
+              <span>{saving ? "Сохраняем в D1…" : "Сохранить автомобиль"}</span>
+            </button>
           </div>
         </form>
       </div>
+
+      {createdCar ? (
+        <div className={styles.successOverlay} role="status" aria-live="polite">
+          <div className={styles.successCard}>
+            <span className={styles.successIcon}>
+              <CheckIcon />
+            </span>
+            <p>Автомобиль сохранён</p>
+            <h2>{createdCar.title}</h2>
+            <span>D1 подтвердил запись · ID {createdCar.id}</span>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
 
-function Field({
-  label,
-  children,
-  required = false,
-  wide = false,
-}: {
-  label: string;
-  children: ReactNode;
-  required?: boolean;
-  wide?: boolean;
-}) {
-  return (
-    <label className={`${styles.field} ${wide ? styles.fieldWide : ""}`}>
-      <span>
-        {label}
-        {required ? <b>*</b> : null}
-      </span>
-      {children}
-    </label>
-  );
-}
-
 function SwitchRow({
-  title,
-  description,
+  label,
+  detail,
   checked,
   onChange,
 }: {
-  title: string;
-  description: string;
+  label: string;
+  detail: string;
   checked: boolean;
-  onChange: (value: boolean) => void;
+  onChange: (checked: boolean) => void;
 }) {
   return (
     <label className={styles.switchRow}>
-      <span>
-        <strong>{title}</strong>
-        <small>{description}</small>
+      <span className={styles.switchCopy}>
+        <strong>{label}</strong>
+        <small>{detail}</small>
       </span>
       <input
+        className={styles.switchInput}
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
       />
-      <i aria-hidden="true" />
+      <span className={styles.switchTrack} aria-hidden="true">
+        <span className={styles.switchThumb} />
+      </span>
     </label>
   );
 }
 
-function ArrowLeftIcon() {
+function ChevronLeftIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M14.8 5.2 8 12l6.8 6.8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ArrowRightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M5 12h13M13 7l5 5-5 5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M14.75 5.5 8.25 12l6.5 6.5" />
     </svg>
   );
 }
@@ -942,14 +898,7 @@ function ArrowRightIcon() {
 function MoonIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.6 8.6 0 1 0 20.2 15.2Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M20 15.2A8.1 8.1 0 0 1 8.8 4 8.25 8.25 0 1 0 20 15.2Z" />
     </svg>
   );
 }
@@ -957,14 +906,16 @@ function MoonIcon() {
 function SunIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.7" />
-      <path
-        d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 2.4v2.1M12 19.5v2.1M2.4 12h2.1M19.5 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M18.8 5.2l-1.5 1.5M6.7 17.3l-1.5 1.5" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5.5 12.4 4.2 4.2 8.8-9.1" />
     </svg>
   );
 }
