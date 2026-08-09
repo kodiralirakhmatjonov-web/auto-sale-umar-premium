@@ -111,7 +111,7 @@ export async function onRequestGet(context: {
     ${whereSql}
     ORDER BY
       c.is_featured DESC,
-      c.is_new_arrival DESC,
+      CASE WHEN datetime(c.created_at) >= datetime('now', '-30 days') THEN 1 ELSE 0 END DESC,
       CASE c.status
         WHEN 'in_stock' THEN 0
         WHEN 'in_showroom' THEN 1

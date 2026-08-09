@@ -20,8 +20,6 @@ interface CreateCarBody {
   model?: unknown;
   year?: unknown;
   trim?: unknown;
-  vin?: unknown;
-  stockNumber?: unknown;
   status?: unknown;
   countryCode?: unknown;
   arrivalDate?: unknown;
@@ -35,14 +33,17 @@ interface CreateCarBody {
   driveType?: unknown;
   transmission?: unknown;
   engineText?: unknown;
+  engineDisplacementL?: unknown;
   seats?: unknown;
+  horsepowerHp?: unknown;
+  torqueNm?: unknown;
+  acceleration0100?: unknown;
+  topSpeedKmh?: unknown;
+  fuelConsumptionL100?: unknown;
+  electricRangeKm?: unknown;
 
-  exteriorColor?: unknown;
-  exteriorColorRu?: unknown;
-  exteriorColorUz?: unknown;
-  interiorColor?: unknown;
-  interiorColorRu?: unknown;
-  interiorColorUz?: unknown;
+  instagramUrl?: unknown;
+  variants?: unknown;
 
   shortDescriptionRu?: unknown;
   shortDescriptionUz?: unknown;
@@ -50,10 +51,20 @@ interface CreateCarBody {
   descriptionUz?: unknown;
 
   isNew?: unknown;
-  isNewArrival?: unknown;
   isPublic?: unknown;
   isFeatured?: unknown;
 }
+
+interface CreateVariantInput {
+  exteriorColorName: string | null;
+  exteriorSwatch: string;
+  interiorColorName: string | null;
+  interiorSwatch: string;
+  vin: string | null;
+  stockNumber: string | null;
+  quantity: number;
+}
+
 
 interface D1ListResult<T> {
   results?: T[];
@@ -138,8 +149,72 @@ function parseOptionalInteger(
   return number;
 }
 
+function parseOptionalNumber(
+  value: unknown,
+  min: number,
+  max: number,
+): number | null | "invalid" {
+  if (value === "" || value == null) return null;
+  const number = typeof value === "number"
+    ? value
+    : typeof value === "string" && value.trim()
+      ? Number(value.replace(",", "."))
+      : Number.NaN;
+  if (!Number.isFinite(number) || number < min || number > max) return "invalid";
+  return number;
+}
+
 function parseBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
+}
+
+function normalizeInstagramUrl(value: unknown): string | null | "invalid" {
+  const raw = normalizeText(value, 500);
+  if (!raw) return null;
+  try {
+    const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    const url = new URL(candidate);
+    if (!/(^|\.)instagram\.com$/i.test(url.hostname)) return "invalid";
+    url.protocol = "https:";
+    return url.toString().slice(0, 500);
+  } catch {
+    return "invalid";
+  }
+}
+
+function validHexColor(value: string): boolean {
+  return /^#[0-9A-F]{6}$/i.test(value);
+}
+
+function parseVariants(value: unknown): CreateVariantInput[] | "invalid" {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 20) return "invalid";
+  const variants: CreateVariantInput[] = [];
+  for (const raw of value) {
+    if (!raw || typeof raw !== "object") return "invalid";
+    const row = raw as Record<string, unknown>;
+    const exteriorColorName = nullableText(row.exteriorColorName, 120);
+    const interiorColorName = nullableText(row.interiorColorName, 120);
+    const exteriorSwatch = normalizeText(row.exteriorSwatch, 7) || "#111214";
+    const interiorSwatch = normalizeText(row.interiorSwatch, 7) || "#111214";
+    const vin = nullableText(row.vin, 17)?.toUpperCase() ?? null;
+    const stockNumber = nullableText(row.stockNumber, 80)?.toUpperCase() ?? null;
+    const quantity = parseOptionalInteger(row.quantity, 1, 99);
+
+    if (!validHexColor(exteriorSwatch) || !validHexColor(interiorSwatch)) return "invalid";
+    if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) return "invalid";
+    if (quantity === "invalid") return "invalid";
+
+    variants.push({
+      exteriorColorName,
+      exteriorSwatch,
+      interiorColorName,
+      interiorSwatch,
+      vin,
+      stockNumber,
+      quantity: quantity ?? 1,
+    });
+  }
+  return variants;
 }
 
 export function isCarStatus(value: string): value is CarStatus {
@@ -328,20 +403,30 @@ export const CAR_SELECT = `
     c.description_ru,
     c.description_uz,
     c.is_new,
-    c.is_new_arrival,
+    CASE WHEN datetime(c.created_at) >= datetime('now', '-30 days') THEN 1 ELSE 0 END AS is_new_arrival,
     c.is_published AS is_public,
     c.is_featured,
     c.created_by,
     c.updated_by,
     c.created_at,
     c.updated_at,
-    (
-      SELECT cm.public_url
-      FROM car_media cm
-      WHERE cm.car_id = c.id
-        AND cm.media_type = 'image'
-      ORDER BY cm.is_cover DESC, cm.sort_order ASC, cm.id ASC
-      LIMIT 1
+    COALESCE(
+      (
+        SELECT cvm.public_url
+        FROM car_variant_media cvm
+        WHERE cvm.car_id = c.id
+          AND cvm.photo_group = 'exterior'
+        ORDER BY cvm.is_cover DESC, cvm.sort_order ASC, cvm.id ASC
+        LIMIT 1
+      ),
+      (
+        SELECT cm.public_url
+        FROM car_media cm
+        WHERE cm.car_id = c.id
+          AND cm.media_type = 'image'
+        ORDER BY cm.is_cover DESC, cm.sort_order ASC, cm.id ASC
+        LIMIT 1
+      )
     ) AS cover_url
   FROM cars c
   INNER JOIN brands b ON b.id = c.brand_id
@@ -546,10 +631,7 @@ export async function onRequestPost(context: {
   }
 
   const currentUser = await getAuthenticatedUser(request, env);
-  if (!currentUser) {
-    return json({ success: false, error: "Требуется вход в систему." }, 401);
-  }
-
+  if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
   if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
     return json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403);
   }
@@ -564,85 +646,65 @@ export async function onRequestPost(context: {
   const brandName = normalizeText(body.brand, 80);
   const model = normalizeText(body.model, 100);
   const trim = nullableText(body.trim, 120);
-  const vin = nullableText(body.vin, 32)?.toUpperCase() ?? null;
-  const stockNumber = nullableText(body.stockNumber, 80);
   const status = normalizeText(body.status, 30);
   const countryCode = normalizeText(body.countryCode, 10).toUpperCase();
-  const arrivalDate = normalizeText(body.arrivalDate, 10);
+  const rawArrivalDate = normalizeText(body.arrivalDate, 10);
+  const arrivalDate = status === "in_transit" || status === "made_to_order" || status === "reserved"
+    ? rawArrivalDate
+    : "";
   const currencyText = normalizeText(body.currency, 10).toUpperCase() || "USD";
 
-  if (!brandName) {
-    return json({ success: false, error: "Укажите марку автомобиля." }, 400);
-  }
-
-  if (!model) {
-    return json({ success: false, error: "Укажите модель автомобиля." }, 400);
-  }
-
-  if (!isCarStatus(status)) {
+  if (!brandName) return json({ success: false, error: "Укажите марку автомобиля." }, 400);
+  if (!model) return json({ success: false, error: "Укажите модель автомобиля." }, 400);
+  if (!isCarStatus(status) || ["sold", "hidden"].includes(status)) {
     return json({ success: false, error: "Выберите корректный статус автомобиля." }, 400);
   }
-
-  if (!validCountryCode(countryCode)) {
-    return json({ success: false, error: "Выберите корректную страну." }, 400);
-  }
-
-  if (!validIsoDate(arrivalDate)) {
-    return json({ success: false, error: "Проверьте дату прибытия." }, 400);
-  }
-
-  if (!isCurrency(currencyText)) {
-    return json(
-      {
-        success: false,
-        error: "D1 сейчас поддерживает только USD, UZS и EUR.",
-      },
-      400,
-    );
-  }
-
-  if (vin && !/^[A-HJ-NPR-Z0-9]{11,17}$/.test(vin)) {
-    return json(
-      {
-        success: false,
-        error: "VIN должен содержать 11–17 допустимых латинских символов и цифр.",
-      },
-      400,
-    );
-  }
+  if (!validCountryCode(countryCode)) return json({ success: false, error: "Выберите корректную страну." }, 400);
+  if (!validIsoDate(arrivalDate)) return json({ success: false, error: "Проверьте дату прибытия." }, 400);
+  if (!isCurrency(currencyText)) return json({ success: false, error: "D1 поддерживает USD, UZS и EUR." }, 400);
 
   const year = parseOptionalInteger(body.year, 1900, 2100);
   const price = parseOptionalInteger(body.price, 0, 9_000_000_000_000);
   const mileageKm = parseOptionalInteger(body.mileageKm, 0, 20_000_000);
   const seats = parseOptionalInteger(body.seats, 1, 99);
+  const horsepowerHp = parseOptionalInteger(body.horsepowerHp, 1, 5000);
+  const torqueNm = parseOptionalInteger(body.torqueNm, 1, 10000);
+  const topSpeedKmh = parseOptionalInteger(body.topSpeedKmh, 1, 1000);
+  const electricRangeKm = parseOptionalInteger(body.electricRangeKm, 1, 5000);
+  const engineDisplacementL = parseOptionalNumber(body.engineDisplacementL, 0.1, 20);
+  const acceleration0100 = parseOptionalNumber(body.acceleration0100, 0.5, 60);
+  const fuelConsumptionL100 = parseOptionalNumber(body.fuelConsumptionL100, 0.1, 100);
 
-  if (year === "invalid") {
-    return json({ success: false, error: "Некорректный год автомобиля." }, 400);
+  const numericValues = [year, price, mileageKm, seats, horsepowerHp, torqueNm, topSpeedKmh, electricRangeKm, engineDisplacementL, acceleration0100, fuelConsumptionL100];
+  if (numericValues.includes("invalid")) {
+    return json({ success: false, error: "Проверьте числовые характеристики автомобиля." }, 400);
   }
 
-  if (price === "invalid") {
-    return json({ success: false, error: "Некорректная цена автомобиля." }, 400);
+  const instagramUrl = normalizeInstagramUrl(body.instagramUrl);
+  if (instagramUrl === "invalid") return json({ success: false, error: "Проверьте ссылку Instagram." }, 400);
+
+  const variants = parseVariants(body.variants);
+  if (variants === "invalid") {
+    return json({ success: false, error: "Проверьте цветовые варианты, VIN и количество." }, 400);
   }
 
-  if (mileageKm === "invalid") {
-    return json({ success: false, error: "Некорректный пробег автомобиля." }, 400);
-  }
-
-  if (seats === "invalid") {
-    return json({ success: false, error: "Некорректное количество мест." }, 400);
+  const vinSet = new Set<string>();
+  const stockSet = new Set<string>();
+  for (const variant of variants) {
+    if (variant.vin) {
+      if (vinSet.has(variant.vin)) return json({ success: false, error: "Один VIN указан дважды." }, 400);
+      vinSet.add(variant.vin);
+    }
+    if (variant.stockNumber) {
+      if (stockSet.has(variant.stockNumber)) return json({ success: false, error: "Один внутренний номер указан дважды." }, 400);
+      stockSet.add(variant.stockNumber);
+    }
   }
 
   const engineText = nullableText(body.engineText, 180);
   const fuelType = nullableText(body.fuelType, 80);
   const driveType = nullableText(body.driveType, 80);
-  const transmission = nullableText(body.transmission, 80);
-
-  const exteriorColorRu =
-    nullableText(body.exteriorColorRu, 100) ?? nullableText(body.exteriorColor, 100);
-  const exteriorColorUz = nullableText(body.exteriorColorUz, 100) ?? exteriorColorRu;
-  const interiorColorRu =
-    nullableText(body.interiorColorRu, 100) ?? nullableText(body.interiorColor, 100);
-  const interiorColorUz = nullableText(body.interiorColorUz, 100) ?? interiorColorRu;
+  const transmission = nullableText(body.transmission, 80) ?? "automatic";
 
   const descriptionRuInput = nullableText(body.descriptionRu, 10_000);
   const descriptionUzInput = nullableText(body.descriptionUz, 10_000);
@@ -652,232 +714,212 @@ export async function onRequestPost(context: {
   const priceOnRequestInput = parseBoolean(body.priceOnRequest, price == null);
   const priceOnRequest = priceOnRequestInput || price == null;
   const finalPrice = priceOnRequest ? null : price;
-
   const isNew = parseBoolean(body.isNew, (mileageKm ?? 0) === 0);
-  const isNewArrival = parseBoolean(body.isNewArrival, false);
   const isPublished = parseBoolean(body.isPublic, false);
   const isFeatured = parseBoolean(body.isFeatured, false);
 
-  const fallbackDescription = [brandName, model, year, trim]
-    .filter((value) => value !== null && value !== "")
-    .join(" ");
-
+  const fallbackDescription = [brandName, model, year, trim].filter((value) => value !== null && value !== "").join(" ");
   const descriptionRu = descriptionRuInput ?? fallbackDescription;
   const descriptionUz = descriptionUzInput ?? fallbackDescription;
-  const shortDescriptionRu =
-    shortDescriptionRuInput ?? shortText(descriptionRu, fallbackDescription);
-  const shortDescriptionUz =
-    shortDescriptionUzInput ?? shortText(descriptionUz, fallbackDescription);
-  const carSlug = `${slugify([brandName, model, year, trim].filter(Boolean).join("-"))}-${crypto
-    .randomUUID()
-    .slice(0, 8)}`;
+  const shortDescriptionRu = shortDescriptionRuInput ?? shortText(descriptionRu, fallbackDescription);
+  const shortDescriptionUz = shortDescriptionUzInput ?? shortText(descriptionUz, fallbackDescription);
+  const carSlug = `${slugify([brandName, model, year, trim].filter(Boolean).join("-"))}-${crypto.randomUUID().slice(0, 8)}`;
 
   const fuel = fuelLabels(fuelType);
   const transmissionLabelsValue = transmissionLabels(transmission);
   const drivetrain = drivetrainLabels(driveType);
+  const firstVariant = variants[0];
 
   try {
-    if (vin) {
-      const existingVin = await env.DB.prepare(
-        `SELECT id FROM cars WHERE vin = ?1 COLLATE NOCASE LIMIT 1`,
-      )
-        .bind(vin)
-        .first<{ id: number }>();
-
-      if (existingVin) {
-        return json({ success: false, error: "Автомобиль с таким VIN уже существует." }, 409);
+    for (const variant of variants) {
+      if (variant.vin) {
+        const existingCarVin = await env.DB.prepare(`SELECT id FROM cars WHERE vin = ?1 COLLATE NOCASE LIMIT 1`).bind(variant.vin).first<{ id: number }>();
+        const existingVariantVin = await env.DB.prepare(`SELECT variant_id FROM car_variant_inventory WHERE vin = ?1 COLLATE NOCASE LIMIT 1`).bind(variant.vin).first<{ variant_id: number }>();
+        if (existingCarVin || existingVariantVin) return json({ success: false, error: `VIN ${variant.vin} уже используется.` }, 409);
       }
-    }
-
-    if (stockNumber) {
-      const existingStock = await env.DB.prepare(
-        `SELECT id FROM cars WHERE stock_number = ?1 LIMIT 1`,
-      )
-        .bind(stockNumber)
-        .first<{ id: number }>();
-
-      if (existingStock) {
-        return json({ success: false, error: "Такой внутренний номер уже используется." }, 409);
+      if (variant.stockNumber) {
+        const existingCarStock = await env.DB.prepare(`SELECT id FROM cars WHERE stock_number = ?1 LIMIT 1`).bind(variant.stockNumber).first<{ id: number }>();
+        const existingVariantStock = await env.DB.prepare(`SELECT variant_id FROM car_variant_inventory WHERE stock_number = ?1 LIMIT 1`).bind(variant.stockNumber).first<{ variant_id: number }>();
+        if (existingCarStock || existingVariantStock) return json({ success: false, error: `Внутренний номер ${variant.stockNumber} уже используется.` }, 409);
       }
     }
   } catch (error) {
     console.error("Car duplicate check failed", error);
-    return json({ success: false, error: "Не удалось проверить данные автомобиля." }, 500);
+    return json({ success: false, error: "Не удалось проверить VIN. Убедитесь, что миграция 0002 применена." }, 500);
   }
 
   let createdCarId: number | null = null;
 
   try {
     const brand = await ensureBrand(env, brandName);
-
     const created = await env.DB.prepare(
       `INSERT INTO cars (
-        brand_id,
-        model,
-        trim,
-        model_year,
-        vin,
-        stock_number,
-        short_description_ru,
-        short_description_uz,
-        description_ru,
-        description_uz,
-        price_amount,
-        price_currency,
-        price_on_request,
-        status,
-        source_country,
-        arrival_date,
-        mileage_km,
-        is_new,
-        is_featured,
-        is_new_arrival,
-        is_published,
-        slug,
-        created_by,
-        updated_by
+        brand_id, model, trim, model_year, vin, stock_number,
+        short_description_ru, short_description_uz, description_ru, description_uz,
+        price_amount, price_currency, price_on_request, status, source_country, arrival_date,
+        mileage_km, is_new, is_featured, is_new_arrival, is_published, slug, created_by, updated_by
       ) VALUES (
         ?1, ?2, ?3, ?4, ?5, ?6,
         ?7, ?8, ?9, ?10,
         ?11, ?12, ?13, ?14, ?15, ?16,
-        ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?23
-      )
-      RETURNING id`,
-    )
-      .bind(
-        brand.id,
-        model,
-        trim,
-        year,
-        vin,
-        stockNumber,
-        shortDescriptionRu,
-        shortDescriptionUz,
-        descriptionRu,
-        descriptionUz,
-        finalPrice,
-        currencyText,
-        priceOnRequest ? 1 : 0,
-        status,
-        countryCode || null,
-        arrivalDate || null,
-        mileageKm ?? 0,
-        isNew ? 1 : 0,
-        isFeatured ? 1 : 0,
-        isNewArrival ? 1 : 0,
-        isPublished ? 1 : 0,
-        carSlug,
-        currentUser.id,
-      )
-      .first<{ id: number }>();
+        ?17, ?18, ?19, 1, ?20, ?21, ?22, ?22
+      ) RETURNING id`,
+    ).bind(
+      brand.id,
+      model,
+      trim,
+      year,
+      firstVariant.vin,
+      firstVariant.stockNumber,
+      shortDescriptionRu,
+      shortDescriptionUz,
+      descriptionRu,
+      descriptionUz,
+      finalPrice,
+      currencyText,
+      priceOnRequest ? 1 : 0,
+      status,
+      countryCode || null,
+      arrivalDate || null,
+      isNew ? 0 : (mileageKm ?? 0),
+      isNew ? 1 : 0,
+      isFeatured ? 1 : 0,
+      isPublished ? 1 : 0,
+      carSlug,
+      currentUser.id,
+    ).first<{ id: number }>();
 
-    if (!created?.id) {
-      throw new Error("D1 did not return the created car id.");
-    }
+    if (!created?.id) throw new Error("D1 did not return the created car id.");
+    createdCarId = created.id;
 
-    const confirmedCarId = created.id;
-    createdCarId = confirmedCarId;
-
-    const hasSpecs = Boolean(
-      engineText || fuel.ru || transmissionLabelsValue.ru || drivetrain.ru || seats,
-    );
-
+    const hasSpecs = Boolean(engineText || fuel.ru || transmissionLabelsValue.ru || drivetrain.ru || seats);
     if (hasSpecs) {
       await env.DB.prepare(
         `INSERT INTO car_specs (
-          car_id,
-          engine_name,
-          fuel_type_ru,
-          fuel_type_uz,
-          transmission_ru,
-          transmission_uz,
-          drivetrain_ru,
-          drivetrain_uz,
-          seats
+          car_id, engine_name, fuel_type_ru, fuel_type_uz,
+          transmission_ru, transmission_uz, drivetrain_ru, drivetrain_uz, seats
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
-      )
-        .bind(
-          confirmedCarId,
-          engineText,
-          fuel.ru,
-          fuel.uz,
-          transmissionLabelsValue.ru,
-          transmissionLabelsValue.uz,
-          drivetrain.ru,
-          drivetrain.uz,
-          seats,
-        )
-        .run();
+      ).bind(
+        created.id,
+        engineText,
+        fuel.ru,
+        fuel.uz,
+        transmissionLabelsValue.ru,
+        transmissionLabelsValue.uz,
+        drivetrain.ru,
+        drivetrain.uz,
+        seats,
+      ).run();
     }
 
-    if (exteriorColorRu || exteriorColorUz || interiorColorRu || interiorColorUz) {
-      const colorNameRu = exteriorColorRu ?? "Не указан";
-      const colorNameUz = exteriorColorUz ?? "Ko‘rsatilmagan";
+    const performanceValues = [engineDisplacementL, horsepowerHp, torqueNm, acceleration0100, topSpeedKmh, fuelConsumptionL100, electricRangeKm];
+    if (performanceValues.some((value) => value != null)) {
+      await env.DB.prepare(
+        `INSERT INTO car_performance (
+          car_id, engine_displacement_l, horsepower_hp, torque_nm,
+          acceleration_0_100_s, top_speed_kmh, fuel_consumption_l_100km, electric_range_km
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`,
+      ).bind(
+        created.id,
+        engineDisplacementL,
+        horsepowerHp,
+        torqueNm,
+        acceleration0100,
+        topSpeedKmh,
+        fuelConsumptionL100,
+        electricRangeKm,
+      ).run();
+    }
+
+    if (instagramUrl) {
+      await env.DB.prepare(`INSERT INTO car_links (car_id, instagram_url) VALUES (?1, ?2)`).bind(created.id, instagramUrl).run();
+    }
+
+    const createdVariants: Array<{ id: number; index: number }> = [];
+    for (let index = 0; index < variants.length; index += 1) {
+      const variant = variants[index];
+      const inserted = await env.DB.prepare(
+        `INSERT INTO car_variants (
+          car_id, color_name_ru, color_name_uz, interior_color_ru, interior_color_uz,
+          quantity, is_default, sort_order
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) RETURNING id`,
+      ).bind(
+        created.id,
+        variant.exteriorColorName ?? "Не указан",
+        variant.exteriorColorName ?? "Ko‘rsatilmagan",
+        variant.interiorColorName,
+        variant.interiorColorName,
+        variant.quantity,
+        index === 0 ? 1 : 0,
+        index,
+      ).first<{ id: number }>();
+
+      if (!inserted?.id) throw new Error("D1 did not return a variant id.");
 
       await env.DB.prepare(
-        `INSERT INTO car_variants (
-          car_id,
-          color_name_ru,
-          color_name_uz,
-          interior_color_ru,
-          interior_color_uz,
-          quantity,
-          is_default,
-          sort_order
-        ) VALUES (?1, ?2, ?3, ?4, ?5, 1, 1, 0)`,
-      )
-        .bind(
-          confirmedCarId,
-          colorNameRu,
-          colorNameUz,
-          interiorColorRu,
-          interiorColorUz,
-        )
-        .run();
+        `INSERT INTO car_variant_style (variant_id, exterior_swatch, interior_swatch)
+         VALUES (?1, ?2, ?3)`,
+      ).bind(inserted.id, variant.exteriorSwatch, variant.interiorSwatch).run();
+
+      await env.DB.prepare(
+        `INSERT INTO car_variant_inventory (variant_id, vin, stock_number, quantity)
+         VALUES (?1, ?2, ?3, ?4)`,
+      ).bind(inserted.id, variant.vin, variant.stockNumber, variant.quantity).run();
+
+      createdVariants.push({ id: inserted.id, index });
     }
 
-    const car = await getCarById(env, confirmedCarId);
-    if (!car) {
-      throw new Error("Created car could not be loaded.");
-    }
+    const car = await getCarById(env, created.id);
+    if (!car) throw new Error("Created car could not be loaded.");
 
-    return json(
-      {
-        success: true,
-        message: "Автомобиль добавлен.",
-        car: toStaffCar(car),
-        writeVerified: true,
-      },
-      201,
-    );
+    return json({
+      success: true,
+      message: "Автомобиль добавлен.",
+      car: { ...toStaffCar(car), variants: createdVariants },
+      writeVerified: true,
+    }, 201);
   } catch (error) {
     if (createdCarId) {
-      try {
-        await env.DB.prepare(`DELETE FROM cars WHERE id = ?1`).bind(createdCarId).run();
-      } catch (cleanupError) {
-        console.error("Car cleanup failed", cleanupError);
-      }
+      try { await env.DB.prepare(`DELETE FROM cars WHERE id = ?1`).bind(createdCarId).run(); } catch (cleanupError) { console.error("Car cleanup failed", cleanupError); }
     }
-
-    if (isUniqueConstraintError(error)) {
-      return json(
-        {
-          success: false,
-          error: "VIN, внутренний номер или служебный идентификатор уже используется.",
-        },
-        409,
-      );
-    }
-
+    if (isUniqueConstraintError(error)) return json({ success: false, error: "VIN или внутренний номер уже используется." }, 409);
     console.error("Car creation failed", error);
-    return json({ success: false, error: "Не удалось добавить автомобиль." }, 500);
+    return json({ success: false, error: "Не удалось добавить автомобиль. Проверьте, что миграция 0002 применена к D1." }, 500);
   }
 }
 
+export async function onRequestPatch(context: {
+  request: Request;
+  env: Env;
+}): Promise<Response> {
+  const { request, env } = context;
+  if (!env.DB || !env.AUTH_PEPPER) return json({ success: false, error: "Серверная конфигурация не завершена." }, 500);
+  const currentUser = await getAuthenticatedUser(request, env);
+  if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") return json({ success: false, error: "Недостаточно прав." }, 403);
+
+  let body: { id?: unknown; isPublic?: unknown };
+  try { body = await request.json() as { id?: unknown; isPublic?: unknown }; } catch { return json({ success: false, error: "Некорректный JSON-запрос." }, 400); }
+  const id = parseOptionalInteger(body.id, 1, 2_000_000_000);
+  if (id === "invalid" || id == null) return json({ success: false, error: "Некорректный ID автомобиля." }, 400);
+  const isPublic = parseBoolean(body.isPublic, false);
+
+  if (isPublic) {
+    const cover = await env.DB.prepare(
+      `SELECT id FROM car_variant_media WHERE car_id = ?1 AND photo_group = 'exterior' LIMIT 1`,
+    ).bind(id).first<{ id: number }>();
+    if (!cover) return json({ success: false, error: "Для публикации добавьте хотя бы одну фотографию кузова." }, 400);
+  }
+
+  await env.DB.prepare(
+    `UPDATE cars SET is_published = ?1, updated_by = ?2, updated_at = CURRENT_TIMESTAMP WHERE id = ?3`,
+  ).bind(isPublic ? 1 : 0, currentUser.id, id).run();
+
+  const car = await getCarById(env, id);
+  if (!car) return json({ success: false, error: "Автомобиль не найден." }, 404);
+  return json({ success: true, car: toStaffCar(car) });
+}
+
 export function onRequest(): Response {
-  return json(
-    { success: false, error: "Используйте GET- или POST-запрос." },
-    405,
-    { allow: "GET, POST" },
-  );
+  return json({ success: false, error: "Используйте GET, POST или PATCH." }, 405, { allow: "GET, POST, PATCH" });
 }
