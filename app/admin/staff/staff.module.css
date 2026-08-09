@@ -158,7 +158,7 @@
   z-index: 50;
   top: 12px;
   pointer-events: none;
-  padding: 0 12px;
+  padding: 0 10px;
   margin-top: 14px;
   animation: dockIn 720ms 40ms var(--spring) both;
 }
@@ -193,19 +193,24 @@
 
 .topbarInner {
   pointer-events: auto;
-  width: min(1180px, 100%);
-  min-height: 68px;
+  width: min(var(--asu-admin-toolbar-max-width), 100%);
+  min-height: var(--asu-admin-toolbar-height);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  grid-template-columns:
+    var(--asu-admin-toolbar-control-size)
+    minmax(0, 1fr)
+    var(--asu-admin-toolbar-control-size);
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: var(--asu-admin-toolbar-gap);
+  padding:
+    var(--asu-admin-toolbar-padding-block)
+    var(--asu-admin-toolbar-padding-inline);
   position: relative;
   isolation: isolate;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--line-strong) 86%, transparent);
-  border-radius: 34px;
+  border-radius: var(--asu-admin-toolbar-radius);
   background: var(--top-material);
   -webkit-backdrop-filter: blur(48px) saturate(190%);
   backdrop-filter: blur(48px) saturate(190%);
@@ -296,8 +301,8 @@
 
 .backButton,
 .themeButton {
-  width: 48px;
-  height: 48px;
+  width: var(--asu-admin-toolbar-control-size);
+  height: var(--asu-admin-toolbar-control-size);
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -308,8 +313,8 @@
 }
 
 .backButton svg {
-  width: 23px;
-  height: 23px;
+  width: var(--asu-admin-toolbar-icon-size);
+  height: var(--asu-admin-toolbar-icon-size);
   fill: none;
   stroke: currentColor;
   stroke-width: 1.9;
@@ -337,8 +342,8 @@
 .logoStack {
   position: relative;
   display: block;
-  width: clamp(156px, 30vw, 225px);
-  aspect-ratio: 3.45 / 1;
+  width: min(var(--asu-admin-toolbar-logo-width), 100%);
+  height: var(--asu-admin-toolbar-logo-height);
   overflow: visible;
 }
 
@@ -454,7 +459,8 @@
 }
 
 .sectionNav {
-  width: min(420px, calc(100% - 28px));
+  width: min(var(--asu-admin-section-width), calc(100% - 20px));
+  min-height: var(--asu-admin-section-height);
   margin: 14px auto 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1684,21 +1690,22 @@
 /* Desktop & tablet are designed, not simply stretched. */
 @media (min-width: 700px) {
   .topbar {
-    padding-inline: 24px;
+    padding-inline: 10px;
   }
 
   .topbarInner {
-    grid-template-columns: 50px minmax(0, 1fr) 50px;
-    min-height: 74px;
-    padding-inline: 12px;
+    grid-template-columns:
+      var(--asu-admin-toolbar-control-size)
+      minmax(0, 1fr)
+      var(--asu-admin-toolbar-control-size);
+    min-height: var(--asu-admin-toolbar-height);
+    padding:
+      var(--asu-admin-toolbar-padding-block)
+      var(--asu-admin-toolbar-padding-inline);
   }
 
   .brandSystem {
-    display: inline-flex;
-    align-items: center;
-    min-height: 28px;
-    padding-left: 13px;
-    border-left: 1px solid var(--line);
+    display: none;
   }
 
   .content {
@@ -1807,20 +1814,26 @@
   }
 
   .topbarInner {
-    min-height: 62px;
-    grid-template-columns: 44px minmax(0, 1fr) 44px;
-    border-radius: 31px;
-    padding: 7px 8px;
+    min-height: var(--asu-admin-toolbar-height);
+    grid-template-columns:
+      var(--asu-admin-toolbar-control-size)
+      minmax(0, 1fr)
+      var(--asu-admin-toolbar-control-size);
+    border-radius: var(--asu-admin-toolbar-radius);
+    padding:
+      var(--asu-admin-toolbar-padding-block)
+      var(--asu-admin-toolbar-padding-inline);
   }
 
   .backButton,
   .themeButton {
-    width: 44px;
-    height: 44px;
+    width: var(--asu-admin-toolbar-control-size);
+    height: var(--asu-admin-toolbar-control-size);
   }
 
   .logoStack {
-    width: clamp(142px, 42vw, 180px);
+    width: min(var(--asu-admin-toolbar-logo-width), 100%);
+    height: var(--asu-admin-toolbar-logo-height);
   }
 
   .content {
@@ -2425,7 +2438,8 @@
    ========================================================= */
 
 .logoStack {
-  width: clamp(180px, 34vw, 265px);
+  width: min(var(--asu-admin-toolbar-logo-width), 100%);
+  height: var(--asu-admin-toolbar-logo-height);
 }
 
 .themeButton[data-active="true"] {
@@ -2469,13 +2483,13 @@
 }
 
 .settingsMenu {
-  width: min(540px, calc(100% - 24px));
-  height: clamp(470px, 68dvh, 620px);
+  width: min(var(--asu-admin-settings-width), calc(100% - 20px));
+  height: var(--asu-admin-settings-height);
   max-height: calc(100dvh - 112px - env(safe-area-inset-top));
   position: absolute;
   z-index: 5;
   top: calc(100% + 10px);
-  right: max(12px, calc((100% - 1180px) / 2));
+  right: max(10px, calc((100% - var(--asu-admin-toolbar-max-width)) / 2));
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -2484,7 +2498,7 @@
   -webkit-overflow-scrolling: touch;
   padding: 24px;
   border: 1px solid var(--line-strong);
-  border-radius: 36px;
+  border-radius: var(--asu-admin-settings-radius);
   color: var(--text);
   background: color-mix(in srgb, var(--surface-solid) 97%, transparent);
   -webkit-backdrop-filter: blur(34px) saturate(145%);
@@ -2495,8 +2509,8 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  -webkit-clip-path: inset(0 0 94% 0 round 36px);
-  clip-path: inset(0 0 94% 0 round 36px);
+  -webkit-clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
+  clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
   transform: translateY(-18px) scale(.965);
   transform-origin: top center;
   transition:
@@ -2520,8 +2534,8 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  -webkit-clip-path: inset(0 0 0 0 round 36px);
-  clip-path: inset(0 0 0 0 round 36px);
+  -webkit-clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
+  clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
   transform: translateY(0) scale(1);
   transition:
     opacity 260ms var(--spring),
@@ -2702,22 +2716,23 @@
 
 @media (max-width: 420px) {
   .logoStack {
-    width: clamp(160px, 48vw, 205px);
+    width: min(var(--asu-admin-toolbar-logo-width), 100%);
+    height: var(--asu-admin-toolbar-logo-height);
   }
 
   .settingsMenu {
     width: calc(100% - 20px);
-    height: clamp(470px, 68dvh, 620px);
+    height: var(--asu-admin-settings-height);
     right: 10px;
     padding: 22px 20px 18px;
-    border-radius: 32px;
-    -webkit-clip-path: inset(0 0 94% 0 round 32px);
-    clip-path: inset(0 0 94% 0 round 32px);
+    border-radius: var(--asu-admin-settings-radius);
+    -webkit-clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
+    clip-path: inset(0 0 94% 0 round var(--asu-admin-settings-radius));
   }
 
   .settingsMenu[data-open="true"] {
-    -webkit-clip-path: inset(0 0 0 0 round 32px);
-    clip-path: inset(0 0 0 0 round 32px);
+    -webkit-clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
+    clip-path: inset(0 0 0 0 round var(--asu-admin-settings-radius));
   }
 
   .settingsContent {
