@@ -80,21 +80,6 @@ function LockIcon() {
   );
 }
 
-function ArrowRightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="m9.5 5.5 6.5 6.5-6.5 6.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const [theme, setTheme] = useState<Theme>("light");
@@ -107,16 +92,14 @@ export default function AdminLoginPage() {
     try {
       window.localStorage.setItem("asu-theme", nextTheme);
     } catch {
-      // The system theme remains a safe fallback when storage is unavailable.
+      // The system preference remains the fallback.
     }
 
     document.documentElement.dataset.asuTheme = nextTheme;
     document.documentElement.style.colorScheme = nextTheme;
+    document.documentElement.style.backgroundColor = "#000000";
     document.body.dataset.asuTheme = nextTheme;
-
-    const themeColor = nextTheme === "light" ? "#f5f5f7" : "#000000";
-    document.documentElement.style.backgroundColor = themeColor;
-    document.body.style.backgroundColor = themeColor;
+    document.body.style.backgroundColor = "#000000";
 
     let themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (!themeMeta) {
@@ -124,7 +107,7 @@ export default function AdminLoginPage() {
       themeMeta.name = "theme-color";
       document.head.appendChild(themeMeta);
     }
-    themeMeta.content = themeColor;
+    themeMeta.content = "#000000";
   }, []);
 
   useEffect(() => {
@@ -158,7 +141,6 @@ export default function AdminLoginPage() {
 
     setError("");
     setLoading(true);
-
     const form = new FormData(event.currentTarget);
 
     try {
@@ -173,7 +155,6 @@ export default function AdminLoginPage() {
       });
 
       const data = (await response.json()) as LoginResponse;
-
       if (!response.ok || !data.success) {
         setError(data.error ?? "Не удалось войти.");
         return;
@@ -182,7 +163,7 @@ export default function AdminLoginPage() {
       router.replace("/admin/staff/");
       router.refresh();
     } catch {
-      setError("Не удалось связаться с сервером. Проверьте подключение и повторите вход.");
+      setError("Нет связи с сервером. Проверьте подключение и повторите вход.");
     } finally {
       setLoading(false);
     }
@@ -190,23 +171,15 @@ export default function AdminLoginPage() {
 
   return (
     <main className={styles.page} data-theme={theme}>
+      <div className={styles.mediaLayer} aria-hidden="true" />
+
       <header className={styles.toolbar}>
         <a className={styles.toolbarButton} href="/" aria-label="Вернуться на сайт">
           <ArrowLeftIcon />
         </a>
 
         <a className={styles.wordmarkWrap} href="/" aria-label="Auto Sale Umar — на главную">
-          <img
-            className={`${styles.wordmark} ${styles.wordmarkLight}`}
-            src="/brand/asu-wordmark-black.png"
-            alt="Auto Sale Umar"
-          />
-          <img
-            className={`${styles.wordmark} ${styles.wordmarkDark}`}
-            src="/brand/asu-wordmark-white.png"
-            alt=""
-            aria-hidden="true"
-          />
+          <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
         </a>
 
         <button
@@ -224,66 +197,60 @@ export default function AdminLoginPage() {
       </header>
 
       <section className={styles.content}>
-        <div className={styles.heading}>
-          <div className={styles.productLabel}>
-            <span className={styles.statusDot} aria-hidden="true" />
-            CONTROL SYSTEM
-          </div>
-          <h1>Вход для команды</h1>
-          <p>Автомобили, сотрудники и операции Auto Sale Umar в одном защищённом пространстве.</p>
-        </div>
-
-        <section className={styles.loginCard} aria-labelledby="login-title">
-          <div className={styles.cardHeader}>
-            <span className={styles.lockIcon} aria-hidden="true"><LockIcon /></span>
-            <div>
-              <h2 id="login-title">Добро пожаловать</h2>
-              <p>Используйте рабочую учётную запись.</p>
-            </div>
+        <section className={styles.loginSheet} aria-labelledby="login-title">
+          <div className={styles.sheetHeading}>
+            <p><span aria-hidden="true" /> CONTROL SYSTEM</p>
+            <h1 id="login-title">Войти</h1>
+            <div>Управление Auto Sale Umar доступно только сотрудникам.</div>
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit} aria-busy={loading}>
-            <label className={styles.field}>
-              <span>Электронная почта</span>
-              <input
-                name="email"
-                type="email"
-                inputMode="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                autoComplete="email"
-                enterKeyHint="next"
-                placeholder="name@example.com"
-                required
-              />
-            </label>
+            <div className={styles.formGroup}>
+              <label className={styles.field}>
+                <span>Электронная почта</span>
+                <input
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  autoComplete="email"
+                  enterKeyHint="next"
+                  placeholder="name@example.com"
+                  required
+                />
+              </label>
 
-            <label className={styles.field}>
-              <span>Пароль</span>
-              <input
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                enterKeyHint="go"
-                placeholder="Введите пароль"
-                required
-              />
-            </label>
+              <span className={styles.fieldDivider} aria-hidden="true" />
 
-            <div className={styles.messageSlot} aria-live="polite">
-              {error ? <p className={styles.error} role="alert">{error}</p> : null}
+              <label className={styles.field}>
+                <span>Пароль</span>
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  placeholder="Введите пароль"
+                  required
+                />
+              </label>
             </div>
 
+            {error ? <p className={styles.error} role="alert" aria-live="polite">{error}</p> : null}
+
             <button className={styles.submit} type="submit" disabled={loading}>
-              <span>{loading ? "Проверяем…" : "Продолжить"}</span>
-              <span className={styles.submitIcon} aria-hidden="true"><ArrowRightIcon /></span>
+              {loading ? (
+                <><span className={styles.spinner} aria-hidden="true" /> Проверяем…</>
+              ) : (
+                "Войти"
+              )}
             </button>
           </form>
 
-          <footer className={styles.cardFooter}>
+          <footer className={styles.sheetFooter}>
             <LockIcon />
-            <span>Защищённая сессия · доступ только для сотрудников</span>
+            <span>Защищённая сессия</span>
           </footer>
         </section>
       </section>
