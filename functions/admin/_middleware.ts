@@ -14,8 +14,12 @@ export async function onRequest(context: {
   const user = await getAuthenticatedUser(context.request, context.env);
   if (!user) {
     const loginUrl = new URL("/admin/login/", url.origin);
-    return Response.redirect(loginUrl.toString(), 302);
+    const response = Response.redirect(loginUrl.toString(), 302);
+    response.headers.set("cache-control", "no-store, private");
+    return response;
   }
 
-  return context.next();
+  const response = await context.next();
+  response.headers.set("cache-control", "no-store, private");
+  return response;
 }
