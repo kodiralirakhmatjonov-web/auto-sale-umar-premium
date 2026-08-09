@@ -17,13 +17,32 @@ interface D1DatabaseLike {
 export interface SessionPayload {
   userId: number;
   email: string;
-  role: "super_admin" | "admin" | "sales_manager";
+  role: StaffRole;
   exp: number;
+}
+
+export type StaffRole = "super_admin" | "admin" | "sales_manager";
+
+export interface AuthenticatedUser {
+  id: number;
+  email: string;
+  full_name: string;
+  phone: string | null;
+  role: StaffRole;
+  status: string;
+  sessionId: number | null;
+  sessionKind: "database" | "legacy";
+}
+
+export interface CreatedSession {
+  token: string;
+  expiresAt: string;
 }
 
 const encoder = new TextEncoder();
 const SESSION_COOKIE = "asu_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const SESSION_TOKEN_BYTES = 32;
 const PASSWORD_ITERATIONS = 100_000;
 
 function bytesToBase64Url(bytes: Uint8Array): string {
@@ -75,6 +94,16 @@ async function importHmacKey(secret: string): Promise<CryptoKey> {
     false,
     ["sign", "verify"],
   );
+}
+
+async function hmacText(value: string, secret: string, namespace: string): Promise<string> {
+  const key = await importHmacKey(secret);
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(`${namespace}\u0000${value}`),
+  );
+  return bytesToBase64Url(new Uint8Array(signature));
 }
 
 export function json(data: unknown, status = 200, headers?: HeadersInit): Response {
@@ -220,6 +249,73 @@ export function readCookie(request: Request, name = SESSION_COOKIE): string | nu
   return null;
 }
 
+export function readSessionToken(request: Request): string | null {
+  const authorization = request.headers.get("authorization") ?? "";
+  const bearerMatch = authorization.match(/^Bearer\s+([^\s]+)$/i);
+  if (bearerMatch?.[1]) return bearerMatch[1];
+  return readCookie(request);
+}
+
+export async function createDatabaseSession(
+  request: Request,
+  env: Env,
+  userId: number,
+): Promise<CreatedSession> {
+  const random = crypto.getRandomValues(new Uint8Array(SESSION_TOKEN_BYTES));
+  const token = `asu_${bytesToBase64Url(random)}`;
+  const tokenHash = await hmacText(token, env.AUTH_PEPPER, "session-token");
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + SESSION_MAX_AGE_SECONDS * 1000).toISOString();
+  const userAgent = (request.headers.get("user-agent") ?? "").slice(0, 500) || null;
+  const rawIp = request.headers.get("cf-connecting-ip")?.trim() ?? "";
+  const ipHash = rawIp
+    ? await hmacText(rawIp, env.AUTH_PEPPER, "session-ip")
+    : null;
+
+  try {
+    await env.DB.prepare(
+      `DELETE FROM sessions
+       WHERE user_id = ?1
+         AND (expires_at <= ?2 OR revoked_at IS NOT NULL)`,
+    )
+      .bind(userId, now.toISOString())
+      .run();
+  } catch (cleanupError) {
+    console.error("Expired session cleanup failed", cleanupError);
+  }
+
+  await env.DB.prepare(
+    `INSERT INTO sessions (
+       user_id,
+       token_hash,
+       expires_at,
+       created_at,
+       revoked_at,
+       user_agent,
+       ip_hash
+     ) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6)`,
+  )
+    .bind(userId, tokenHash, expiresAt, now.toISOString(), userAgent, ipHash)
+    .run();
+
+  return { token, expiresAt };
+}
+
+export async function revokePresentedSession(request: Request, env: Env): Promise<void> {
+  const token = readSessionToken(request);
+  if (!token || token.includes(".")) return;
+
+  const tokenHash = await hmacText(token, env.AUTH_PEPPER, "session-token");
+  await env.DB.prepare(
+    `UPDATE sessions
+     SET revoked_at = ?1
+     WHERE token_hash = ?2
+       AND revoked_at IS NULL`,
+  )
+    .bind(new Date().toISOString(), tokenHash)
+    .run();
+}
+
 function sessionCookieDomain(requestUrl?: string): string {
   if (!requestUrl) return "";
 
@@ -235,20 +331,75 @@ function sessionCookieDomain(requestUrl?: string): string {
   return "";
 }
 
-export function sessionCookie(token: string, requestUrl?: string): string {
-  const expires = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000).toUTCString();
-  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_MAX_AGE_SECONDS}; Expires=${expires}${sessionCookieDomain(requestUrl)}`;
+export function sessionCookie(token: string, requestUrl?: string, expiresAt?: string): string {
+  const requestedExpiry = expiresAt ? new Date(expiresAt) : null;
+  const expiry = requestedExpiry && !Number.isNaN(requestedExpiry.getTime())
+    ? requestedExpiry
+    : new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
+  const maxAge = Math.max(0, Math.floor((expiry.getTime() - Date.now()) / 1000));
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}; Expires=${expiry.toUTCString()}${sessionCookieDomain(requestUrl)}`;
 }
 
 export function clearSessionCookie(requestUrl?: string): string {
   return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${sessionCookieDomain(requestUrl)}`;
 }
 
-export async function getAuthenticatedUser(request: Request, env: Env) {
-  const payload = await verifySessionToken(readCookie(request), env.AUTH_PEPPER);
+export async function getAuthenticatedUser(
+  request: Request,
+  env: Env,
+): Promise<AuthenticatedUser | null> {
+  const token = readSessionToken(request);
+  if (!token || !env.AUTH_PEPPER) return null;
+
+  if (!token.includes(".")) {
+    const tokenHash = await hmacText(token, env.AUTH_PEPPER, "session-token");
+    const now = new Date().toISOString();
+    const user = await env.DB.prepare(
+      `SELECT
+         u.id,
+         u.email,
+         u.full_name,
+         u.phone,
+         u.role,
+         u.status,
+         s.id AS session_id
+       FROM sessions s
+       INNER JOIN users u ON u.id = s.user_id
+       WHERE s.token_hash = ?1
+         AND s.revoked_at IS NULL
+         AND s.expires_at > ?2
+       LIMIT 1`,
+    )
+      .bind(tokenHash, now)
+      .first<{
+        id: number;
+        email: string;
+        full_name: string;
+        phone: string | null;
+        role: StaffRole;
+        status: string;
+        session_id: number;
+      }>();
+
+    if (!user || user.status !== "active") return null;
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      phone: user.phone,
+      role: user.role,
+      status: user.status,
+      sessionId: user.session_id,
+      sessionKind: "database",
+    };
+  }
+
+  // Transitional support: cookies issued by the previous release remain valid
+  // until their original seven-day expiry. Every new login uses D1 sessions.
+  const payload = await verifySessionToken(token, env.AUTH_PEPPER);
   if (!payload) return null;
 
-  const user = await env.DB.prepare(
+  const legacyUser = await env.DB.prepare(
     `SELECT id, email, full_name, phone, role, status
      FROM users
      WHERE id = ?1
@@ -260,10 +411,14 @@ export async function getAuthenticatedUser(request: Request, env: Env) {
       email: string;
       full_name: string;
       phone: string | null;
-      role: SessionPayload["role"];
+      role: StaffRole;
       status: string;
     }>();
 
-  if (!user || user.status !== "active") return null;
-  return user;
+  if (!legacyUser || legacyUser.status !== "active") return null;
+  return {
+    ...legacyUser,
+    sessionId: null,
+    sessionKind: "legacy",
+  };
 }
