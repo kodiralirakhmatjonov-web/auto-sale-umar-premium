@@ -106,6 +106,57 @@ interface MeResponse {
   };
 }
 
+interface AiVariantResult {
+  exteriorColorName?: string | null;
+  exteriorSwatch?: string | null;
+  interiorColorName?: string | null;
+  interiorSwatch?: string | null;
+  vin?: string | null;
+  stockNumber?: string | null;
+  quantity?: number | null;
+}
+
+interface AiCarResult {
+  brand?: string | null;
+  model?: string | null;
+  year?: number | null;
+  trim?: string | null;
+  status?: CarStatus | null;
+  countryCode?: string | null;
+  arrivalDate?: string | null;
+  isNew?: boolean | null;
+  mileageKm?: number | null;
+  engineText?: string | null;
+  engineDisplacementL?: number | null;
+  fuelType?: string | null;
+  driveType?: string | null;
+  transmission?: string | null;
+  seats?: number | null;
+  horsepowerHp?: number | null;
+  torqueNm?: number | null;
+  acceleration0100?: number | null;
+  topSpeedKmh?: number | null;
+  fuelConsumptionL100?: number | null;
+  electricRangeKm?: number | null;
+  price?: number | null;
+  currency?: Currency | null;
+  priceOnRequest?: boolean | null;
+  instagramUrl?: string | null;
+  shortDescriptionRu?: string | null;
+  shortDescriptionUz?: string | null;
+  descriptionRu?: string | null;
+  descriptionUz?: string | null;
+  variants?: AiVariantResult[];
+  warnings?: string[];
+}
+
+interface AiAutofillResponse {
+  success?: boolean;
+  error?: string;
+  model?: string;
+  car?: AiCarResult;
+}
+
 const BRANDS = [
   { value: "Mercedes-Benz", logo: "/brands/mercedes-benz.jpg" },
   { value: "Range Rover", logo: "/brands/range-rover.png" },
@@ -184,6 +235,18 @@ const UZ_COPY: Record<string, string> = {
   "CONTROL SYSTEM · АВТОМОБИЛИ": "CONTROL SYSTEM · AVTOMOBILLAR",
   "Новый автомобиль": "Yangi avtomobil",
   "Быстрая форма: основные данные один раз, цвета и фотографии — отдельными вариантами.": "Tezkor shakl: asosiy ma’lumotlar bir marta, ranglar va suratlar esa alohida variantlarda.",
+  "AI автозаполнение": "AI avtomatik to‘ldirish",
+  "Вставьте характеристики, дилерский лист, invoice или большой текст — Gemini разложит найденные данные по полям формы.": "Xususiyatlar, diler varaqasi, invoice yoki katta matnni kiriting — Gemini topilgan ma’lumotlarni forma maydonlariga ajratadi.",
+  "Вставить текст автомобиля": "Avtomobil matnini kiriting",
+  "Можно вставить 10–15 страниц текста. AI не сохраняет автомобиль сам — поля останутся редактируемыми.": "10–15 sahifagacha matn kiritish mumkin. AI avtomobilni o‘zi saqlamaydi — maydonlar tahrirlanadigan bo‘lib qoladi.",
+  "Проанализировать и заполнить": "Tahlil qilish va to‘ldirish",
+  "Анализируем…": "Tahlil qilinmoqda…",
+  "Очистить": "Tozalash",
+  "AI заполнил форму": "AI formani to‘ldirdi",
+  "Проверьте значения перед сохранением.": "Saqlashdan oldin qiymatlarni tekshiring.",
+  "AI-предупреждения": "AI ogohlantirishlari",
+  "Не удалось выполнить AI-автозаполнение.": "AI avtomatik to‘ldirishni bajarib bo‘lmadi.",
+  "Вставьте текст с данными автомобиля.": "Avtomobil ma’lumotlari yozilgan matnni kiriting.",
   "Автомобиль": "Avtomobil",
   "Сначала выберите марку, затем укажите модель.": "Avval brendni tanlang, keyin modelni kiriting.",
   "Марка автомобиля": "Avtomobil brendi",
@@ -349,6 +412,11 @@ export default function NewCarPage() {
   const [saving, setSaving] = useState(false);
   const [savingText, setSavingText] = useState<string | null>(null);
   const [createdCar, setCreatedCar] = useState<{ id: number; title: string } | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiText, setAiText] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiWarnings, setAiWarnings] = useState<string[]>([]);
+  const [aiApplied, setAiApplied] = useState(false);
   const errorRef = useRef<HTMLDivElement | null>(null);
 
   const t = useCallback(
@@ -569,6 +637,113 @@ export default function NewCarPage() {
       if (target) URL.revokeObjectURL(target.previewUrl);
       return { ...variant, [key]: variant[key].filter((photo) => photo.id !== photoId) };
     }));
+  }
+
+  function valueString(value: string | number | null | undefined): string | null {
+    if (value == null || value === "") return null;
+    return String(value);
+  }
+
+  function applyAiResult(result: AiCarResult) {
+    setForm((current) => {
+      const next = { ...current };
+      if (result.brand && BRANDS.some((brand) => brand.value === result.brand)) next.brand = result.brand;
+      if (result.model) next.model = normalizeUpper(result.model, 100);
+      if (result.year != null) next.year = String(result.year);
+      if (result.trim) next.trim = result.trim;
+      if (result.status && STATUS_OPTIONS.some((item) => item.value === result.status)) next.status = result.status;
+      if (result.countryCode && COUNTRY_OPTIONS.some((item) => item.value === result.countryCode)) next.countryCode = result.countryCode;
+      if (result.arrivalDate) next.arrivalDate = result.arrivalDate;
+      if (typeof result.isNew === "boolean") {
+        next.isNew = result.isNew;
+        if (result.isNew && result.mileageKm == null) next.mileageKm = "0";
+      }
+      if (result.mileageKm != null) next.mileageKm = String(result.mileageKm);
+      const assignText = (key: keyof FormState, value: string | number | null | undefined) => {
+        const normalized = valueString(value);
+        if (normalized != null) {
+          const mutable = next as unknown as Record<string, unknown>;
+          mutable[key as string] = normalized;
+        }
+      };
+      assignText("engineText", result.engineText);
+      assignText("engineDisplacementL", result.engineDisplacementL);
+      assignText("fuelType", result.fuelType);
+      assignText("driveType", result.driveType);
+      assignText("transmission", result.transmission);
+      assignText("seats", result.seats);
+      assignText("horsepowerHp", result.horsepowerHp);
+      assignText("torqueNm", result.torqueNm);
+      assignText("acceleration0100", result.acceleration0100);
+      assignText("topSpeedKmh", result.topSpeedKmh);
+      assignText("fuelConsumptionL100", result.fuelConsumptionL100);
+      assignText("electricRangeKm", result.electricRangeKm);
+      assignText("price", result.price);
+      if (result.currency && ["USD", "UZS", "EUR"].includes(result.currency)) next.currency = result.currency;
+      if (typeof result.priceOnRequest === "boolean") next.priceOnRequest = result.priceOnRequest;
+      assignText("instagramUrl", result.instagramUrl);
+      assignText("shortDescriptionRu", result.shortDescriptionRu);
+      assignText("shortDescriptionUz", result.shortDescriptionUz);
+      assignText("descriptionRu", result.descriptionRu);
+      assignText("descriptionUz", result.descriptionUz);
+      if (!["in_transit", "made_to_order", "reserved"].includes(next.status)) next.arrivalDate = "";
+      return next;
+    });
+
+    if (Array.isArray(result.variants) && result.variants.length > 0) {
+      setVariants((current) => result.variants!.map((source, index) => {
+        const existing = current[index];
+        const base = existing ?? createVariant(index);
+        return {
+          ...base,
+          exteriorSwatch: source.exteriorSwatch || base.exteriorSwatch,
+          exteriorColorName: source.exteriorColorName || base.exteriorColorName,
+          interiorSwatch: source.interiorSwatch || base.interiorSwatch,
+          interiorColorName: source.interiorColorName || base.interiorColorName,
+          vin: source.vin || base.vin,
+          stockNumber: source.stockNumber || base.stockNumber,
+          quantity: source.quantity != null ? String(source.quantity) : base.quantity,
+        };
+      }));
+    }
+
+    setAiWarnings(Array.isArray(result.warnings) ? result.warnings : []);
+    setAiApplied(true);
+    setError(null);
+  }
+
+  async function runAiAutofill() {
+    const source = aiText.trim();
+    if (source.length < 20) {
+      setError(t("Вставьте текст с данными автомобиля."));
+      return;
+    }
+    setAiLoading(true);
+    setAiApplied(false);
+    setAiWarnings([]);
+    setError(null);
+    try {
+      const response = await fetch("/api/car-ai", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ text: source }),
+      });
+      const data = (await response.json().catch(() => null)) as AiAutofillResponse | null;
+      if (response.status === 401) {
+        location.replace("/admin/login/");
+        return;
+      }
+      if (!response.ok || !data?.success || !data.car) {
+        throw new Error(data?.error || t("Не удалось выполнить AI-автозаполнение."));
+      }
+      applyAiResult(data.car);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : t("Не удалось выполнить AI-автозаполнение."));
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   function validate(): string | null {
@@ -863,6 +1038,73 @@ export default function NewCarPage() {
           <p className={styles.eyebrow}>{t("CONTROL SYSTEM · АВТОМОБИЛИ")}</p>
           <h1>{t("Новый автомобиль")}</h1>
           <p className={styles.introText}>{t("Быстрая форма: основные данные один раз, цвета и фотографии — отдельными вариантами.")}</p>
+        </section>
+
+        <section className={styles.aiCard} data-open={aiOpen}>
+          <button
+            className={styles.aiCardHeader}
+            type="button"
+            onClick={() => setAiOpen((current) => !current)}
+            aria-expanded={aiOpen}
+          >
+            <span className={styles.aiMark} aria-hidden="true">✦</span>
+            <span className={styles.aiCardTitle}>
+              <strong>{t("AI автозаполнение")}</strong>
+              <small>{t("Вставьте характеристики, дилерский лист, invoice или большой текст — Gemini разложит найденные данные по полям формы.")}</small>
+            </span>
+            <span className={styles.aiChevron} aria-hidden="true">⌄</span>
+          </button>
+
+          {aiOpen ? (
+            <div className={styles.aiBody}>
+              <label className={styles.aiTextField}>
+                <span>{t("Вставить текст автомобиля")}</span>
+                <textarea
+                  value={aiText}
+                  onChange={(event) => { setAiText(event.target.value.slice(0, 180000)); setAiApplied(false); }}
+                  placeholder="2026 Toyota Grand Highlander Hybrid MAX Platinum AWD…"
+                  spellCheck={false}
+                />
+                <small>{t("Можно вставить 10–15 страниц текста. AI не сохраняет автомобиль сам — поля останутся редактируемыми.")} · {aiText.length.toLocaleString(language === "uz" ? "uz-UZ" : "ru-RU")} / 180 000</small>
+              </label>
+
+              <div className={styles.aiActions}>
+                <button
+                  className={styles.aiPrimary}
+                  type="button"
+                  onClick={runAiAutofill}
+                  disabled={aiLoading || aiText.trim().length < 20}
+                >
+                  <span aria-hidden="true">✦</span>
+                  {aiLoading ? t("Анализируем…") : t("Проанализировать и заполнить")}
+                </button>
+                {aiText ? (
+                  <button
+                    className={styles.aiSecondary}
+                    type="button"
+                    onClick={() => { setAiText(""); setAiWarnings([]); setAiApplied(false); }}
+                    disabled={aiLoading}
+                  >
+                    {t("Очистить")}
+                  </button>
+                ) : null}
+              </div>
+
+              {aiApplied ? (
+                <div className={styles.aiSuccess} role="status">
+                  <strong>{t("AI заполнил форму")}</strong>
+                  <span>{t("Проверьте значения перед сохранением.")}</span>
+                </div>
+              ) : null}
+
+              {aiWarnings.length > 0 ? (
+                <div className={styles.aiWarnings}>
+                  <strong>{t("AI-предупреждения")}</strong>
+                  <ul>{aiWarnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         {error ? (
