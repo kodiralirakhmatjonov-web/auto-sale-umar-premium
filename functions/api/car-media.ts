@@ -183,6 +183,54 @@ export async function onRequestPost(context: {
   }
 }
 
+
+export async function onRequestDelete(context: {
+  request: Request;
+  env: MediaEnv;
+}): Promise<Response> {
+  const { request, env } = context;
+  if (!env.DB || !env.AUTH_PEPPER || !env.MEDIA) {
+    return json({ success: false, error: "D1 или R2 MEDIA не подключены." }, 500);
+  }
+
+  const currentUser = await getAuthenticatedUser(request, env);
+  if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    return json({ success: false, error: "Недостаточно прав для удаления фотографий." }, 403);
+  }
+
+  const url = new URL(request.url);
+  const idRaw = url.searchParams.get("id");
+  const id = idRaw ? Number(idRaw) : Number.NaN;
+  if (!Number.isSafeInteger(id) || id < 1) {
+    return json({ success: false, error: "Некорректный ID фотографии." }, 400);
+  }
+
+  const media = await env.DB.prepare(
+    `SELECT id, car_id, object_key, is_cover FROM car_variant_media WHERE id = ?1 LIMIT 1`,
+  ).bind(id).first<{ id: number; car_id: number; object_key: string; is_cover: number }>();
+  if (!media) return json({ success: false, error: "Фотография не найдена." }, 404);
+
+  try {
+    await env.DB.prepare(`DELETE FROM car_variant_media WHERE id = ?1`).bind(id).run();
+    await env.MEDIA.delete(media.object_key);
+
+    if (media.is_cover === 1) {
+      const nextCover = await env.DB.prepare(
+        `SELECT id FROM car_variant_media WHERE car_id = ?1 AND photo_group = 'exterior' ORDER BY sort_order ASC, id ASC LIMIT 1`,
+      ).bind(media.car_id).first<{ id: number }>();
+      if (nextCover?.id) {
+        await env.DB.prepare(`UPDATE car_variant_media SET is_cover = 1 WHERE id = ?1`).bind(nextCover.id).run();
+      }
+    }
+
+    return json({ success: true, deletedId: id });
+  } catch (error) {
+    console.error("Car media delete failed", error);
+    return json({ success: false, error: "Не удалось удалить фотографию." }, 500);
+  }
+}
+
 export function onRequest(): Response {
-  return json({ success: false, error: "Используйте GET или POST." }, 405, { allow: "GET, POST" });
+  return json({ success: false, error: "Используйте GET, POST или DELETE." }, 405, { allow: "GET, POST, DELETE" });
 }
