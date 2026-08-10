@@ -3,6 +3,8 @@
   --bg: #f5f5f3;
   --surface: #ffffff;
   --surface-2: #f7f7f8;
+  --surface-soft: #f1f1f2;
+  --input: #f7f7f8;
   --glass: rgba(255, 255, 255, 0.72);
   --text: #0a0a0b;
   --secondary: rgba(60, 60, 67, 0.72);
@@ -13,7 +15,9 @@
   --danger: #d92d20;
   --success: #2f9e64;
   --shadow: 0 18px 60px rgba(0, 0, 0, 0.09);
+  --shadow-card: 0 12px 36px rgba(0, 0, 0, 0.065);
   --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   position: relative;
   isolation: isolate;
@@ -31,6 +35,8 @@
   --bg: #0b0c0d;
   --surface: #161618;
   --surface-2: #1d1d20;
+  --surface-soft: #202024;
+  --input: #1d1d20;
   --glass: rgba(24, 24, 27, 0.72);
   --text: #f5f5f7;
   --secondary: rgba(235, 235, 245, 0.68);
@@ -38,6 +44,7 @@
   --line: rgba(235, 235, 245, 0.1);
   --line-strong: rgba(235, 235, 245, 0.18);
   --shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
+  --shadow-card: 0 18px 48px rgba(0, 0, 0, 0.28);
   background:
     radial-gradient(circle at 50% -8%, rgba(255, 255, 255, 0.05), transparent 28rem),
     var(--bg);
@@ -1553,6 +1560,21 @@
   cursor: pointer;
 }
 
+.photoPreview > button svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photoPreview > button:active {
+  transform: scale(.92);
+}
+
 .photoIndex {
   position: absolute;
   left: 7px;
@@ -1816,8 +1838,11 @@
   min-height: 48px;
   padding: 0 17px;
   border-radius: 15px;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 750;
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
 }
 
@@ -1840,8 +1865,16 @@
 
 .aiSecondary {
   border: 1px solid var(--line-strong);
-  color: var(--text);
-  background: var(--surface-soft);
+  color: var(--text) !important;
+  background: var(--surface-soft) !important;
+  box-shadow: none;
+}
+
+.aiSecondary:disabled {
+  color: var(--tertiary) !important;
+  background: var(--surface-soft) !important;
+  opacity: .62;
+  cursor: default;
 }
 
 .aiSuccess,

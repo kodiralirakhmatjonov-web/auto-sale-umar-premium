@@ -730,13 +730,19 @@ export default function NewCarPage() {
         headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify({ text: source }),
       });
-      const data = (await response.json().catch(() => null)) as AiAutofillResponse | null;
+      const contentType = response.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? ((await response.json().catch(() => null)) as AiAutofillResponse | null)
+        : null;
       if (response.status === 401) {
         location.replace("/admin/login/");
         return;
       }
       if (!response.ok || !data?.success || !data.car) {
-        throw new Error(data?.error || t("Не удалось выполнить AI-автозаполнение."));
+        const fallback = response.ok
+          ? t("Не удалось выполнить AI-автозаполнение.")
+          : `AI API недоступен (HTTP ${response.status}).`;
+        throw new Error(data?.error || fallback);
       }
       applyAiResult(data.car);
     } catch (requestError) {
@@ -1433,7 +1439,7 @@ function PhotoRail({
           <figure key={photo.id} className={styles.photoPreview}>
             <img src={photo.previewUrl} alt="" />
             {index === 0 ? <span className={styles.photoIndex}>{String(index + 1).padStart(2, "0")}</span> : null}
-            <button type="button" aria-label="Удалить фото" onClick={() => onRemove(photo.id)}>×</button>
+            <button type="button" aria-label="Удалить фото" onClick={() => onRemove(photo.id)}><TrashIcon /></button>
           </figure>
         ))}
       </div>
@@ -1485,4 +1491,8 @@ function CheckIcon() {
 
 function PlusIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
+}
+
+function TrashIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" /></svg>;
 }
