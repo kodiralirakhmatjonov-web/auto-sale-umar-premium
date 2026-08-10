@@ -4,11 +4,34 @@ type AiEnv = Env & { GEMINI_API_KEY?: string };
 
 interface GeminiInteractionResponse {
   output_text?: string;
-  error?: { message?: string };
+  status?: string;
+  steps?: Array<{
+    type?: string;
+    content?: Array<{ type?: string; text?: string }>;
+  }>;
+  error?: { message?: string; status?: string; code?: number };
 }
 
 const MAX_SOURCE_LENGTH = 180_000;
 const MODEL = "gemini-3.6-flash";
+
+function extractInteractionText(payload: GeminiInteractionResponse | null): string | null {
+  if (!payload) return null;
+  if (typeof payload.output_text === "string" && payload.output_text.trim()) {
+    return payload.output_text.trim();
+  }
+
+  const chunks: string[] = [];
+  for (const step of payload.steps ?? []) {
+    if (step?.type !== "model_output") continue;
+    for (const content of step.content ?? []) {
+      if (content?.type === "text" && typeof content.text === "string" && content.text.trim()) {
+        chunks.push(content.text);
+      }
+    }
+  }
+  return chunks.length ? chunks.join("\n").trim() : null;
+}
 
 const nullableString = (description: string) => ({
   type: ["string", "null"],
@@ -279,6 +302,7 @@ export async function onRequestPost(context: {
 8. isPublic/isFeatured не определяй — этих полей в ответе нет; публикацию всегда решает администратор.
 9. Если в тексте есть несколько цветов одной и той же комплектации, верни их в variants. VIN никогда не генерируй.
 10. Русское и узбекское описание можно составить только на основе достоверно найденных фактов, без маркетинговых выдумок.
+11. Если название/тип цвета явно конфликтует с указанным приблизительным UI hex, приоритет имеет смысл названия цвета. Верни визуально правдоподобный CSS hex и добавь warning о конфликте.
 
 ИСХОДНЫЙ ТЕКСТ:
 ---
@@ -294,7 +318,12 @@ ${source}
       },
       body: JSON.stringify({
         model: MODEL,
+        store: false,
         input: prompt,
+        generation_config: {
+          thinking_level: "low",
+          temperature: 0.1,
+        },
         response_format: {
           type: "text",
           mime_type: "application/json",
@@ -308,21 +337,31 @@ ${source}
       console.error("Gemini autofill failed", response.status, gemini);
       return json({
         success: false,
-        error: gemini?.error?.message || "Gemini не смог обработать текст. Повторите попытку.",
+        error: gemini?.error?.message || `Gemini API вернул ошибку ${response.status}.`,
+        code: `GEMINI_HTTP_${response.status}`,
       }, 502);
     }
 
-    if (!gemini?.output_text) {
-      console.error("Gemini returned no output_text", gemini);
-      return json({ success: false, error: "Gemini вернул пустой результат." }, 502);
+    const outputText = extractInteractionText(gemini);
+    if (!outputText) {
+      console.error("Gemini returned no model text", gemini);
+      return json({
+        success: false,
+        error: "Gemini завершил запрос без текстового результата. Повторите попытку.",
+        code: "GEMINI_EMPTY_OUTPUT",
+      }, 502);
     }
 
     let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(gemini.output_text) as Record<string, unknown>;
+      parsed = JSON.parse(outputText) as Record<string, unknown>;
     } catch (error) {
-      console.error("Gemini output JSON parse failed", error, gemini.output_text.slice(0, 1000));
-      return json({ success: false, error: "Gemini вернул некорректный структурированный ответ." }, 502);
+      console.error("Gemini output JSON parse failed", error, outputText.slice(0, 1000));
+      return json({
+        success: false,
+        error: "Gemini вернул ответ, который не удалось разобрать как данные автомобиля.",
+        code: "GEMINI_INVALID_JSON",
+      }, 502);
     }
 
     const car = sanitizeAiResult(parsed);
