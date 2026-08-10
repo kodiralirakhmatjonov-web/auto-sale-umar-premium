@@ -2060,3 +2060,30 @@
     backdrop-filter: none;
   }
 }
+
+/* Catalog cards are editor entry points. */
+.carCard {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 220ms var(--ease),
+    border-color 220ms var(--ease),
+    box-shadow 220ms var(--ease),
+    background-color 220ms var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .carCard:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 24%, var(--line-strong));
+    box-shadow:
+      0 24px 58px rgba(20, 23, 28, .10),
+      inset 0 1px 0 rgba(255, 255, 255, .72);
+  }
+}
+
+.carCard:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
+  outline-offset: 3px;
+}

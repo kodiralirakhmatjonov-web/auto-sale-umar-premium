@@ -699,11 +699,13 @@ export default function CarsPage() {
           {cars.length > 0 ? (
             <div className={styles.carsGrid}>
               {cars.map((car) => (
-                <article
+                <a
                   className={`${styles.carCard} ${
                     car.id === createdCarId ? styles.carCardCreated : ""
                   }`}
                   key={car.id}
+                  href={`/admin/cars/edit/?id=${car.id}`}
+                  aria-label={`${language === "uz" ? "Tahrirlash" : "Редактировать"}: ${car.brand} ${car.model}`}
                 >
                   <div className={styles.carMedia}>
                     {car.coverUrl ? (
@@ -757,7 +759,7 @@ export default function CarsPage() {
                       </div>
                     </div>
                   </div>
-                </article>
+                </a>
               ))}
             </div>
           ) : null}
