@@ -1490,7 +1490,7 @@ function ExistingPhotoRail({ label, photos, onRemove }: { label: string; photos:
           <div className={styles.photoPreview} key={photo.id}>
             <img src={photo.publicUrl} alt="" loading="lazy" />
             <span className={styles.photoIndex}>{photo.isCover ? "★" : index + 1}</span>
-            <button type="button" onClick={() => onRemove(photo.id)} aria-label="Удалить фотографию"><CloseIcon /></button>
+            <button type="button" onClick={() => onRemove(photo.id)} aria-label="Удалить фотографию"><TrashIcon /></button>
           </div>
         ))}
       </div>
@@ -1524,7 +1524,7 @@ function PhotoRail({
           <figure key={photo.id} className={styles.photoPreview}>
             <img src={photo.previewUrl} alt="" />
             {index === 0 ? <span className={styles.photoIndex}>{String(index + 1).padStart(2, "0")}</span> : null}
-            <button type="button" aria-label="Удалить фото" onClick={() => onRemove(photo.id)}>×</button>
+            <button type="button" aria-label="Удалить фото" onClick={() => onRemove(photo.id)}><TrashIcon /></button>
           </figure>
         ))}
       </div>
@@ -1574,8 +1574,8 @@ function CheckIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5.5 12.4 4.2 4.2 8.8-9.1" /></svg>;
 }
 
-function CloseIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>;
+function TrashIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" /></svg>;
 }
 
 function PlusIcon() {
