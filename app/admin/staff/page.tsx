@@ -115,7 +115,6 @@ const UZ_COPY: Record<string, string> = {
   "Разделы Control System": "Control System bo‘limlari",
   "Команда": "Jamoa",
   "Автомобили": "Avtomobillar",
-  "Главная": "Bosh sahifa",
   "Управление менеджерами и их доступом к экосистеме Auto Sale Umar":
     "Menejerlar va ularning Auto Sale Umar tizimiga kirishini boshqarish",
   "Управление всей командой Auto Sale Umar, ролями и доступом к системе":
@@ -731,6 +730,7 @@ export default function StaffPage() {
           </div>
 
           <a className={styles.settingsPublicLink} href="/">{t("Вернуться на сайт")}</a>
+
           <footer className={styles.settingsFooter}>
             {t("Настройки сохраняются автоматически")}
           </footer>
@@ -747,15 +747,10 @@ export default function StaffPage() {
       />
 
       <nav className={styles.sectionNav} aria-label={t("Разделы Control System")}>
-        <a
-          className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`}
-          href="/admin/staff/"
-          aria-current="page"
-        >
-          {t("Команда")}
-        </a>
+        <a className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`} href="/admin/staff/" aria-current="page">{t("Команда")}</a>
         <a className={styles.sectionNavItem} href="/admin/cars/">{t("Автомобили")}</a>
         <a className={styles.sectionNavItem} href="/admin/home/">{t("Главная")}</a>
+        <a className={styles.sectionNavItem} href="/admin/visits/">{t("Визиты")}</a>
       </nav>
 
       <section className={styles.content}>
