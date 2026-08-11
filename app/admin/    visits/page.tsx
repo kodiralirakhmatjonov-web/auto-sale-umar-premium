@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./visits.module.css";
+import AdminChrome from "../_components/AdminChrome";
 
 type Language = "ru" | "uz";
 type Theme = "light" | "dark";
@@ -148,23 +149,14 @@ export default function AdminVisitsPage() {
 
   return (
     <main className={styles.page} data-theme={theme}>
-      <header className={styles.toolbar}>
-        <a className={styles.roundControl} href="/" aria-label={c.publicSite}><ArrowLeft /></a>
-        <a className={styles.wordmark} href="/admin/visits/"><img src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"} alt="Auto Sale Umar" /></a>
-        <button className={styles.roundControl} type="button" onClick={() => setMenuOpen((value) => !value)} aria-expanded={menuOpen} aria-label="Menu">{menuOpen ? <X /> : <Menu />}</button>
-        <div className={styles.quickMenu} data-open={menuOpen}>
-          <a href="/"><ExternalLink />{c.publicSite}</a>
-          <div><button type="button" data-active={language === "ru"} onClick={() => applyLanguage("ru")}>RU</button><button type="button" data-active={language === "uz"} onClick={() => applyLanguage("uz")}>UZ</button></div>
-          <div><button type="button" data-active={theme === "light"} onClick={() => applyTheme("light")}>Light</button><button type="button" data-active={theme === "dark"} onClick={() => applyTheme("dark")}>Dark</button></div>
-        </div>
-      </header>
-
-      <nav className={styles.sectionNav} data-manager={manager}>
-        {!manager ? <a href="/admin/staff/">{c.team}</a> : null}
-        <a href="/admin/cars/">{c.cars}</a>
-        {!manager ? <a href="/admin/home/">{c.home}</a> : null}
-        <a className={styles.active} href="/admin/visits/" aria-current="page">{c.visits}</a>
-      </nav>
+      <AdminChrome
+        current="visits"
+        language={language}
+        theme={theme}
+        role={viewerRole}
+        onLanguageChange={applyLanguage}
+        onThemeChange={applyTheme}
+      />
 
       <div className={styles.shell}>
         <section className={styles.hero}>
