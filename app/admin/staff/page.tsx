@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 import styles from "./staff.module.css";
+import AdminChrome from "../_components/AdminChrome";
 
 type StaffRole = "super_admin" | "admin" | "sales_manager";
 type StaffStatus = "active" | "blocked" | string;
@@ -625,133 +626,14 @@ export default function StaffPage() {
   return (
     <main className={styles.page} data-theme={theme}>
       <div className={styles.ambient} aria-hidden="true" />
-      <header className={styles.topbar}>
-        <div className={styles.topbarInner}>
-          <a className={styles.backButton} href="/" aria-label={t("Вернуться на сайт")}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </a>
-
-          <a className={styles.brand} href="/admin/staff/" aria-label="Auto Sale Umar Control System">
-            <span className={styles.logoStack} aria-hidden="true">
-              <img
-                className={`${styles.logoImage} ${styles.logoLight}`}
-                src="/brand/asu-wordmark-black.png"
-                alt=""
-              />
-              <img
-                className={`${styles.logoImage} ${styles.logoDark}`}
-                src="/brand/asu-wordmark-white.png"
-                alt=""
-              />
-            </span>
-            <span className={styles.brandSystem}>CONTROL SYSTEM</span>
-          </a>
-
-          <button
-            className={styles.themeButton}
-            type="button"
-            data-active={settingsOpen}
-            onClick={() => setSettingsOpen((current) => !current)}
-            aria-label={settingsOpen ? t("Закрыть настройки") : t("Открыть настройки")}
-            aria-expanded={settingsOpen}
-            aria-controls="staff-interface-options"
-          >
-            <MenuIcon open={settingsOpen} />
-          </button>
-        </div>
-
-        <section
-          className={styles.settingsMenu}
-          id="staff-interface-options"
-          data-open={settingsOpen}
-          aria-hidden={!settingsOpen}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="staff-options-title"
-        >
-          <header className={styles.settingsHeader}>
-            <p>CONTROL SYSTEM</p>
-            <h2 id="staff-options-title">{t("Настройки")}</h2>
-            <span>{t("Выберите оформление и язык")}</span>
-          </header>
-
-          <div className={styles.settingsContent}>
-            <div className={styles.settingsBlock}>
-              <span className={styles.settingsLabel}>{t("Оформление")}</span>
-              <div className={styles.settingsSegments}>
-                <button
-                  type="button"
-                  data-selected={theme === "light"}
-                  onClick={() => changeTheme("light")}
-                  aria-pressed={theme === "light"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  <SunIcon />
-                  <span>{t("Светлая")}</span>
-                </button>
-                <button
-                  type="button"
-                  data-selected={theme === "dark"}
-                  onClick={() => changeTheme("dark")}
-                  aria-pressed={theme === "dark"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  <MoonIcon />
-                  <span>{t("Тёмная")}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.settingsBlock}>
-              <span className={styles.settingsLabel}>{t("Язык")}</span>
-              <div className={styles.settingsSegments}>
-                <button
-                  type="button"
-                  data-selected={language === "ru"}
-                  onClick={() => applyLanguage("ru")}
-                  aria-pressed={language === "ru"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  Русский
-                </button>
-                <button
-                  type="button"
-                  data-selected={language === "uz"}
-                  onClick={() => applyLanguage("uz")}
-                  aria-pressed={language === "uz"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  O‘zbekcha
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <a className={styles.settingsPublicLink} href="/">{t("Вернуться на сайт")}</a>
-
-          <footer className={styles.settingsFooter}>
-            {t("Настройки сохраняются автоматически")}
-          </footer>
-        </section>
-      </header>
-
-      <button
-        className={styles.settingsBackdrop}
-        data-open={settingsOpen}
-        type="button"
-        onClick={() => setSettingsOpen(false)}
-        tabIndex={-1}
-        aria-hidden="true"
+      <AdminChrome
+        current="staff"
+        language={language}
+        theme={theme}
+        role={viewerRole}
+        onLanguageChange={applyLanguage}
+        onThemeChange={changeTheme}
       />
-
-      <nav className={styles.sectionNav} aria-label={t("Разделы Control System")}>
-        <a className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`} href="/admin/staff/" aria-current="page">{t("Команда")}</a>
-        <a className={styles.sectionNavItem} href="/admin/cars/">{t("Автомобили")}</a>
-        <a className={styles.sectionNavItem} href="/admin/home/">{t("Главная")}</a>
-        <a className={styles.sectionNavItem} href="/admin/visits/">{t("Визиты")}</a>
-      </nav>
 
       <section className={styles.content}>
         <div className={styles.heroRow}>
