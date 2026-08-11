@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./cars.module.css";
+import AdminChrome from "../_components/AdminChrome";
 
 type Theme = "light" | "dark";
 type Language = "ru" | "uz";
@@ -557,132 +558,14 @@ export default function CarsPage() {
         <span className={styles.ambientTwo} />
       </div>
 
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <a className={styles.roundButton} href="/" aria-label={t("Вернуться на сайт")}>
-            <ArrowLeftIcon />
-          </a>
-
-          <a className={styles.wordmarkWrap} href="/admin/cars/" aria-label="Auto Sale Umar">
-            <img
-              className={styles.wordmark}
-              src="/brand/asu-wordmark-black.png"
-              alt="Auto Sale Umar"
-            />
-          </a>
-
-          <button
-            className={styles.roundButton}
-            type="button"
-            data-active={settingsOpen}
-            onClick={() => setSettingsOpen((current) => !current)}
-            aria-label={settingsOpen ? t("Закрыть настройки") : t("Открыть настройки")}
-            aria-expanded={settingsOpen}
-            aria-controls="cars-interface-options"
-          >
-            <MenuIcon open={settingsOpen} />
-          </button>
-        </div>
-
-        <section
-          className={styles.settingsMenu}
-          id="cars-interface-options"
-          data-open={settingsOpen}
-          aria-hidden={!settingsOpen}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cars-options-title"
-        >
-          <header className={styles.settingsHeader}>
-            <p>CONTROL SYSTEM</p>
-            <h2 id="cars-options-title">{t("Настройки")}</h2>
-            <span>{t("Выберите оформление и язык")}</span>
-          </header>
-
-          <div className={styles.settingsContent}>
-            <div className={styles.settingsBlock}>
-              <span className={styles.settingsLabel}>{t("Оформление")}</span>
-              <div className={styles.settingsSegments}>
-                <button
-                  type="button"
-                  data-selected={theme === "light"}
-                  onClick={() => changeTheme("light")}
-                  aria-pressed={theme === "light"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  <SunIcon />
-                  <span>{t("Светлая")}</span>
-                </button>
-                <button
-                  type="button"
-                  data-selected={theme === "dark"}
-                  onClick={() => changeTheme("dark")}
-                  aria-pressed={theme === "dark"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  <MoonIcon />
-                  <span>{t("Тёмная")}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.settingsBlock}>
-              <span className={styles.settingsLabel}>{t("Язык")}</span>
-              <div className={styles.settingsSegments}>
-                <button
-                  type="button"
-                  data-selected={language === "ru"}
-                  onClick={() => applyLanguage("ru")}
-                  aria-pressed={language === "ru"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  Русский
-                </button>
-                <button
-                  type="button"
-                  data-selected={language === "uz"}
-                  onClick={() => applyLanguage("uz")}
-                  aria-pressed={language === "uz"}
-                  tabIndex={settingsOpen ? 0 : -1}
-                >
-                  O‘zbekcha
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <a className={styles.settingsPublicLink} href="/">{t("Вернуться на сайт")}</a>
-          <footer className={styles.settingsFooter}>
-            {t("Настройки сохраняются автоматически")}
-          </footer>
-        </section>
-      </header>
-
-      <button
-        className={styles.settingsBackdrop}
-        data-open={settingsOpen}
-        type="button"
-        onClick={() => setSettingsOpen(false)}
-        tabIndex={-1}
-        aria-hidden="true"
+      <AdminChrome
+        current="cars"
+        language={language}
+        theme={theme}
+        role={viewerRole}
+        onLanguageChange={applyLanguage}
+        onThemeChange={changeTheme}
       />
-
-      <nav className={styles.sectionNav} data-manager={viewerRole === "sales_manager"} aria-label={t("Разделы Control System")}>
-        {viewerRole !== "sales_manager" ? (
-          <a className={styles.sectionNavItem} href="/admin/staff/">{t("Команда")}</a>
-        ) : null}
-        <a
-          className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`}
-          href="/admin/cars/"
-          aria-current="page"
-        >
-          {t("Автомобили")}
-        </a>
-        {viewerRole !== "sales_manager" ? (
-          <a className={styles.sectionNavItem} href="/admin/home/">{t("Главная")}</a>
-        ) : null}
-        <a className={styles.sectionNavItem} href="/admin/visits/">{t("Визиты")}</a>
-      </nav>
 
       <div className={styles.shell}>
         <section className={styles.hero}>
