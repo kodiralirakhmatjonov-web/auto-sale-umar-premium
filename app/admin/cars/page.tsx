@@ -167,6 +167,7 @@ const UZ_COPY: Record<string, string> = {
   "Команда": "Jamoa",
   "Автомобили": "Avtomobillar",
   "Главная": "Bosh sahifa",
+  "Визиты": "Tashriflar",
   "Единая база автомобилей Auto Sale Umar — в наличии, в пути, зарезервированные и проданные.":
     "Auto Sale Umar avtomobillarining yagona bazasi — mavjud, yo‘ldagi, band qilingan va sotilgan avtomobillar.",
   "Добавить автомобиль": "Avtomobil qo‘shish",
@@ -680,6 +681,7 @@ export default function CarsPage() {
         {viewerRole !== "sales_manager" ? (
           <a className={styles.sectionNavItem} href="/admin/home/">{t("Главная")}</a>
         ) : null}
+        <a className={styles.sectionNavItem} href="/admin/visits/">{t("Визиты")}</a>
       </nav>
 
       <div className={styles.shell}>
