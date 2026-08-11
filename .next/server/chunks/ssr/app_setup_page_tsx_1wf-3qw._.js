@@ -1,0 +1,3 @@
+module.exports=[85628,a=>{"use strict";var b=a.i(87924),c=a.i(72131);a.s(["default",0,function(){return(0,c.useEffect)(()=>{window.location.replace("/admin/login/")},[]),(0,b.jsx)("main",{style:{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#f5f5f3",color:"#111113",fontFamily:'-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif'},children:(0,b.jsx)("span",{style:{opacity:.55,fontSize:13},children:"Открываем вход для сотрудников…"})})}])}];
+
+//# sourceMappingURL=app_setup_page_tsx_1wf-3qw._.js.map
