@@ -730,6 +730,7 @@ export default function StaffPage() {
             </div>
           </div>
 
+          <a className={styles.settingsPublicLink} href="/">{t("Вернуться на сайт")}</a>
           <footer className={styles.settingsFooter}>
             {t("Настройки сохраняются автоматически")}
           </footer>
