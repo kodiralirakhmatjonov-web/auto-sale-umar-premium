@@ -2,9 +2,9 @@
 
 import {
   ArrowUpRight,
+  CalendarDays,
   CarFront,
   ChevronRight,
-  Globe2,
   Instagram,
   MapPin,
   Menu,
@@ -188,6 +188,8 @@ const COPY = {
     showroomKicker: "О ШОУРУМЕ",
     showroomTitle: "Пространство для спокойного выбора.",
     showroomText: "Автомобиль остаётся в центре внимания, а атмосфера даёт время рассмотреть детали и принять решение без спешки.",
+    bookVisit: "Забронировать визит",
+    bookVisitText: "Выберите дату, время и автомобиль — команда шоурума увидит бронирование в Control System и подготовит визит.",
     locationKicker: "МЕСТОПОЛОЖЕНИЕ",
     locationTitle: "Ваш новый автомобиль ближе, чем кажется.",
     locationText: "Откройте маршрут в Яндекс Картах и приезжайте на персональный просмотр.",
@@ -195,8 +197,14 @@ const COPY = {
     location: "Ташкент · Auto Sale Umar",
     exportKicker: "МЕЖДУНАРОДНАЯ ПОСТАВКА",
     exportTitle: "Ищем автомобиль там, где он есть.",
-    exportText: "Новые автомобили и индивидуальные поставки из ключевых автомобильных рынков мира.",
-    exportNote: "Маршрут зависит от конкретного автомобиля, комплектации и рынка поставки.",
+    exportText: "Привозим новые автомобили под заказ из США, Канады, Кореи, ОАЭ, Европы, Великобритании и Австралии. Подбираем конкретную комплектацию и сопровождаем автомобиль на всём пути до прибытия.",
+    exportStep1: "Подбор под задачу",
+    exportStep1d: "Ищем нужную модель, комплектацию и цвет на подходящем рынке.",
+    exportStep2: "Понятный путь",
+    exportStep2d: "Фиксируем источник поставки и поддерживаем актуальный статус автомобиля.",
+    exportStep3: "До передачи ключей",
+    exportStep3d: "Сопровождаем логистику и держим клиента в курсе до прибытия автомобиля.",
+    exportNote: "Страна и маршрут поставки зависят от выбранного автомобиля, комплектации и условий конкретного рынка.",
     contactsKicker: "КОНТАКТЫ",
     contactsTitle: "Продолжим там, где удобно вам.",
     contactsText: "Instagram остаётся главным каналом обзоров. Для консультации можно написать или позвонить напрямую.",
@@ -253,6 +261,8 @@ const COPY = {
     showroomKicker: "SHOURUM HAQIDA",
     showroomTitle: "Xotirjam tanlov uchun makon.",
     showroomText: "Avtomobil markazda qoladi, muhit esa detallarni ko‘rish va shoshilmasdan qaror qilish uchun vaqt beradi.",
+    bookVisit: "Tashrifni band qilish",
+    bookVisitText: "Sana, vaqt va avtomobilni tanlang — shourum jamoasi band qilishni Control System’da ko‘radi va tashrifni tayyorlaydi.",
     locationKicker: "MANZIL",
     locationTitle: "Yangi avtomobilingiz o‘ylagandan ham yaqin.",
     locationText: "Yandex Xaritalarda yo‘nalishni oching va shaxsiy ko‘rikka tashrif buyuring.",
@@ -260,8 +270,14 @@ const COPY = {
     location: "Toshkent · Auto Sale Umar",
     exportKicker: "XALQARO YETKAZIB BERISH",
     exportTitle: "Avtomobil qayerda bo‘lsa, o‘sha yerdan izlaymiz.",
-    exportText: "Dunyoning asosiy avtomobil bozorlaridan yangi avtomobillar va individual yetkazib berish.",
-    exportNote: "Yo‘nalish aniq avtomobil, komplektatsiya va bozorga qarab belgilanadi.",
+    exportText: "AQSH, Kanada, Koreya, BAA, Yevropa, Buyuk Britaniya va Avstraliyadan yangi avtomobillarni buyurtma asosida olib kelamiz. Kerakli komplektatsiyani tanlaymiz va avtomobil yo‘lini kelguniga qadar kuzatamiz.",
+    exportStep1: "Vazifa bo‘yicha tanlov",
+    exportStep1d: "Kerakli model, komplektatsiya va rangni mos bozordan izlaymiz.",
+    exportStep2: "Tushunarli yo‘l",
+    exportStep2d: "Yetkazib berish manbasini belgilaymiz va avtomobil statusini yangilab boramiz.",
+    exportStep3: "Kalit topshirilgunga qadar",
+    exportStep3d: "Logistikani kuzatamiz va avtomobil yetib kelguniga qadar mijozni xabardor qilamiz.",
+    exportNote: "Mamlakat va yetkazib berish yo‘li tanlangan avtomobil, komplektatsiya va bozor shartlariga bog‘liq.",
     contactsKicker: "KONTAKTLAR",
     contactsTitle: "Sizga qulay joyda davom etamiz.",
     contactsText: "Instagram asosiy avtomobil sharhlari kanali bo‘lib qoladi. Maslahat uchun yozish yoki qo‘ng‘iroq qilish mumkin.",
@@ -460,6 +476,7 @@ export default function HomeClient() {
       ) : null}
 
       <header className={styles.header}>
+        <span className={styles.headerSpacer} aria-hidden="true" />
         <a className={styles.headerBrand} href="#top" aria-label="Auto Sale Umar">
           <img src={wordmark} alt="Auto Sale Umar" />
         </a>
@@ -473,6 +490,7 @@ export default function HomeClient() {
         <nav className={styles.menuNav}>
           <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
           <a href="#showroom" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.showroomMenu}</span><ChevronRight /></a>
+          <a href="/booking/" onClick={() => setMenuOpen(false)}><CalendarDays /><span>{c.bookVisit}</span><ChevronRight /></a>
           <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
           <a href="/admin/login/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
         </nav>
@@ -570,6 +588,10 @@ export default function HomeClient() {
             </article>
           ))}
         </div>
+        <div className={styles.showroomActions}>
+          <div><strong>{c.bookVisit}</strong><span>{c.bookVisitText}</span></div>
+          <a className={styles.bookingPill} href="/booking/"><CalendarDays />{c.bookVisit}<ChevronRight /></a>
+        </div>
       </section>
 
       <section className={styles.section} id="location">
@@ -595,11 +617,13 @@ export default function HomeClient() {
             <h2>{c.exportTitle}</h2>
             <p>{c.exportText}</p>
           </div>
-          <div className={styles.globeStage} aria-hidden="true">
-            <Globe2 />
-            <span className={styles.orbitOne} />
-            <span className={styles.orbitTwo} />
-            <i className={styles.globeGlow} />
+          <div className={styles.worldMapStage}>
+            <img src="/homepage/world-map.webp" alt="" aria-hidden="true" />
+            <div className={styles.exportWorkflow}>
+              <div><span>01</span><strong>{c.exportStep1}</strong><p>{c.exportStep1d}</p></div>
+              <div><span>02</span><strong>{c.exportStep2}</strong><p>{c.exportStep2d}</p></div>
+              <div><span>03</span><strong>{c.exportStep3}</strong><p>{c.exportStep3d}</p></div>
+            </div>
           </div>
           <div className={styles.marketRail}>
             {MARKETS.map((market) => <div className={styles.marketPill} key={market.ru}><span>{market.flag}</span><b>{market[language]}</b></div>)}
