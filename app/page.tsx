@@ -1,7 +1,41 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { Metadata } from "next";
+import { SEO } from "./seo-config";
 
 export const dynamic = "force-static";
+
+export const metadata: Metadata = {
+  title: { absolute: "Auto Sale Umar — премиальные автомобили в Ташкенте" },
+  description:
+    "Премиальные автомобили в наличии и под заказ. Подбор и поставка автомобилей из США, Канады, Кореи, ОАЭ, Европы и других рынков в Узбекистан и страны СНГ.",
+  alternates: { canonical: `${SEO.siteUrl}/` },
+  openGraph: {
+    title: "Auto Sale Umar — автомобиль, выбранный точно",
+    description:
+      "Премиальный автомобильный шоурум. Автомобили в наличии и под заказ, международный подбор и поставка.",
+    url: `${SEO.siteUrl}/`,
+  },
+};
+
+const autoDealerJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AutoDealer",
+  name: "Auto Sale Umar",
+  url: `${SEO.siteUrl}/`,
+  logo: `${SEO.siteUrl}/brand/asu-wordmark-black.png`,
+  telephone: "+998771155553",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Tashkent",
+    addressCountry: "UZ",
+  },
+  sameAs: [
+    "https://www.instagram.com/auto_sale_umar/",
+    "https://www.threads.net/@auto_sale_umar",
+    "https://t.me/auto_sale_umar777",
+  ],
+};
 
 function loadShowroomHtml(): string {
   const indexPath = path.join(process.cwd(), "index.html");
@@ -69,8 +103,13 @@ export default function HomePage() {
   const showroomHtml = loadShowroomHtml();
 
   return (
-    <main
-      style={{
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(autoDealerJsonLd) }}
+      />
+      <main
+        style={{
         position: "fixed",
         inset: 0,
         width: "100%",
@@ -90,7 +129,8 @@ export default function HomePage() {
           border: 0,
           background: "#070707",
         }}
-      />
-    </main>
+        />
+      </main>
+    </>
   );
 }

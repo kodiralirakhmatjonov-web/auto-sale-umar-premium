@@ -1,9 +1,48 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SEO } from "./seo-config";
 
 export const metadata: Metadata = {
-  title: "Auto Sale Umar",
-  description: "Auto Sale Umar — selected with precision.",
+  metadataBase: new URL(SEO.siteUrl),
+  title: {
+    default: "Auto Sale Umar — премиальные автомобили и международная поставка",
+    template: "%s | Auto Sale Umar",
+  },
+  description:
+    "Auto Sale Umar — премиальный автомобильный шоурум в Ташкенте. Автомобили в наличии и под заказ, подбор и международная поставка из США, Канады, Кореи, ОАЭ, Европы и других рынков.",
+  applicationName: SEO.siteName,
+  category: "automotive",
+  creator: SEO.siteName,
+  publisher: SEO.siteName,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
+      { url: "/favicon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: SEO.siteName,
+    title: "Auto Sale Umar — автомобиль, выбранный точно",
+    description:
+      "Премиальные автомобили в наличии и под заказ. Международный подбор и поставка автомобилей в Узбекистан и страны СНГ.",
+    url: SEO.siteUrl,
+  },
 };
 
 export const viewport: Viewport = {
