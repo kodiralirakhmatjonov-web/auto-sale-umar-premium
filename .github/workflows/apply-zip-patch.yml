@@ -18,7 +18,7 @@ jobs:
   apply-patch:
     name: Verify and apply ZIP patch
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout uploaded patch commit
@@ -42,7 +42,7 @@ jobs:
           fi
 
           if [ "${#ALL_CHANGED[@]}" -ne 1 ]; then
-            echo "Patch commit must contain only the ZIP file. Do not mix manual file edits with a patch upload."
+            echo "Patch commit must contain only the ZIP file."
             printf 'Changed files:\n%s\n' "${ALL_CHANGED[*]}"
             exit 1
           fi
@@ -66,7 +66,6 @@ jobs:
           import re
           import shutil
           import stat
-          import sys
           import zipfile
           from pathlib import Path, PurePosixPath
 
@@ -77,6 +76,8 @@ jobs:
           MAX_TOTAL = 200 * 1024 * 1024
           MAX_FILE = 95 * 1024 * 1024
           SOURCE_EXTS = {'.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css'}
+
+          # Patch ZIPs may never modify the installer itself or build outputs.
           PROTECTED_PREFIXES = (
               '.git/',
               '.github/workflows/',
@@ -87,6 +88,7 @@ jobs:
           )
           PROTECTED_FILES = {
               '.env', '.env.local', '.env.production', '.env.development',
+              'tsconfig.tsbuildinfo',
           }
 
           def clean_path(raw: str) -> str:
@@ -94,6 +96,7 @@ jobs:
                   raise ValueError(f'Backslashes are not allowed in ZIP paths: {raw!r}')
               if raw.startswith('/'):
                   raise ValueError(f'Absolute path is not allowed: {raw!r}')
+
               p = PurePosixPath(raw)
               parts = p.parts
               if not parts:
@@ -104,14 +107,17 @@ jobs:
                   raise ValueError(f'Leading/trailing whitespace in path component: {raw!r}')
               if any(any(ord(ch) < 32 for ch in part) for part in parts):
                   raise ValueError(f'Control character in path: {raw!r}')
+
               normalized = p.as_posix()
               low = normalized.lower()
+
               if low in PROTECTED_FILES:
                   raise ValueError(f'Protected file cannot be changed by ZIP patch: {normalized}')
               if any(low.startswith(prefix.lower()) for prefix in PROTECTED_PREFIXES):
                   raise ValueError(f'Protected path cannot be changed by ZIP patch: {normalized}')
               if re.fullmatch(r'patch-[A-Za-z0-9._-]+\.zip', normalized):
                   raise ValueError(f'Nested patch ZIP is not allowed: {normalized}')
+
               return normalized
 
           if not zip_path.is_file():
@@ -150,19 +156,25 @@ jobs:
                       except Exception as exc:
                           raise SystemExit(f'Invalid _patch.json: {exc}')
                       continue
+
                   files.append((info, name))
 
               deletes = []
               message = None
+
               if manifest is not None:
                   if not isinstance(manifest, dict):
                       raise SystemExit('_patch.json must contain a JSON object')
+
                   raw_deletes = manifest.get('delete', [])
                   if not isinstance(raw_deletes, list) or not all(isinstance(x, str) for x in raw_deletes):
                       raise SystemExit('_patch.json "delete" must be an array of repository paths')
+
                   deletes = [clean_path(x) for x in raw_deletes]
+
                   if len({x.lower() for x in deletes}) != len(deletes):
                       raise SystemExit('Duplicate delete paths in _patch.json')
+
                   raw_message = manifest.get('message')
                   if raw_message is not None:
                       if not isinstance(raw_message, str) or not raw_message.strip():
@@ -173,20 +185,25 @@ jobs:
                   raise SystemExit('Patch does not contain files or delete instructions')
 
               written = []
+
               for info, name in files:
                   target = (repo / name).resolve()
                   if repo not in target.parents:
                       raise SystemExit(f'Path escaped repository root: {name}')
+
                   target.parent.mkdir(parents=True, exist_ok=True)
                   with zf.open(info) as src, open(target, 'wb') as dst:
                       shutil.copyfileobj(src, dst)
+
                   written.append(name)
 
               deleted = []
+
               for name in deletes:
                   target = (repo / name).resolve()
                   if repo not in target.parents:
                       raise SystemExit(f'Delete path escaped repository root: {name}')
+
                   if target.is_dir():
                       shutil.rmtree(target)
                       deleted.append(name + '/')
@@ -194,20 +211,33 @@ jobs:
                       target.unlink()
                       deleted.append(name)
 
-          # The uploaded ZIP is an inbox item, never part of the resulting repository head.
+          # Inbox ZIP is never part of the verified repository state.
           inbox = repo / patch_name
           if inbox.exists():
               inbox.unlink()
 
-          # Guard against the exact failures that previously broke deployment.
+          # Guards for deployment-breaking source mistakes.
           for name in written:
               path = repo / name
+
               if path.suffix.lower() in SOURCE_EXTS and path.is_file() and path.stat().st_size == 0:
                   raise SystemExit(f'Rejected zero-byte source file: {name}')
+
               if name.endswith('/page.tsx') or name == 'page.tsx':
                   text = path.read_text('utf-8', errors='replace')
                   if not re.search(r'export\s+(?:default\b|\{[^}]*\bdefault\b[^}]*\}\s+from\b)', text):
                       raise SystemExit(f'Rejected page.tsx without a default export: {name}')
+
+          # Save the exact patch-controlled paths. The commit step will stage ONLY these.
+          Path('/tmp/patch-written.txt').write_text(
+              ''.join(f'{x}\n' for x in written), encoding='utf-8'
+          )
+          Path('/tmp/patch-deleted.txt').write_text(
+              ''.join(f'{x.rstrip("/")}\n' for x in deleted), encoding='utf-8'
+          )
+
+          if message:
+              Path('/tmp/patch-commit-message.txt').write_text(message, encoding='utf-8')
 
           summary = Path(os.environ.get('GITHUB_STEP_SUMMARY', '/tmp/patch-summary.md'))
           with summary.open('a', encoding='utf-8') as f:
@@ -223,12 +253,9 @@ jobs:
                   f.write('\n### Deleted\n')
                   for name in deleted:
                       f.write(f'- `{name}`\n')
-
-          if message:
-              Path('/tmp/patch-commit-message.txt').write_text(message, encoding='utf-8')
           PY
 
-          echo "ZIP paths validated and applied to the temporary working tree."
+          echo "ZIP paths validated and applied to temporary working tree."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -245,7 +272,18 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Commit verified patch to main
+      - name: Remove generated build artifacts before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Build output must NEVER be committed to the repository.
+          rm -rf node_modules .next out
+          rm -f tsconfig.tsbuildinfo
+
+          echo "Generated build artifacts removed from working tree."
+
+      - name: Commit only verified patch files
         shell: bash
         env:
           PATCH_ZIP: ${{ steps.detect.outputs.zip }}
@@ -254,7 +292,63 @@ jobs:
 
           git config user.name "autosale-patch-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+
+          # Never use `git add -A` globally here.
+          # Stage only the uploaded ZIP deletion, patch-controlled files,
+          # and cleanup of build artifacts accidentally tracked by an older installer.
+          git add -A -- "$PATCH_ZIP"
+
+          if [ -s /tmp/patch-written.txt ]; then
+            while IFS= read -r path; do
+              [ -n "$path" ] || continue
+              git add -A -- "$path"
+            done < /tmp/patch-written.txt
+          fi
+
+          if [ -s /tmp/patch-deleted.txt ]; then
+            while IFS= read -r path; do
+              [ -n "$path" ] || continue
+              git add -A -- "$path"
+            done < /tmp/patch-deleted.txt
+          fi
+
+          # One-time and future-proof cleanup if these were ever tracked.
+          git add -A -- .next node_modules out tsconfig.tsbuildinfo 2>/dev/null || true
+
+          # Safety check: reject any staged path outside the allowed set.
+          python3 - <<'PY'
+          import os
+          import subprocess
+          from pathlib import Path
+
+          patch_zip = os.environ['PATCH_ZIP']
+          allowed = {patch_zip, '.next', 'node_modules', 'out', 'tsconfig.tsbuildinfo'}
+
+          for list_file in ('/tmp/patch-written.txt', '/tmp/patch-deleted.txt'):
+              p = Path(list_file)
+              if p.exists():
+                  allowed.update(x.strip() for x in p.read_text('utf-8').splitlines() if x.strip())
+
+          staged = subprocess.check_output(
+              ['git', 'diff', '--cached', '--name-only', '-z']
+          ).decode('utf-8').split('\0')
+
+          unexpected = []
+          for path in filter(None, staged):
+              if path in allowed:
+                  continue
+              if any(path.startswith(prefix.rstrip('/') + '/') for prefix in ('.next', 'node_modules', 'out')):
+                  continue
+              unexpected.append(path)
+
+          if unexpected:
+              raise SystemExit(
+                  'Refusing commit because unexpected files were staged:\n' +
+                  '\n'.join(f'- {x}' for x in unexpected)
+              )
+          PY
+
+          git diff --cached --check
 
           if git diff --cached --quiet; then
             echo "Nothing changed after verification."
@@ -278,15 +372,19 @@ jobs:
         run: |
           set +e
 
-          # Discard any unverified files that were unpacked locally.
+          # Restore source tree to exactly the uploaded-patch commit.
           git reset --hard "$GITHUB_SHA"
           git clean -fd
 
+          # Remove only the rejected inbox ZIP and commit that deletion.
           if [ -n "$PATCH_ZIP" ] && [ -f "$PATCH_ZIP" ]; then
             rm -f "$PATCH_ZIP"
+
             git config user.name "autosale-patch-bot"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -A
+
+            git add -A -- "$PATCH_ZIP"
+
             if ! git diff --cached --quiet; then
               git commit -m "Remove rejected ZIP patch: ${PATCH_ZIP}"
               git push origin HEAD:main
