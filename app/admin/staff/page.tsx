@@ -115,6 +115,7 @@ const UZ_COPY: Record<string, string> = {
   "Разделы Control System": "Control System bo‘limlari",
   "Команда": "Jamoa",
   "Автомобили": "Avtomobillar",
+  "Главная": "Bosh sahifa",
   "Управление менеджерами и их доступом к экосистеме Auto Sale Umar":
     "Menejerlar va ularning Auto Sale Umar tizimiga kirishini boshqarish",
   "Управление всей командой Auto Sale Umar, ролями и доступом к системе":
@@ -752,9 +753,8 @@ export default function StaffPage() {
         >
           {t("Команда")}
         </a>
-        <a className={styles.sectionNavItem} href="/admin/cars/">
-          {t("Автомобили")}
-        </a>
+        <a className={styles.sectionNavItem} href="/admin/cars/">{t("Автомобили")}</a>
+        <a className={styles.sectionNavItem} href="/admin/home/">{t("Главная")}</a>
       </nav>
 
       <section className={styles.content}>
