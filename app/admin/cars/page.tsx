@@ -47,6 +47,15 @@ interface CarsApiResponse {
   error?: string;
   total?: number;
   cars?: CarRecord[];
+  car?: CarRecord;
+}
+
+interface QuickUpdateState {
+  car: CarRecord;
+  status: CarStatus;
+  price: string;
+  currency: "USD" | "UZS" | "EUR";
+  priceOnRequest: boolean;
 }
 
 type ViewTransitionDocument = Document & {
@@ -172,6 +181,17 @@ const UZ_COPY: Record<string, string> = {
   "Страна": "Davlat",
   "Сбросить": "Tozalash",
   "Готово": "Tayyor",
+  "Редактировать": "Tahrirlash",
+  "Быстрый статус": "Tezkor holat",
+  "Быстро измените статус и цену без перехода в редактор.": "Muharrirga o‘tmasdan holat va narxni tez o‘zgartiring.",
+  "Закрыть окно": "Oynani yopish",
+  "Сохранить": "Saqlash",
+  "Сохранение…": "Saqlanmoqda…",
+  "Не удалось обновить карточку автомобиля.": "Avtomobil kartasini yangilab bo‘lmadi.",
+  "Валюта": "Valyuta",
+  "ID": "ID",
+  "Укажите цену или включите режим \"Цена по запросу\".": "Narxni kiriting yoki \"Narx so‘rov asosida\" rejimini yoqing.",
+  "Некорректная цена автомобиля.": "Avtomobil narxi noto‘g‘ri.",
 };
 
 function formatPrice(car: CarRecord, language: Language): string {
@@ -214,6 +234,9 @@ export default function CarsPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [createdCarId, setCreatedCarId] = useState<number | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [quickUpdate, setQuickUpdate] = useState<QuickUpdateState | null>(null);
+  const [quickSaving, setQuickSaving] = useState(false);
+  const [quickError, setQuickError] = useState<string | null>(null);
 
   const t = useCallback(
     (russian: string) => (language === "uz" ? (UZ_COPY[russian] ?? russian) : russian),
@@ -376,7 +399,7 @@ export default function CarsPage() {
   }, [country, query, reloadToken, status]);
 
   useEffect(() => {
-    if (!settingsOpen && !filtersOpen) return;
+    if (!settingsOpen && !filtersOpen && !quickUpdate) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -385,6 +408,7 @@ export default function CarsPage() {
       if (event.key !== "Escape") return;
       setSettingsOpen(false);
       setFiltersOpen(false);
+      setQuickUpdate(null);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -393,7 +417,7 @@ export default function CarsPage() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [settingsOpen, filtersOpen]);
+  }, [settingsOpen, filtersOpen, quickUpdate]);
 
   function changeTheme(nextTheme: Theme) {
     if (nextTheme === theme) return;
@@ -414,6 +438,69 @@ export default function CarsPage() {
   function resetFilters() {
     setStatus("all");
     setCountry("all");
+  }
+
+  function navigateToEdit(carId: number) {
+    window.location.href = `/admin/cars/edit/?id=${carId}`;
+  }
+
+  function openQuickUpdate(car: CarRecord) {
+    setQuickError(null);
+    setQuickUpdate({
+      car,
+      status: car.status,
+      price: car.price == null ? "" : String(car.price),
+      currency: car.currency,
+      priceOnRequest: car.priceOnRequest,
+    });
+  }
+
+  async function submitQuickUpdate() {
+    if (!quickUpdate || quickSaving) return;
+
+    const trimmedPrice = quickUpdate.price.trim();
+    if (!quickUpdate.priceOnRequest && !trimmedPrice) {
+      setQuickError(t("Укажите цену или включите режим \"Цена по запросу\"."));
+      return;
+    }
+
+    const numericPrice = trimmedPrice ? Number(trimmedPrice.replace(/\s+/g, "").replace(",", ".")) : null;
+    if (!quickUpdate.priceOnRequest && (numericPrice == null || !Number.isFinite(numericPrice) || numericPrice < 0)) {
+      setQuickError(t("Некорректная цена автомобиля."));
+      return;
+    }
+
+    setQuickSaving(true);
+    setQuickError(null);
+    try {
+      const response = await fetch("/api/cars", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          id: quickUpdate.car.id,
+          status: quickUpdate.status,
+          price: quickUpdate.priceOnRequest ? null : Math.round(numericPrice ?? 0),
+          currency: quickUpdate.currency,
+          priceOnRequest: quickUpdate.priceOnRequest,
+        }),
+      });
+
+      const data = (await response.json().catch(() => null)) as CarsApiResponse | null;
+      if (!response.ok || !data?.success || !data.car) {
+        throw new Error(data?.error || t("Не удалось обновить карточку автомобиля."));
+      }
+
+      setCars((current) => current.map((item) => (item.id === data.car!.id ? data.car! : item)));
+      setQuickUpdate(null);
+    } catch (error) {
+      setQuickError(error instanceof Error ? error.message : t("Не удалось обновить карточку автомобиля."));
+    } finally {
+      setQuickSaving(false);
+    }
   }
 
   if (authError) {
@@ -699,12 +786,20 @@ export default function CarsPage() {
           {cars.length > 0 ? (
             <div className={styles.carsGrid}>
               {cars.map((car) => (
-                <a
+                <article
                   className={`${styles.carCard} ${
                     car.id === createdCarId ? styles.carCardCreated : ""
                   }`}
                   key={car.id}
-                  href={`/admin/cars/edit/?id=${car.id}`}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => navigateToEdit(car.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigateToEdit(car.id);
+                    }
+                  }}
                   aria-label={`${language === "uz" ? "Tahrirlash" : "Редактировать"}: ${car.brand} ${car.model}`}
                 >
                   <div className={styles.carMedia}>
@@ -748,20 +843,47 @@ export default function CarsPage() {
                       {car.exteriorColor ? <span>{car.exteriorColor}</span> : null}
                     </div>
 
+                    <div className={styles.carIdentityRow}>
+                      <div className={styles.vinMeta}>
+                        <span className={styles.identityLabel}>VIN</span>
+                        <strong>{car.vin || "—"}</strong>
+                      </div>
+
+                      <div className={styles.idMeta}>
+                        <span className={styles.identityLabel}>{t("ID")}</span>
+                        <strong>{car.id}</strong>
+                        {car.stockNumber ? <small>{car.stockNumber}</small> : null}
+                      </div>
+                    </div>
+
                     <div className={styles.carFooter}>
                       <div>
                         <span className={styles.priceLabel}>{t("Цена")}</span>
                         <strong>{formatPrice(car, language)}</strong>
                       </div>
-                      <div className={styles.stockMeta}>
-                        <span>{car.stockNumber || `ID ${car.id}`}</span>
-                        {car.vin ? <span>VIN · {car.vin.slice(-6)}</span> : null}
+
+                      <div className={styles.cardActions} onClick={(event) => event.stopPropagation()}>
+                        <button
+                          type="button"
+                          className={styles.secondaryAction}
+                          onClick={() => navigateToEdit(car.id)}
+                        >
+                          {t("Редактировать")}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.primaryAction}
+                          onClick={() => openQuickUpdate(car)}
+                        >
+                          {t("Статус")}
+                        </button>
                       </div>
                     </div>
                   </div>
-                </a>
+                </article>
               ))}
             </div>
+          ) : null}
           ) : null}
 
           {!loading && !loadError && cars.length === 0 ? (
@@ -888,6 +1010,133 @@ export default function CarsPage() {
             </div>
           </section>
         </div>
+      ) : null}
+
+      {quickUpdate ? (
+        <>
+          <button
+            type="button"
+            className={styles.quickModalBackdrop}
+            onClick={() => setQuickUpdate(null)}
+            aria-label={t("Закрыть окно")}
+          />
+          <section
+            className={styles.quickModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quick-status-title"
+          >
+            <header className={styles.quickModalHeader}>
+              <div>
+                <p>CONTROL SYSTEM</p>
+                <h2 id="quick-status-title">{t("Быстрый статус")}</h2>
+                <span>{t("Быстро измените статус и цену без перехода в редактор.")}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.quickModalClose}
+                onClick={() => setQuickUpdate(null)}
+                aria-label={t("Закрыть окно")}
+              >
+                <CloseIcon />
+              </button>
+            </header>
+
+            <div className={styles.quickModalBody}>
+              <div className={styles.quickCarIntro}>
+                <strong>{quickUpdate.car.brand} {quickUpdate.car.model}</strong>
+                <span>{quickUpdate.car.trim || quickUpdate.car.vin || `ID ${quickUpdate.car.id}`}</span>
+              </div>
+
+              <label className={styles.quickField}>
+                <span>{t("Статус")}</span>
+                <select
+                  value={quickUpdate.status}
+                  onChange={(event) =>
+                    setQuickUpdate((current) =>
+                      current ? { ...current, status: event.target.value as CarStatus } : current,
+                    )
+                  }
+                >
+                  {STATUS_FILTERS.filter((item): item is CarStatus => item !== "all").map((item) => (
+                    <option key={item} value={item}>
+                      {STATUS_LABELS[language][item]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className={styles.quickPriceGrid}>
+                <label className={styles.quickField}>
+                  <span>{t("Цена")}</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder={t("Цена")}
+                    value={quickUpdate.price}
+                    onChange={(event) =>
+                      setQuickUpdate((current) =>
+                        current ? { ...current, price: event.target.value } : current,
+                      )
+                    }
+                    disabled={quickUpdate.priceOnRequest}
+                  />
+                </label>
+
+                <label className={styles.quickField}>
+                  <span>{t("Валюта")}</span>
+                  <select
+                    value={quickUpdate.currency}
+                    onChange={(event) =>
+                      setQuickUpdate((current) =>
+                        current
+                          ? { ...current, currency: event.target.value as "USD" | "UZS" | "EUR" }
+                          : current,
+                      )
+                    }
+                  >
+                    <option value="USD">USD</option>
+                    <option value="UZS">UZS</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className={styles.quickToggle}>
+                <input
+                  type="checkbox"
+                  checked={quickUpdate.priceOnRequest}
+                  onChange={(event) =>
+                    setQuickUpdate((current) =>
+                      current ? { ...current, priceOnRequest: event.target.checked } : current,
+                    )
+                  }
+                />
+                <span>{t("Цена по запросу")}</span>
+              </label>
+
+              {quickError ? <p className={styles.quickError}>{quickError}</p> : null}
+            </div>
+
+            <footer className={styles.quickModalFooter}>
+              <button
+                type="button"
+                className={styles.secondaryAction}
+                onClick={() => setQuickUpdate(null)}
+              >
+                {t("Закрыть")}
+              </button>
+              <button
+                type="button"
+                className={styles.primaryAction}
+                onClick={submitQuickUpdate}
+                disabled={quickSaving}
+              >
+                {quickSaving ? t("Сохранение…") : t("Сохранить")}
+              </button>
+            </footer>
+          </section>
+        </>
       ) : null}
 
     </main>

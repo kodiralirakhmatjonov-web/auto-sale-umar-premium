@@ -1032,6 +1032,104 @@
   text-align: right;
 }
 
+
+.carIdentityRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.identityLabel {
+  display: block;
+  margin: 0 0 5px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.vinMeta {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.vinMeta strong {
+  display: block;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: .02em;
+  word-break: break-all;
+}
+
+.idMeta {
+  flex: 0 0 auto;
+  min-width: 80px;
+  text-align: right;
+}
+
+.idMeta strong {
+  display: block;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.idMeta small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.primaryAction,
+.secondaryAction {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 180ms var(--ease),
+    border-color 180ms var(--ease),
+    background-color 180ms var(--ease),
+    color 180ms var(--ease);
+}
+
+.secondaryAction {
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  background: var(--solid);
+}
+
+.primaryAction {
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, transparent);
+  color: #fff;
+  background: var(--accent);
+}
+
+.primaryAction:disabled,
+.secondaryAction:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
 .emptyState {
   max-width: 660px;
   margin: 0 auto;
@@ -2086,4 +2184,195 @@
 .carCard:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
   outline-offset: 3px;
+}
+
+
+.quickModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  border: 0;
+  background: rgba(9, 10, 12, .42);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.quickModal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 95;
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100vh - 28px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--surface-soft);
+  box-shadow: 0 30px 70px rgba(0,0,0,.20);
+  transform: translate(-50%, -50%);
+}
+
+.quickModalHeader,
+.quickModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 18px 0;
+}
+
+.quickModalHeader p {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.quickModalHeader h2 {
+  margin: 6px 0 0;
+  font-size: 26px;
+  line-height: 1.02;
+}
+
+.quickModalHeader span {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.quickModalClose {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--solid);
+  cursor: pointer;
+}
+
+.quickModalClose svg { width: 18px; height: 18px; }
+
+.quickModalBody {
+  padding: 18px;
+  overflow: auto;
+}
+
+.quickCarIntro {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--solid) 88%, transparent);
+}
+
+.quickCarIntro strong { font-size: 18px; }
+.quickCarIntro span { color: var(--text-2); font-size: 13px; }
+
+.quickField {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.quickField > span {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.quickField input,
+.quickField select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  color: var(--text);
+  background: var(--solid);
+  font: inherit;
+}
+
+.quickPriceGrid {
+  display: grid;
+  grid-template-columns: 1fr 132px;
+  gap: 12px;
+}
+
+.quickToggle {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--solid) 92%, transparent);
+}
+
+.quickToggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.quickToggle span { font-size: 14px; color: var(--text); }
+
+.quickError {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  color: #b54a4a;
+  background: rgba(206, 78, 78, .11);
+  font-size: 13px;
+}
+
+.quickModalFooter {
+  padding: 0 18px 18px;
+}
+
+.quickModalFooter .secondaryAction,
+.quickModalFooter .primaryAction {
+  min-width: 138px;
+}
+
+@media (max-width: 760px) {
+  .carFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cardActions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .cardActions .primaryAction,
+  .cardActions .secondaryAction {
+    flex: 1 1 0;
+  }
+
+  .quickModalHeader,
+  .quickModalFooter {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .quickModalBody {
+    padding: 16px;
+  }
+
+  .quickPriceGrid {
+    grid-template-columns: 1fr;
+  }
 }
