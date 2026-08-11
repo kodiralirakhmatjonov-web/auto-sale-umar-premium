@@ -317,7 +317,7 @@
   min-height: var(--asu-admin-section-height);
   margin: 14px auto 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
 
@@ -337,6 +337,11 @@
   transition:
     background-color 560ms var(--ease),
     border-color 560ms var(--ease);
+}
+
+.sectionNav[data-manager="true"] {
+  width: min(360px, calc(100% - 20px));
+  grid-template-columns: 1fr;
 }
 
 .page[data-theme="dark"] .sectionNav {

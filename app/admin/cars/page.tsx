@@ -67,6 +67,7 @@ interface CarsApiResponse {
   error?: string;
   total?: number;
   cars?: CarRecord[];
+  viewer?: { id?: number; role?: "super_admin" | "admin" | "sales_manager" };
 }
 
 interface QuickPatchResponse {
@@ -165,6 +166,7 @@ const UZ_COPY: Record<string, string> = {
   "Разделы Control System": "Control System bo‘limlari",
   "Команда": "Jamoa",
   "Автомобили": "Avtomobillar",
+  "Главная": "Bosh sahifa",
   "Единая база автомобилей Auto Sale Umar — в наличии, в пути, зарезервированные и проданные.":
     "Auto Sale Umar avtomobillarining yagona bazasi — mavjud, yo‘ldagi, band qilingan va sotilgan avtomobillar.",
   "Добавить автомобиль": "Avtomobil qo‘shish",
@@ -246,6 +248,7 @@ export default function CarsPage() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [country, setCountry] = useState<CountryFilter>("all");
   const [cars, setCars] = useState<CarRecord[]>([]);
+  const [viewerRole, setViewerRole] = useState<"super_admin" | "admin" | "sales_manager" | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -395,6 +398,7 @@ export default function CarsPage() {
           );
         }
 
+        setViewerRole(data.viewer?.role ?? null);
         setCars(data.cars);
         setTotal(typeof data.total === "number" ? data.total : data.cars.length);
         setAuthReady(true);
@@ -661,10 +665,10 @@ export default function CarsPage() {
         aria-hidden="true"
       />
 
-      <nav className={styles.sectionNav} aria-label={t("Разделы Control System")}>
-        <a className={styles.sectionNavItem} href="/admin/staff/">
-          {t("Команда")}
-        </a>
+      <nav className={styles.sectionNav} data-manager={viewerRole === "sales_manager"} aria-label={t("Разделы Control System")}>
+        {viewerRole !== "sales_manager" ? (
+          <a className={styles.sectionNavItem} href="/admin/staff/">{t("Команда")}</a>
+        ) : null}
         <a
           className={`${styles.sectionNavItem} ${styles.sectionNavItemActive}`}
           href="/admin/cars/"
@@ -672,6 +676,9 @@ export default function CarsPage() {
         >
           {t("Автомобили")}
         </a>
+        {viewerRole !== "sales_manager" ? (
+          <a className={styles.sectionNavItem} href="/admin/home/">{t("Главная")}</a>
+        ) : null}
       </nav>
 
       <div className={styles.shell}>
