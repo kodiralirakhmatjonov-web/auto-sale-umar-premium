@@ -490,7 +490,6 @@ export default function HomeClient() {
         <nav className={styles.menuNav}>
           <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
           <a href="#showroom" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.showroomMenu}</span><ChevronRight /></a>
-          <a href="/booking/" onClick={() => setMenuOpen(false)}><CalendarDays /><span>{c.bookVisit}</span><ChevronRight /></a>
           <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
           <a href="/admin/login/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
         </nav>
@@ -544,18 +543,6 @@ export default function HomeClient() {
         ) : null}
       </section>
 
-      <section className={styles.heroStatement}>
-        <p className={styles.kicker}>{c.heroKicker}</p>
-        <h1>{c.heroTitle.split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
-        <div className={styles.heroStatementBottom}>
-          <p>{c.heroText}</p>
-          <div className={styles.heroButtons}>
-            <a className={styles.darkPill} href="#stock">{c.seeCars}<ChevronRight /></a>
-            <a className={styles.secondaryPill} href="#contacts">{c.contact}<ArrowUpRight /></a>
-          </div>
-        </div>
-      </section>
-
       <section className={styles.section} id="cars">
         <SectionHeading kicker={c.brandsKicker} title={c.brandsTitle} text={c.brandsText} />
         <div className={styles.brandRail}>
@@ -589,23 +576,14 @@ export default function HomeClient() {
           ))}
         </div>
         <div className={styles.showroomActions}>
-          <div><strong>{c.bookVisit}</strong><span>{c.bookVisitText}</span></div>
-          <a className={styles.bookingPill} href="/booking/"><CalendarDays />{c.bookVisit}<ChevronRight /></a>
-        </div>
-      </section>
-
-      <section className={styles.section} id="location">
-        <div className={styles.locationCard}>
-          <div className={styles.locationCopy}>
+          <div className={styles.showroomBookingCopy}>
             <p className={styles.kicker}>{c.locationKicker}</p>
-            <h2>{c.locationTitle}</h2>
-            <p>{c.locationText}</p>
-            <a className={styles.routePill} href={YANDEX_MAPS_URL} target="_blank" rel="noreferrer"><MapPin />{c.route}<ArrowUpRight /></a>
+            <strong>{c.bookVisit}</strong>
+            <span>{c.bookVisitText}</span>
           </div>
-          <div className={styles.mapVisual} aria-hidden="true">
-            <div className={styles.mapRoads}><i /><i /><i /><i /></div>
-            <span className={styles.mapPin}><MapPin /></span>
-            <b>{c.location}</b>
+          <div className={styles.showroomActionButtons}>
+            <a className={styles.bookingPill} href="/booking/"><CalendarDays />{c.bookVisit}<ChevronRight /></a>
+            <a className={styles.showroomRoutePill} href={YANDEX_MAPS_URL} target="_blank" rel="noreferrer"><MapPin />{c.route}<ArrowUpRight /></a>
           </div>
         </div>
       </section>
@@ -619,11 +597,11 @@ export default function HomeClient() {
           </div>
           <div className={styles.worldMapStage}>
             <img src="/homepage/world-map.webp" alt="" aria-hidden="true" />
-            <div className={styles.exportWorkflow}>
-              <div><span>01</span><strong>{c.exportStep1}</strong><p>{c.exportStep1d}</p></div>
-              <div><span>02</span><strong>{c.exportStep2}</strong><p>{c.exportStep2d}</p></div>
-              <div><span>03</span><strong>{c.exportStep3}</strong><p>{c.exportStep3d}</p></div>
-            </div>
+          </div>
+          <div className={styles.exportWorkflow}>
+            <div><span>01</span><strong>{c.exportStep1}</strong><p>{c.exportStep1d}</p></div>
+            <div><span>02</span><strong>{c.exportStep2}</strong><p>{c.exportStep2d}</p></div>
+            <div><span>03</span><strong>{c.exportStep3}</strong><p>{c.exportStep3d}</p></div>
           </div>
           <div className={styles.marketRail}>
             {MARKETS.map((market) => <div className={styles.marketPill} key={market.ru}><span>{market.flag}</span><b>{market[language]}</b></div>)}
