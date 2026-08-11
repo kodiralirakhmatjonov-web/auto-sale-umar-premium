@@ -17,11 +17,105 @@ interface D1ListStatementLike {
   all<T = Record<string, unknown>>(): Promise<D1ListResult<T>>;
 }
 
+interface PublicVariantRow {
+  car_id: number;
+  variant_id: number;
+  exterior_color_name: string | null;
+  interior_color_name: string | null;
+  exterior_swatch: string | null;
+  interior_swatch: string | null;
+  sort_order: number;
+}
+
+interface PublicMediaRow {
+  id: number;
+  car_id: number;
+  variant_id: number;
+  public_url: string;
+  is_cover: number;
+  sort_order: number;
+}
+
+interface PublicVariant {
+  id: number;
+  exteriorColorName: string | null;
+  exteriorSwatch: string;
+  interiorColorName: string | null;
+  interiorSwatch: string;
+  photos: Array<{
+    id: number;
+    url: string;
+    isCover: boolean;
+    sortOrder: number;
+  }>;
+}
+
 function positiveInteger(value: string | null, fallback: number, maximum: number): number {
   if (!value) return fallback;
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 1) return fallback;
   return Math.min(parsed, maximum);
+}
+
+async function loadPublicVariants(env: Env, carIds: number[]): Promise<Map<number, PublicVariant[]>> {
+  const byCar = new Map<number, PublicVariant[]>();
+  if (carIds.length === 0) return byCar;
+
+  const placeholders = carIds.map((_, index) => `?${index + 1}`).join(", ");
+  const variantsStatement = (env.DB.prepare(`
+    SELECT
+      v.car_id,
+      v.id AS variant_id,
+      v.color_name_ru AS exterior_color_name,
+      v.interior_color_ru AS interior_color_name,
+      st.exterior_swatch,
+      st.interior_swatch,
+      v.sort_order
+    FROM car_variants v
+    LEFT JOIN car_variant_style st ON st.variant_id = v.id
+    WHERE v.car_id IN (${placeholders})
+    ORDER BY v.car_id ASC, v.is_default DESC, v.sort_order ASC, v.id ASC
+  `) as unknown as D1ListStatementLike).bind(...carIds);
+
+  const mediaStatement = (env.DB.prepare(`
+    SELECT id, car_id, variant_id, public_url, is_cover, sort_order
+    FROM car_variant_media
+    WHERE car_id IN (${placeholders})
+      AND photo_group = 'exterior'
+    ORDER BY car_id ASC, variant_id ASC, is_cover DESC, sort_order ASC, id ASC
+  `) as unknown as D1ListStatementLike).bind(...carIds);
+
+  const [variantResult, mediaResult] = await Promise.all([
+    variantsStatement.all<PublicVariantRow>(),
+    mediaStatement.all<PublicMediaRow>(),
+  ]);
+
+  const mediaByVariant = new Map<number, PublicMediaRow[]>();
+  for (const media of Array.isArray(mediaResult.results) ? mediaResult.results : []) {
+    const current = mediaByVariant.get(media.variant_id) ?? [];
+    current.push(media);
+    mediaByVariant.set(media.variant_id, current);
+  }
+
+  for (const variant of Array.isArray(variantResult.results) ? variantResult.results : []) {
+    const current = byCar.get(variant.car_id) ?? [];
+    current.push({
+      id: variant.variant_id,
+      exteriorColorName: variant.exterior_color_name,
+      exteriorSwatch: variant.exterior_swatch || "#111214",
+      interiorColorName: variant.interior_color_name,
+      interiorSwatch: variant.interior_swatch || "#111214",
+      photos: (mediaByVariant.get(variant.variant_id) ?? []).map((media) => ({
+        id: media.id,
+        url: media.public_url,
+        isCover: media.is_cover === 1,
+        sortOrder: media.sort_order,
+      })),
+    });
+    byCar.set(variant.car_id, current);
+  }
+
+  return byCar;
 }
 
 async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
@@ -44,7 +138,14 @@ async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
       return json({ success: false, error: "Автомобиль не найден." }, 404);
     }
 
-    return json({ success: true, car: toPublicCatalogCar(car) });
+    const variants = await loadPublicVariants(env, [car.id]);
+    return json({
+      success: true,
+      car: {
+        ...toPublicCatalogCar(car),
+        variants: variants.get(car.id) ?? [],
+      },
+    });
   } catch (error) {
     console.error("Public car detail failed", error);
     return json({ success: false, error: "Не удалось загрузить автомобиль." }, 500);
@@ -138,6 +239,7 @@ export async function onRequestGet(context: {
     const prepared = env.DB.prepare(listSql) as unknown as D1ListStatementLike;
     const result = await prepared.bind(...listBindings).all<CarListRow>();
     const rows = Array.isArray(result.results) ? result.results : [];
+    const variants = await loadPublicVariants(env, rows.map((row) => row.id));
 
     const countPrepared = env.DB.prepare(countSql);
     const countRow = bindings.length > 0
@@ -151,7 +253,10 @@ export async function onRequestGet(context: {
       pageSize,
       total,
       hasMore: offset + rows.length < total,
-      cars: rows.map(toPublicCatalogCar),
+      cars: rows.map((row) => ({
+        ...toPublicCatalogCar(row),
+        variants: variants.get(row.id) ?? [],
+      })),
     });
   } catch (error) {
     console.error("Public cars list failed", error);
