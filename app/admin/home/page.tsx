@@ -51,6 +51,7 @@ const TEXT = {
     team: "Команда",
     cars: "Автомобили",
     home: "Главная",
+    visits: "Визиты",
     eyebrow: "AUTO SALE UMAR / CONTROL SYSTEM",
     title: "Главная страница",
     lead: "Управляйте рекламной видео-каруселью и подписью каждого ролика. Данные меняются вместе с видео на публичной главной.",
@@ -87,6 +88,7 @@ const TEXT = {
     team: "Jamoa",
     cars: "Avtomobillar",
     home: "Bosh sahifa",
+    visits: "Tashriflar",
     eyebrow: "AUTO SALE UMAR / CONTROL SYSTEM",
     title: "Bosh sahifa",
     lead: "Reklama video karuseli va har bir rolik yozuvini boshqaring. Ma’lumotlar ommaviy sahifada video bilan birga almashadi.",
@@ -119,6 +121,18 @@ const TEXT = {
     managerDenied: "Sizning rolingiz bosh sahifani boshqarishga ruxsat bermaydi.",
   },
 } as const;
+
+const BRANDS = [
+  { name: "Mercedes-Benz", logo: "/brands/mercedes-benz.jpg" },
+  { name: "Range Rover", logo: "/brands/range-rover.png" },
+  { name: "Rolls-Royce", logo: "/brands/rolls-royce.png" },
+  { name: "Cadillac", logo: "/brands/cadillac.png" },
+  { name: "Lexus", logo: "/brands/lexus.png" },
+  { name: "Toyota", logo: "/brands/toyota.png" },
+  { name: "Genesis", logo: "/brands/genesis.png" },
+  { name: "BMW", logo: "/brands/bmw.png" },
+  { name: "Lamborghini", logo: "/brands/lamborghini.png" },
+] as const;
 
 const STATUS_LABEL: Record<Language, Record<VideoStatus, string>> = {
   ru: { in_stock: "В наличии", in_showroom: "В шоуруме", in_transit: "В пути", made_to_order: "Под заказ", reserved: "Резерв" },
@@ -297,6 +311,7 @@ export default function AdminHomePage() {
         <a href="/admin/staff/">{c.team}</a>
         <a href="/admin/cars/">{c.cars}</a>
         <a className={styles.active} href="/admin/home/" aria-current="page">{c.home}</a>
+        <a href="/admin/visits/">{c.visits}</a>
       </nav>
 
       <div className={styles.shell}>
@@ -339,7 +354,23 @@ export default function AdminHomePage() {
 
                   <div className={styles.videoEditor}>
                     <div className={styles.editorGrid}>
-                      <label><span>{c.brand}</span><input value={video.brand} onChange={(event) => updateVideo(video.key, { brand: event.target.value })} placeholder="Rolls-Royce" /></label>
+                      <div className={styles.brandPicker}>
+                        <span className={styles.editorLabel}>{c.brand}</span>
+                        <div className={styles.brandPickerRail}>
+                          {BRANDS.map((item) => (
+                            <button
+                              className={styles.brandPickerCard}
+                              type="button"
+                              key={item.name}
+                              data-active={video.brand === item.name}
+                              onClick={() => updateVideo(video.key, { brand: item.name })}
+                            >
+                              <span><img src={item.logo} alt="" /></span>
+                              <b>{item.name}</b>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <label><span>{c.model}</span><input value={video.model} onChange={(event) => updateVideo(video.key, { model: event.target.value })} placeholder="Cullinan Black Badge" /></label>
                       <label><span>{c.status}</span><select value={video.status} onChange={(event) => updateVideo(video.key, { status: event.target.value as VideoStatus })}>{(Object.keys(STATUS_LABEL[language]) as VideoStatus[]).map((status) => <option key={status} value={status}>{STATUS_LABEL[language][status]}</option>)}</select></label>
                       <label><span>{c.currency}</span><select value={video.currency} onChange={(event) => updateVideo(video.key, { currency: event.target.value as Currency })}><option>USD</option><option>EUR</option><option>UZS</option></select></label>
