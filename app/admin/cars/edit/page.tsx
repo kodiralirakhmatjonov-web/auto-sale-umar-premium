@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import styles from "../new/new-car.module.css";
+import AdminChrome from "../../_components/AdminChrome";
 
 type Theme = "light" | "dark";
 type Language = "ru" | "uz";
@@ -480,6 +481,7 @@ export default function EditCarPage() {
   const [theme, setTheme] = useState<Theme>("light");
   const [language, setLanguage] = useState<Language>("ru");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [viewerRole, setViewerRole] = useState<"super_admin" | "admin" | "sales_manager" | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [carId, setCarId] = useState<number | null>(null);
   const [detailLoading, setDetailLoading] = useState(true);
@@ -581,10 +583,11 @@ export default function EditCarPage() {
           return;
         }
         if (!response.ok) throw new Error(data?.error || t("Не удалось проверить защищённую сессию."));
-        if (data?.user?.role !== "super_admin" && data?.user?.role !== "admin") {
+        if (!data?.user?.role || !["super_admin", "admin", "sales_manager"].includes(data.user.role)) {
           throw new Error(t("У вашей роли нет права добавлять автомобили."));
         }
         if (!cancelled) {
+          setViewerRole(data.user.role);
           setAuthReady(true);
           setError(null);
         }
@@ -1040,71 +1043,15 @@ export default function EditCarPage() {
 
   return (
     <main className={styles.page} data-theme={theme}>
-      <header className={styles.toolbar}>
-        <div className={styles.toolbarInner}>
-          <a className={styles.roundControl} href="/admin/cars/" aria-label={t("Назад к автомобилям")}>
-            <ChevronLeftIcon />
-          </a>
-          <a className={styles.wordmarkLink} href="/admin/cars/" aria-label="Auto Sale Umar">
-            <img
-              className={styles.wordmark}
-              src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"}
-              alt="Auto Sale Umar"
-            />
-          </a>
-          <button
-            className={styles.roundControl}
-            type="button"
-            data-active={settingsOpen}
-            onClick={() => setSettingsOpen((current) => !current)}
-            aria-label={settingsOpen ? t("Закрыть настройки") : t("Открыть настройки")}
-            aria-expanded={settingsOpen}
-            aria-controls="new-car-interface-options"
-          >
-            <MenuIcon open={settingsOpen} />
-          </button>
-        </div>
-
-        <section
-          className={styles.settingsMenu}
-          id="new-car-interface-options"
-          data-open={settingsOpen}
-          aria-hidden={!settingsOpen}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="new-car-options-title"
-        >
-          <header className={styles.settingsHeader}>
-            <p>CONTROL SYSTEM</p>
-            <h2 id="new-car-options-title">{t("Настройки")}</h2>
-            <span>{t("Выберите оформление и язык")}</span>
-          </header>
-          <div className={styles.settingsContent}>
-            <div className={styles.settingsBlock}>
-              <span className={styles.settingsLabel}>{t("Оформление")}</span>
-              <div className={styles.settingsSegments}>
-                <button type="button" data-selected={theme === "light"} onClick={() => changeTheme("light")} aria-pressed={theme === "light"} tabIndex={settingsOpen ? 0 : -1}>
-                  <SunIcon /><span>{t("Светлая")}</span>
-                </button>
-                <button type="button" data-selected={theme === "dark"} onClick={() => changeTheme("dark")} aria-pressed={theme === "dark"} tabIndex={settingsOpen ? 0 : -1}>
-                  <MoonIcon /><span>{t("Тёмная")}</span>
-                </button>
-              </div>
-            </div>
-            <div className={styles.settingsBlock}>
-              <span className={styles.settingsLabel}>{t("Язык")}</span>
-              <div className={styles.settingsSegments}>
-                <button type="button" data-selected={language === "ru"} onClick={() => applyLanguage("ru")} aria-pressed={language === "ru"} tabIndex={settingsOpen ? 0 : -1}>Русский</button>
-                <button type="button" data-selected={language === "uz"} onClick={() => applyLanguage("uz")} aria-pressed={language === "uz"} tabIndex={settingsOpen ? 0 : -1}>O‘zbekcha</button>
-              </div>
-            </div>
-          </div>
-          <a className={styles.settingsPublicLink} href="/">{t("Вернуться на сайт")}</a>
-          <footer className={styles.settingsFooter}>{t("Настройки сохраняются автоматически")}</footer>
-        </section>
-      </header>
-
-      <button className={styles.settingsBackdrop} data-open={settingsOpen} type="button" onClick={() => setSettingsOpen(false)} tabIndex={-1} aria-hidden="true" />
+      <AdminChrome
+        current="cars"
+        language={language}
+        theme={theme}
+        role={viewerRole}
+        backHref="/admin/cars/"
+        onLanguageChange={applyLanguage}
+        onThemeChange={changeTheme}
+      />
 
       <div className={styles.shell}>
         <section className={styles.intro}>
