@@ -8,13 +8,18 @@ import {
   CircleCheck,
   Globe2,
   Instagram,
+  LogIn,
   MapPin,
   Menu,
   MessageCircle,
+  Monitor,
+  Moon,
   Phone,
   ShieldCheck,
   Ship,
   Sparkles,
+  Sun,
+  Users,
   Volume2,
   VolumeX,
   X,
@@ -23,7 +28,25 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import styles from "./home.module.css";
 
 type Language = "ru" | "uz";
+type ThemeMode = "system" | "light" | "dark";
+type ResolvedTheme = "light" | "dark";
 type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved" | "sold" | "hidden";
+
+interface CatalogPhoto {
+  id: number;
+  url: string;
+  isCover: boolean;
+  sortOrder: number;
+}
+
+interface CatalogVariant {
+  id: number;
+  exteriorColorName: string | null;
+  exteriorSwatch: string;
+  interiorColorName: string | null;
+  interiorSwatch: string;
+  photos: CatalogPhoto[];
+}
 
 interface CatalogCar {
   id: number;
@@ -42,6 +65,7 @@ interface CatalogCar {
   shortDescriptionRu: string;
   shortDescriptionUz: string;
   coverUrl: string | null;
+  variants?: CatalogVariant[];
 }
 
 interface CatalogResponse {
@@ -83,16 +107,57 @@ const MARKETS = [
   { flag: "🇦🇺", ru: "Австралия", uz: "Avstraliya" },
 ];
 
+const SHOWROOM_STORIES = [
+  {
+    image: "/showroom/showroom-01.webp",
+    ruTitle: "Тишина снаружи. Характер внутри.",
+    ruText: "Пространство, где автомобиль говорит сам за себя. Без лишнего шума, давления и спешки.",
+    uzTitle: "Tashqarida sokinlik. Ichkarida xarakter.",
+    uzText: "Avtomobil o‘zi haqida gapiradigan makon. Ortiqcha shovqin, bosim va shoshilishsiz.",
+  },
+  {
+    image: "/showroom/showroom-02.webp",
+    ruTitle: "Комфорт начинается до поездки.",
+    ruText: "Спокойная клиентская зона, персональное внимание и время для обдуманного решения.",
+    uzTitle: "Qulaylik safardan oldin boshlanadi.",
+    uzText: "Sokin mijozlar zonasi, shaxsiy e’tibor va o‘ylangan qaror uchun yetarli vaqt.",
+  },
+  {
+    image: "/showroom/showroom-03.webp",
+    ruTitle: "Свет подчёркивает главное.",
+    ruText: "Архитектура шоурума раскрывает линии автомобиля, материалы и детали без визуального шума.",
+    uzTitle: "Yorug‘lik asosiy narsani ko‘rsatadi.",
+    uzText: "Shourum arxitekturasi avtomobil chiziqlari, materiallari va detallarini vizual shovqinsiz ochib beradi.",
+  },
+  {
+    image: "/showroom/showroom-04.webp",
+    ruTitle: "Выбирайте не из доступного. Выбирайте своё.",
+    ruText: "Подберём модель, комплектацию и организуем путь автомобиля до передачи ключей.",
+    uzTitle: "Mavjudidan emas. O‘zingiznikini tanlang.",
+    uzText: "Model va komplektatsiyani tanlaymiz, avtomobil yo‘lini kalit topshirilgunga qadar tashkil qilamiz.",
+  },
+  {
+    image: "/showroom/showroom-05.webp",
+    ruTitle: "Доверие строится на деталях.",
+    ruText: "Прозрачный статус автомобиля, серьёзное сопровождение и правильное отношение к клиенту.",
+    uzTitle: "Ishonch detallardan quriladi.",
+    uzText: "Avtomobilning aniq statusi, jiddiy kuzatuv va mijozga to‘g‘ri munosabat.",
+  },
+] as const;
+
 const COPY = {
   ru: {
     menu: "Меню",
     close: "Закрыть",
     cars: "Автомобили",
-    stock: "В наличии",
-    transit: "В пути",
-    showroom: "Шоурум",
-    delivery: "Поставка",
+    employees: "Сотрудники",
+    employeeLogin: "Вход для сотрудников",
     contacts: "Контакты",
+    language: "Язык",
+    theme: "Тема",
+    system: "Системная",
+    light: "Светлая",
+    dark: "Тёмная",
     skip: "Пропустить",
     heroKicker: "AUTO SALE UMAR · TASHKENT",
     heroTitle: "Автомобиль,\nвыбранный точно.",
@@ -118,10 +183,13 @@ const COPY = {
     trust2d: "Фотографии, цвета и данные относятся к реальной карточке автомобиля.",
     trust3: "Персональное сопровождение",
     trust3d: "От первого вопроса до передачи автомобиля — один понятный контакт с шоурумом.",
-    showroomKicker: "ШОУРУМ",
+    showroomKicker: "О ШОУРУМЕ",
     showroomTitle: "Пространство для спокойного выбора.",
-    showroomText: "Мы оставляем главное на первом плане: автомобиль, детали и время для решения без визуального шума.",
-    visit: "Запланировать визит",
+    showroomText: "Автомобиль остаётся в центре внимания, а атмосфера даёт время рассмотреть детали и принять решение без спешки.",
+    locationKicker: "МЕСТОПОЛОЖЕНИЕ",
+    locationTitle: "Ваш новый автомобиль ближе, чем кажется.",
+    locationText: "Откройте маршрут в Яндекс Картах и приезжайте на персональный просмотр.",
+    route: "Построить маршрут",
     location: "Ташкент · Auto Sale Umar",
     exportKicker: "МЕЖДУНАРОДНАЯ ПОСТАВКА",
     exportTitle: "Ищем автомобиль там, где он есть.",
@@ -141,16 +209,20 @@ const COPY = {
     transitStatus: "В пути",
     orderStatus: "Под заказ",
     reserveStatus: "Резерв",
+    color: "Цвет",
   },
   uz: {
     menu: "Menyu",
     close: "Yopish",
     cars: "Avtomobillar",
-    stock: "Mavjud",
-    transit: "Yo‘lda",
-    showroom: "Shourum",
-    delivery: "Yetkazib berish",
+    employees: "Xodimlar",
+    employeeLogin: "Xodimlar uchun kirish",
     contacts: "Kontaktlar",
+    language: "Til",
+    theme: "Mavzu",
+    system: "Tizim",
+    light: "Yorug‘",
+    dark: "Tungi",
     skip: "O‘tkazib yuborish",
     heroKicker: "AUTO SALE UMAR · TOSHKENT",
     heroTitle: "Aniq tanlangan\navtomobil.",
@@ -176,10 +248,13 @@ const COPY = {
     trust2d: "Suratlar, ranglar va ma’lumotlar haqiqiy avtomobil kartasiga tegishli.",
     trust3: "Shaxsiy kuzatuv",
     trust3d: "Birinchi savoldan kalit topshirilguncha — shourum bilan bitta tushunarli aloqa.",
-    showroomKicker: "SHOURUM",
+    showroomKicker: "SHOURUM HAQIDA",
     showroomTitle: "Xotirjam tanlov uchun makon.",
-    showroomText: "Asosiy narsani oldinga chiqaramiz: avtomobil, detallar va ortiqcha shovqinsiz qaror qilish uchun vaqt.",
-    visit: "Tashrifni rejalashtirish",
+    showroomText: "Avtomobil markazda qoladi, muhit esa detallarni ko‘rish va shoshilmasdan qaror qilish uchun vaqt beradi.",
+    locationKicker: "MANZIL",
+    locationTitle: "Yangi avtomobilingiz o‘ylagandan ham yaqin.",
+    locationText: "Yandex Xaritalarda yo‘nalishni oching va shaxsiy ko‘rikka tashrif buyuring.",
+    route: "Yo‘nalishni ochish",
     location: "Toshkent · Auto Sale Umar",
     exportKicker: "XALQARO YETKAZIB BERISH",
     exportTitle: "Avtomobil qayerda bo‘lsa, o‘sha yerdan izlaymiz.",
@@ -199,8 +274,11 @@ const COPY = {
     transitStatus: "Yo‘lda",
     orderStatus: "Buyurtma",
     reserveStatus: "Rezerv",
+    color: "Rang",
   },
 } as const;
+
+const YANDEX_MAPS_URL = "https://yandex.ru/maps/org/auto_sale_umar/98317002086?si=y1pjpr56py0hyc8ar2j2cw1t40";
 
 function formatPrice(car: CatalogCar, language: Language): string {
   if (car.priceOnRequest || car.price == null) return COPY[language].priceRequest;
@@ -222,6 +300,8 @@ function statusLabel(status: CarStatus, language: Language): string {
 
 export default function HomeClient() {
   const [language, setLanguage] = useState<Language>("ru");
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
   const [menuOpen, setMenuOpen] = useState(false);
   const [introVisible, setIntroVisible] = useState(true);
   const [muted, setMuted] = useState(true);
@@ -233,11 +313,51 @@ export default function HomeClient() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("asu-public-language");
-      if (stored === "uz" || stored === "ru") setLanguage(stored);
+      const storedLanguage = localStorage.getItem("asu-public-language");
+      if (storedLanguage === "uz" || storedLanguage === "ru") setLanguage(storedLanguage);
       else if (navigator.language.toLowerCase().startsWith("uz")) setLanguage("uz");
+
+      const storedTheme = localStorage.getItem("asu-public-theme");
+      if (storedTheme === "system" || storedTheme === "light" || storedTheme === "dark") setThemeMode(storedTheme);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const next: ResolvedTheme = themeMode === "system" ? (media.matches ? "dark" : "light") : themeMode;
+      setResolvedTheme(next);
+      document.documentElement.dataset.asuPublicTheme = next;
+      document.documentElement.style.colorScheme = next;
+      const color = next === "dark" ? "#090a0b" : "#f5f5f3";
+      document.documentElement.style.backgroundColor = color;
+      document.body.style.backgroundColor = color;
+      let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "theme-color";
+        document.head.appendChild(meta);
+      }
+      meta.content = color;
+    };
+    apply();
+    if (themeMode === "system") media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, [themeMode]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -270,9 +390,7 @@ export default function HomeClient() {
     (car.status === "in_transit" || car.status === "made_to_order") && (brand === "all" || car.brand === brand),
   ).slice(0, 8), [cars, brand]);
 
-  const closeIntro = useCallback(() => {
-    setIntroVisible(false);
-  }, []);
+  const closeIntro = useCallback(() => setIntroVisible(false), []);
 
   useEffect(() => {
     if (!introVisible) return;
@@ -283,6 +401,11 @@ export default function HomeClient() {
   function changeLanguage(next: Language) {
     setLanguage(next);
     try { localStorage.setItem("asu-public-language", next); } catch {}
+  }
+
+  function changeTheme(next: ThemeMode) {
+    setThemeMode(next);
+    try { localStorage.setItem("asu-public-theme", next); } catch {}
   }
 
   function goHero(index: number) {
@@ -299,21 +422,13 @@ export default function HomeClient() {
     if (next !== heroIndex) setHeroIndex(next);
   }
 
+  const wordmark = resolvedTheme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png";
+
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-theme={resolvedTheme}>
       {introVisible ? (
         <div className={styles.intro} aria-label="Auto Sale Umar intro">
-          <video
-            className={styles.introVideo}
-            src="/intro.mp4"
-            poster="/intro-poster.jpg"
-            autoPlay
-            muted
-            playsInline
-            preload="auto"
-            onEnded={closeIntro}
-            onError={closeIntro}
-          />
+          <video className={styles.introVideo} src="/intro.mp4" poster="/intro-poster.jpg" autoPlay muted playsInline preload="auto" onEnded={closeIntro} onError={closeIntro} />
           <div className={styles.introShade} />
           <img className={styles.introWordmark} src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
           <button className={styles.introSkip} type="button" onClick={closeIntro}>{c.skip}</button>
@@ -322,35 +437,38 @@ export default function HomeClient() {
 
       <header className={styles.header}>
         <a className={styles.headerBrand} href="#top" aria-label="Auto Sale Umar">
-          <img src="/brand/asu-wordmark-black.png" alt="Auto Sale Umar" />
+          <img src={wordmark} alt="Auto Sale Umar" />
         </a>
-        <div className={styles.headerActions}>
-          <div className={styles.languageSwitch} aria-label="Language">
-            <button type="button" data-active={language === "ru"} onClick={() => changeLanguage("ru")}>RU</button>
-            <button type="button" data-active={language === "uz"} onClick={() => changeLanguage("uz")}>UZ</button>
-          </div>
-          <button className={styles.circleButton} type="button" onClick={() => setMenuOpen(true)} aria-label={c.menu}>
-            <Menu />
-          </button>
-        </div>
+        <button className={styles.circleButton} type="button" onClick={() => setMenuOpen((open) => !open)} aria-label={c.menu} aria-expanded={menuOpen}>
+          {menuOpen ? <X /> : <Menu />}
+        </button>
       </header>
 
       <button className={styles.menuBackdrop} data-open={menuOpen} type="button" onClick={() => setMenuOpen(false)} aria-label={c.close} />
-      <aside className={styles.menuSheet} data-open={menuOpen} aria-hidden={!menuOpen}>
-        <div className={styles.menuTop}>
-          <img src="/brand/asu-wordmark-black.png" alt="Auto Sale Umar" />
-          <button className={styles.circleButton} type="button" onClick={() => setMenuOpen(false)} aria-label={c.close}><X /></button>
-        </div>
-        <nav>
-          {[
-            ["#cars", c.cars], ["#stock", c.stock], ["#transit", c.transit], ["#showroom", c.showroom], ["#delivery", c.delivery], ["#contacts", c.contacts],
-          ].map(([href, label]) => (
-            <a key={href} href={href} onClick={() => setMenuOpen(false)}><span>{label}</span><ChevronRight /></a>
-          ))}
+      <aside className={styles.menuPanel} data-open={menuOpen} aria-hidden={!menuOpen}>
+        <nav className={styles.menuNav}>
+          <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
+          <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
+          <a href="/admin/staff/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
+          <a href="/admin/login/" onClick={() => setMenuOpen(false)}><LogIn /><span>{c.employeeLogin}</span><ChevronRight /></a>
         </nav>
-        <div className={styles.menuContact}>
-          <a href="https://www.instagram.com/auto_sale_umar/" target="_blank" rel="noreferrer"><Instagram /> Instagram <ArrowUpRight /></a>
-          <a href="tel:+998771155553"><Phone /> +998 77 115 55 53</a>
+
+        <div className={styles.menuControls}>
+          <div className={styles.menuControlGroup}>
+            <span>{c.language}</span>
+            <div className={styles.segmented}>
+              <button type="button" data-active={language === "ru"} onClick={() => changeLanguage("ru")}>RU</button>
+              <button type="button" data-active={language === "uz"} onClick={() => changeLanguage("uz")}>UZ</button>
+            </div>
+          </div>
+          <div className={styles.menuControlGroup}>
+            <span>{c.theme}</span>
+            <div className={styles.themeSegmented}>
+              <button type="button" data-active={themeMode === "system"} onClick={() => changeTheme("system")} aria-label={c.system}><Monitor /><b>{c.system}</b></button>
+              <button type="button" data-active={themeMode === "light"} onClick={() => changeTheme("light")} aria-label={c.light}><Sun /><b>{c.light}</b></button>
+              <button type="button" data-active={themeMode === "dark"} onClick={() => changeTheme("dark")} aria-label={c.dark}><Moon /><b>{c.dark}</b></button>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -358,29 +476,9 @@ export default function HomeClient() {
         <div className={styles.heroRail} ref={heroRailRef} onScroll={handleHeroScroll}>
           {heroVideos.map((video, index) => (
             <article className={styles.heroSlide} key={video.key}>
-              <HeroVideo
-                src={video.url}
-                poster={index === 0 ? "/intro-poster.jpg" : undefined}
-                active={index === heroIndex && !introVisible}
-                muted={muted}
-                near={Math.abs(index - heroIndex) <= 1}
-                loop={heroVideos.length === 1}
-                onEnded={heroVideos.length > 1 ? () => goHero((index + 1) % heroVideos.length) : undefined}
-              />
-              <div className={styles.heroShade} />
+              <HeroVideo src={video.url} poster={index === 0 ? "/intro-poster.jpg" : undefined} active={index === heroIndex && !introVisible} muted={muted} near={Math.abs(index - heroIndex) <= 1} loop={heroVideos.length === 1} onEnded={heroVideos.length > 1 ? () => goHero((index + 1) % heroVideos.length) : undefined} />
             </article>
           ))}
-        </div>
-        <div className={styles.heroCopy}>
-          <p>{c.heroKicker}</p>
-          <h1>{c.heroTitle.split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
-          <div className={styles.heroBottom}>
-            <p>{c.heroText}</p>
-            <div className={styles.heroButtons}>
-              <a className={styles.lightPill} href="#stock">{c.seeCars}<ChevronRight /></a>
-              <a className={styles.glassPill} href="#contacts">{c.contact}<ArrowUpRight /></a>
-            </div>
-          </div>
         </div>
         <button className={styles.soundButton} type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Sound on" : "Sound off"}>
           {muted ? <VolumeX /> : <Volume2 />}
@@ -390,6 +488,18 @@ export default function HomeClient() {
             {heroVideos.map((video, index) => <button key={video.key} type="button" data-active={index === heroIndex} onClick={() => goHero(index)} aria-label={`Video ${index + 1}`} />)}
           </div>
         ) : null}
+      </section>
+
+      <section className={styles.heroStatement}>
+        <p className={styles.kicker}>{c.heroKicker}</p>
+        <h1>{c.heroTitle.split("\n").map((line) => <span key={line}>{line}</span>)}</h1>
+        <div className={styles.heroStatementBottom}>
+          <p>{c.heroText}</p>
+          <div className={styles.heroButtons}>
+            <a className={styles.darkPill} href="#stock">{c.seeCars}<ChevronRight /></a>
+            <a className={styles.secondaryPill} href="#contacts">{c.contact}<ArrowUpRight /></a>
+          </div>
+        </div>
       </section>
 
       <section className={styles.section} id="cars">
@@ -418,18 +528,36 @@ export default function HomeClient() {
         </div>
       </section>
 
-      <section className={styles.section} id="showroom">
-        <div className={styles.showroomCard}>
-          <div className={styles.showroomCopy}>
-            <p className={styles.kicker}>{c.showroomKicker}</p>
-            <h2>{c.showroomTitle}</h2>
-            <p>{c.showroomText}</p>
-            <a className={styles.darkPill} href="tel:+998771155553"><MapPin />{c.visit}</a>
+      <section className={`${styles.section} ${styles.showroomSection}`} id="showroom">
+        <SectionHeading kicker={c.showroomKicker} title={c.showroomTitle} text={c.showroomText} />
+        <div className={styles.showroomRail}>
+          {SHOWROOM_STORIES.map((story, index) => (
+            <article className={styles.showroomStory} key={story.image}>
+              <div className={styles.showroomImageWrap}>
+                <img src={story.image} alt="Auto Sale Umar showroom" loading={index < 2 ? "eager" : "lazy"} />
+                <span>{String(index + 1).padStart(2, "0")}</span>
+              </div>
+              <div className={styles.showroomStoryCopy}>
+                <h3>{language === "ru" ? story.ruTitle : story.uzTitle}</h3>
+                <p>{language === "ru" ? story.ruText : story.uzText}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section} id="location">
+        <div className={styles.locationCard}>
+          <div className={styles.locationCopy}>
+            <p className={styles.kicker}>{c.locationKicker}</p>
+            <h2>{c.locationTitle}</h2>
+            <p>{c.locationText}</p>
+            <a className={styles.routePill} href={YANDEX_MAPS_URL} target="_blank" rel="noreferrer"><MapPin />{c.route}<ArrowUpRight /></a>
           </div>
-          <div className={styles.showroomVisual} aria-hidden="true">
-            <img src="/brand/asu-wordmark-white.png" alt="" />
-            <div className={styles.showroomLines} />
-            <span><MapPin />{c.location}</span>
+          <div className={styles.mapVisual} aria-hidden="true">
+            <div className={styles.mapRoads}><i /><i /><i /><i /></div>
+            <span className={styles.mapPin}><MapPin /></span>
+            <b>{c.location}</b>
           </div>
         </div>
       </section>
@@ -465,34 +593,21 @@ export default function HomeClient() {
       </section>
 
       <footer className={styles.footer}>
-        <img src="/brand/asu-wordmark-black.png" alt="Auto Sale Umar" />
+        <img src={wordmark} alt="Auto Sale Umar" />
         <p>{c.footer}<br />© 2026</p>
       </footer>
     </main>
   );
 }
 
-function HeroVideo({
-  src, poster, active, muted, near, loop, onEnded,
-}: {
-  src: string;
-  poster?: string;
-  active: boolean;
-  muted: boolean;
-  near: boolean;
-  loop: boolean;
-  onEnded?: () => void;
-}) {
+function HeroVideo({ src, poster, active, muted, near, loop, onEnded }: { src: string; poster?: string; active: boolean; muted: boolean; near: boolean; loop: boolean; onEnded?: () => void }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
     video.muted = muted;
-    if (active) {
-      void video.play().catch(() => undefined);
-    } else {
-      video.pause();
-    }
+    if (active) void video.play().catch(() => undefined);
+    else video.pause();
   }, [active, muted, src]);
   return <video ref={ref} src={src} poster={poster} muted={muted} playsInline loop={loop} onEnded={onEnded} preload={near ? "metadata" : "none"} />;
 }
@@ -505,24 +620,73 @@ function InventorySection({ id, kicker, title, text, empty, cars, language }: { 
   return (
     <section className={styles.section} id={id}>
       <SectionHeading kicker={kicker} title={title} text={text} />
-      {cars.length ? <div className={styles.carRail}>{cars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div> : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
+      {cars.length ? <div className={styles.carGrid}>{cars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div> : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
     </section>
   );
 }
 
 function PublicCarCard({ car, language }: { car: CatalogCar; language: Language }) {
+  const variants = car.variants ?? [];
+  const [variantIndex, setVariantIndex] = useState(0);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const mediaRef = useRef<HTMLDivElement | null>(null);
+  const safeVariantIndex = Math.min(variantIndex, Math.max(variants.length - 1, 0));
+  const activeVariant = variants[safeVariantIndex] ?? null;
+  const photos = activeVariant?.photos?.length
+    ? activeVariant.photos
+    : car.coverUrl
+      ? [{ id: -1, url: car.coverUrl, isCover: true, sortOrder: 0 }]
+      : [];
+
+  function selectVariant(index: number) {
+    setVariantIndex(index);
+    setPhotoIndex(0);
+    mediaRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+  }
+
+  function handlePhotoScroll() {
+    const rail = mediaRef.current;
+    if (!rail || rail.clientWidth <= 0) return;
+    const next = Math.round(rail.scrollLeft / rail.clientWidth);
+    if (next !== photoIndex) setPhotoIndex(next);
+  }
+
   return (
     <article className={styles.carCard}>
-      <div className={styles.carMedia}>
-        {car.coverUrl ? <img src={car.coverUrl} alt={`${car.brand} ${car.model}`} /> : <div className={styles.carPlaceholder}><CarFront /></div>}
+      <div className={styles.carMediaShell}>
+        <div className={styles.carMediaRail} ref={mediaRef} onScroll={handlePhotoScroll}>
+          {photos.length ? photos.map((photo) => (
+            <div className={styles.carMediaSlide} key={`${activeVariant?.id ?? "fallback"}-${photo.id}`}>
+              <img src={photo.url} alt={`${car.brand} ${car.model}`} loading="lazy" />
+            </div>
+          )) : <div className={styles.carPlaceholder}><CarFront /></div>}
+        </div>
         <span className={styles.statusPill} data-status={car.status}>{statusLabel(car.status, language)}</span>
+        {photos.length > 1 ? (
+          <div className={styles.photoDots}>{photos.map((photo, index) => <i key={photo.id} data-active={index === photoIndex} />)}</div>
+        ) : null}
       </div>
+
       <div className={styles.carInfo}>
         <div className={styles.carMeta}><span>{car.brand}</span>{car.year ? <b>{car.year}</b> : null}</div>
         <h3>{car.model}</h3>
         {car.trim ? <p>{car.trim}</p> : null}
-        <div className={styles.carSpecs}>{car.countryCode ? <span>{car.countryCode}</span> : null}{car.engineText ? <span>{car.engineText}</span> : null}</div>
-        <strong>{formatPrice(car, language)}</strong>
+        {car.engineText ? <span className={styles.engineTag}>{car.engineText}</span> : null}
+
+        {variants.length ? (
+          <div className={styles.colorSelector}>
+            <div className={styles.colorDots}>
+              {variants.map((variant, index) => (
+                <button key={variant.id} type="button" data-active={index === safeVariantIndex} onClick={() => selectVariant(index)} aria-label={variant.exteriorColorName || `${COPY[language].color} ${index + 1}`}>
+                  <span style={{ backgroundColor: variant.exteriorSwatch || "#111214" }} />
+                </button>
+              ))}
+            </div>
+            <p>{activeVariant?.exteriorColorName || ""}</p>
+          </div>
+        ) : null}
+
+        <div className={styles.carPrice}><span>{language === "ru" ? "Цена" : "Narx"}</span><b>{formatPrice(car, language)}</b></div>
       </div>
     </article>
   );
@@ -533,6 +697,5 @@ function TrustCard({ icon, title, text }: { icon: ReactNode; title: string; text
 }
 
 function ContactCard({ href, icon, label, detail }: { href: string; icon: ReactNode; label: string; detail: string }) {
-  const external = href.startsWith("http");
-  return <a className={styles.contactCard} href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}><span>{icon}</span><div><b>{label}</b><small>{detail}</small></div><ArrowUpRight /></a>;
+  return <a className={styles.contactCard} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}><span>{icon}</span><div><b>{label}</b><small>{detail}</small></div><ArrowUpRight /></a>;
 }
