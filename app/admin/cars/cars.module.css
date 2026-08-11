@@ -2408,3 +2408,48 @@
   .vinBlock strong { font-size: 14px; }
   .quickPriceRow { grid-template-columns: 1fr 96px; }
 }
+
+/* v5 unified fixed admin chrome */
+.header {
+  position: fixed;
+  z-index: 120;
+  top: 8px;
+  left: 50%;
+  width: min(var(--asu-admin-toolbar-max-width), calc(100% - 16px));
+  margin: 0;
+  transform: translateX(-50%);
+}
+.settingsMenu {
+  width: min(var(--asu-admin-settings-width), calc(100vw - 16px));
+  height: min(var(--asu-admin-settings-height), calc(100dvh - 92px));
+  max-height: calc(100dvh - 92px);
+  right: 0;
+}
+.sectionNav {
+  width: min(var(--asu-admin-section-width), calc(100% - 16px));
+  margin-top: 92px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.sectionNav[data-manager="true"] { max-width: 420px; grid-template-columns: 1fr; }
+.sectionNavItem { min-width: 0; white-space: nowrap; }
+.settingsPublicLink {
+  min-height: 52px;
+  margin-top: 16px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--surface-soft);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+@media (max-width: 640px) {
+  .header { top: 6px; width: calc(100% - 16px); }
+  .sectionNav { margin-top: 90px; }
+  .sectionNavItem { padding: 0 7px; font-size: 12px; }
+  .settingsMenu { width: calc(100vw - 16px); height: calc(100dvh - 88px); max-height: calc(100dvh - 88px); }
+}
