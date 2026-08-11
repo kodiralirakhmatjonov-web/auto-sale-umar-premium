@@ -466,7 +466,7 @@
   min-height: var(--asu-admin-section-height);
   margin: 14px auto 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
 
