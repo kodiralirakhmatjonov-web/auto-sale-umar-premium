@@ -759,3 +759,147 @@
 
 @keyframes introIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes introLogo { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* 2026-08-11 v5 — edge-to-edge media, fixed monochrome chrome, hero metadata */
+.header {
+  top: 6px;
+  width: min(1120px, calc(100% - 20px));
+  min-height: 60px;
+  padding: 6px 7px 6px 14px;
+  color: var(--text);
+}
+.headerBrand { width: clamp(136px, 22vw, 176px); height: 36px; }
+.circleButton { color: var(--text); }
+.circleButton svg { stroke: currentColor; }
+.header[data-hidden="true"] { opacity: 1; pointer-events: auto; transform: translateX(-50%); }
+
+.menuPanel {
+  top: 76px;
+  width: min(640px, calc(100% - 20px));
+  max-height: calc(100dvh - 86px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.hero {
+  width: 100%;
+  max-width: 1280px;
+  height: min(82dvh, 860px);
+  min-height: 620px;
+  margin: 0 auto;
+  padding-top: 0;
+}
+.heroRail {
+  border-radius: 0 0 42px 42px;
+  box-shadow: none;
+}
+.heroSlide video { object-position: center center; }
+
+.heroCaption {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 124px;
+  padding: 42px 28px 22px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  color: #fff;
+  background: linear-gradient(180deg, transparent 0%, rgba(3,3,4,.40) 28%, rgba(3,3,4,.82) 100%);
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
+  backdrop-filter: blur(10px) saturate(125%);
+  pointer-events: none;
+}
+.heroCaptionMain { min-width: 0; display: grid; gap: 5px; }
+.heroCaptionMain span {
+  color: rgba(255,255,255,.70);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.heroCaptionMain strong {
+  max-width: 720px;
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(1.5rem, 4vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: -.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.heroCaptionMeta { flex: 0 0 auto; display: grid; justify-items: end; gap: 7px; }
+.heroCaptionMeta b { color: #fff; font-size: clamp(1.1rem, 2.6vw, 1.55rem); letter-spacing: -.035em; }
+.heroCaptionMeta i {
+  min-height: 30px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255,255,255,.12);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 750;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.page .soundButton { right: 18px; bottom: 142px; color: #fff; }
+.heroDots { bottom: 138px; }
+
+/* Horizontal rails intentionally touch viewport edges. Headings keep their own readable gutters. */
+.brandRail,
+.showroomRail,
+.marketRail {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: 0;
+  padding-right: 0;
+  scroll-padding-left: 0;
+  scroll-padding-right: 0;
+}
+.brandRail { gap: 12px; }
+.showroomRail { gap: 14px; }
+.brandCard:first-child,
+.showroomStory:first-child { margin-left: 0; }
+.brandCard:last-child,
+.showroomStory:last-child { margin-right: 0; }
+
+@media (max-width: 640px) {
+  .header { top: 4px; width: calc(100% - 16px); min-height: 58px; padding: 6px 7px 6px 12px; }
+  .headerBrand { width: 142px; height: 34px; }
+  .menuPanel { top: 70px; width: calc(100% - 16px); max-height: calc(100dvh - 76px); }
+
+  .hero {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 9 / 16;
+    padding-top: 0;
+  }
+  .heroRail { border-radius: 0 0 34px 34px; }
+  .heroCaption { min-height: 116px; padding: 38px 18px 18px; gap: 12px; }
+  .heroCaptionMain strong { max-width: 62vw; font-size: clamp(1.45rem, 7vw, 2rem); }
+  .heroCaptionMeta { gap: 5px; }
+  .heroCaptionMeta b { font-size: 1.05rem; }
+  .heroCaptionMeta i { min-height: 28px; padding: 0 9px; font-size: 10px; }
+  .page .soundButton { right: 14px; bottom: 126px; width: 44px; height: 44px; }
+  .heroDots { bottom: 122px; }
+
+  .brandRail,
+  .showroomRail,
+  .marketRail {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .showroomStory { flex-basis: min(88vw, 420px); }
+}

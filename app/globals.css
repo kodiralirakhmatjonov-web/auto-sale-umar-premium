@@ -29,10 +29,10 @@
   --asu-admin-toolbar-gap: 10px;
   --asu-admin-toolbar-logo-width: 205px;
   --asu-admin-toolbar-logo-height: 50px;
-  --asu-admin-settings-width: 540px;
+  --asu-admin-settings-width: 620px;
   --asu-admin-settings-height: clamp(470px, 68dvh, 620px);
   --asu-admin-settings-radius: 32px;
-  --asu-admin-section-width: 560px;
+  --asu-admin-section-width: 760px;
   --asu-admin-section-height: 52px;
 }
 

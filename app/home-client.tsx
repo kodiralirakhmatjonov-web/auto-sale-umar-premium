@@ -74,6 +74,12 @@ interface HomeMediaItem {
   url: string;
   size: number;
   uploadedAt: string | null;
+  brand: string;
+  model: string;
+  price: number | null;
+  currency: "USD" | "UZS" | "EUR";
+  priceOnRequest: boolean;
+  status: Exclude<CarStatus, "sold" | "hidden">;
 }
 
 interface HomeMediaResponse {
@@ -284,6 +290,14 @@ function formatPrice(car: CatalogCar, language: Language): string {
   return `${value} сум`;
 }
 
+function formatHeroPrice(video: HomeMediaItem, language: Language): string {
+  if (video.priceOnRequest || video.price == null) return COPY[language].priceRequest;
+  const value = new Intl.NumberFormat(language === "ru" ? "ru-RU" : "uz-UZ", { maximumFractionDigits: 0 }).format(video.price);
+  if (video.currency === "USD") return `${value} $`;
+  if (video.currency === "EUR") return `${value} €`;
+  return `${value} сум`;
+}
+
 function statusLabel(status: CarStatus, language: Language): string {
   const c = COPY[language];
   if (status === "in_showroom") return c.showroomStatus;
@@ -299,7 +313,6 @@ export default function HomeClient() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [headerHidden, setHeaderHidden] = useState(false);
   const [introVisible, setIntroVisible] = useState(true);
   const [muted, setMuted] = useState(true);
   const [cars, setCars] = useState<CatalogCar[]>([]);
@@ -374,10 +387,21 @@ export default function HomeClient() {
   }, []);
 
   const c = COPY[language];
-  const heroVideos = useMemo(() => [
-    { key: "built-in-intro", url: "/intro.mp4" },
-    ...videos.map((video) => ({ key: video.key, url: video.url })),
-  ], [videos]);
+  const heroVideos = useMemo<HomeMediaItem[]>(() => [
+    {
+      key: "built-in-intro",
+      url: "/intro.mp4",
+      size: 0,
+      uploadedAt: null,
+      brand: "AUTO SALE UMAR",
+      model: language === "ru" ? "Премиальный шоурум" : "Premium shourum",
+      price: null,
+      currency: "USD",
+      priceOnRequest: true,
+      status: "in_showroom",
+    },
+    ...videos,
+  ], [videos, language]);
 
   const stockCars = useMemo(() => cars.filter((car) =>
     (car.status === "in_stock" || car.status === "in_showroom") && (brand === "all" || car.brand === brand),
@@ -419,31 +443,10 @@ export default function HomeClient() {
     if (next !== heroIndex) setHeroIndex(next);
   }
 
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let ticking = false;
 
-    function updateHeader() {
-      const nextY = window.scrollY;
-      const delta = nextY - lastY;
-      if (menuOpen || nextY < 110) setHeaderHidden(false);
-      else if (delta > 8) setHeaderHidden(true);
-      else if (delta < -8) setHeaderHidden(false);
-      lastY = nextY;
-      ticking = false;
-    }
-
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(updateHeader);
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [menuOpen]);
 
   const wordmark = resolvedTheme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png";
+  const activeHero = heroVideos[heroIndex] ?? heroVideos[0]!;
 
   return (
     <main className={styles.page} data-theme={resolvedTheme}>
@@ -456,7 +459,7 @@ export default function HomeClient() {
         </div>
       ) : null}
 
-      <header className={styles.header} data-hidden={headerHidden && !menuOpen}>
+      <header className={styles.header}>
         <a className={styles.headerBrand} href="#top" aria-label="Auto Sale Umar">
           <img src={wordmark} alt="Auto Sale Umar" />
         </a>
@@ -501,6 +504,18 @@ export default function HomeClient() {
             </article>
           ))}
         </div>
+
+        <div className={styles.heroCaption} aria-live="polite">
+          <div className={styles.heroCaptionMain}>
+            <span>{activeHero.brand || "AUTO SALE UMAR"}</span>
+            <strong>{activeHero.model || (language === "ru" ? "Автомобиль" : "Avtomobil")}</strong>
+          </div>
+          <div className={styles.heroCaptionMeta}>
+            <b>{formatHeroPrice(activeHero, language)}</b>
+            <i>{statusLabel(activeHero.status, language)}</i>
+          </div>
+        </div>
+
         <button className={styles.soundButton} type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Sound on" : "Sound off"}>
           {muted ? <VolumeX /> : <Volume2 />}
         </button>
