@@ -898,22 +898,102 @@ export async function onRequestPatch(context: {
   if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
   if (currentUser.role !== "super_admin" && currentUser.role !== "admin") return json({ success: false, error: "Недостаточно прав." }, 403);
 
-  let body: { id?: unknown; isPublic?: unknown };
-  try { body = await request.json() as { id?: unknown; isPublic?: unknown }; } catch { return json({ success: false, error: "Некорректный JSON-запрос." }, 400); }
+  let body: {
+    id?: unknown;
+    isPublic?: unknown;
+    status?: unknown;
+    price?: unknown;
+    currency?: unknown;
+    priceOnRequest?: unknown;
+  };
+  try {
+    body = await request.json() as {
+      id?: unknown;
+      isPublic?: unknown;
+      status?: unknown;
+      price?: unknown;
+      currency?: unknown;
+      priceOnRequest?: unknown;
+    };
+  } catch {
+    return json({ success: false, error: "Некорректный JSON-запрос." }, 400);
+  }
+
   const id = parseOptionalInteger(body.id, 1, 2_000_000_000);
   if (id === "invalid" || id == null) return json({ success: false, error: "Некорректный ID автомобиля." }, 400);
-  const isPublic = parseBoolean(body.isPublic, false);
 
-  if (isPublic) {
+  const hasPublish = typeof body.isPublic === "boolean";
+  const hasStatus = typeof body.status === "string" && body.status.trim().length > 0;
+  const hasPrice = body.price !== undefined;
+  const hasCurrency = typeof body.currency === "string" && body.currency.trim().length > 0;
+  const hasPriceOnRequest = typeof body.priceOnRequest === "boolean";
+
+  if (!hasPublish && !hasStatus && !hasPrice && !hasCurrency && !hasPriceOnRequest) {
+    return json({ success: false, error: "Нет полей для обновления." }, 400);
+  }
+
+  const isPublic = parseBoolean(body.isPublic, false);
+  if (hasPublish && isPublic) {
     const cover = await env.DB.prepare(
       `SELECT id FROM car_variant_media WHERE car_id = ?1 AND photo_group = 'exterior' LIMIT 1`,
     ).bind(id).first<{ id: number }>();
     if (!cover) return json({ success: false, error: "Для публикации добавьте хотя бы одну фотографию кузова." }, 400);
   }
 
+  const fields: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (hasPublish) {
+    fields.push(`is_published = ?${bindings.length + 1}`);
+    bindings.push(isPublic ? 1 : 0);
+  }
+
+  if (hasStatus) {
+    const status = normalizeText(body.status, 30);
+    if (!isCarStatus(status)) {
+      return json({ success: false, error: "Некорректный статус автомобиля." }, 400);
+    }
+    fields.push(`status = ?${bindings.length + 1}`);
+    bindings.push(status);
+  }
+
+  if (hasCurrency) {
+    const currency = normalizeText(body.currency, 8).toUpperCase();
+    if (!isCurrency(currency)) {
+      return json({ success: false, error: "Некорректная валюта." }, 400);
+    }
+    fields.push(`price_currency = ?${bindings.length + 1}`);
+    bindings.push(currency);
+  }
+
+  if (hasPriceOnRequest) {
+    const priceOnRequest = parseBoolean(body.priceOnRequest, false);
+    fields.push(`price_on_request = ?${bindings.length + 1}`);
+    bindings.push(priceOnRequest ? 1 : 0);
+  }
+
+  if (hasPrice) {
+    if (body.price === null || body.price === "") {
+      fields.push(`price_amount = ?${bindings.length + 1}`);
+      bindings.push(null);
+    } else {
+      const price = parseOptionalInteger(body.price, 0, 9_999_999_999);
+      if (price === "invalid") {
+        return json({ success: false, error: "Некорректная цена автомобиля." }, 400);
+      }
+      fields.push(`price_amount = ?${bindings.length + 1}`);
+      bindings.push(price);
+    }
+  }
+
+  fields.push(`updated_by = ?${bindings.length + 1}`);
+  bindings.push(currentUser.id);
+  fields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+  bindings.push(id);
   await env.DB.prepare(
-    `UPDATE cars SET is_published = ?1, updated_by = ?2, updated_at = CURRENT_TIMESTAMP WHERE id = ?3`,
-  ).bind(isPublic ? 1 : 0, currentUser.id, id).run();
+    `UPDATE cars SET ${fields.join(", ")} WHERE id = ?${bindings.length}`,
+  ).bind(...bindings).run();
 
   const car = await getCarById(env, id);
   if (!car) return json({ success: false, error: "Автомобиль не найден." }, 404);
