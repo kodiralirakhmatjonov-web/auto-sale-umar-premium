@@ -22,7 +22,7 @@
 .toolbar { position: sticky; z-index: 80; top: 8px; width: min(1180px, calc(100% - 20px)); min-height: 70px; margin: 0 auto; padding: 9px 10px; display:grid; grid-template-columns:48px minmax(0,1fr) 48px; align-items:center; gap:10px; border:1px solid var(--line); border-radius:999px; background:color-mix(in srgb,var(--surface) 84%,transparent); box-shadow:var(--shadow); -webkit-backdrop-filter:blur(28px) saturate(150%); backdrop-filter:blur(28px) saturate(150%); }
 .roundControl { width:48px; height:48px; padding:0; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; color:var(--text); background:var(--surface); }
 .roundControl svg { width:22px; height:22px; }
-.wordmark { width:min(205px,100%); height:50px; justify-self:center; display:grid; place-items:center; }
+.wordmark { width:min(178px,100%); height:42px; justify-self:center; display:grid; place-items:center; }
 .wordmark img { max-width:100%; max-height:100%; object-fit:contain; }
 .quickMenu { position:absolute; top:calc(100% + 10px); right:0; width:220px; padding:10px; display:grid; gap:8px; border:1px solid var(--line); border-radius:28px; background:var(--surface); box-shadow:var(--shadow); opacity:0; visibility:hidden; transform:translateY(-8px) scale(.97); transition:.25s var(--spring); }
 .quickMenu[data-open="true"] { opacity:1; visibility:visible; transform:none; }
@@ -76,6 +76,6 @@
 .videoMeta button svg { width:20px; }
 .spin { animation:spin 1s linear infinite; }
 @media(max-width:760px){.sectionNav{width:calc(100% - 20px)}.shell{padding-left:10px;padding-right:10px}.fixedCard{grid-template-columns:1fr}.fixedMedia,.fixedMedia video{min-height:300px}.fixedCopy{padding:26px}.library{padding:22px 16px}.libraryTop{align-items:flex-start;flex-direction:column}.uploadButton{width:100%}.videoGrid{grid-template-columns:1fr}.hero h1{font-size:clamp(52px,15vw,82px)}}
-@media(max-width:390px){.sectionNav a{font-size:12px;padding:0 6px}.toolbar{width:calc(100% - 14px)}.wordmark{max-width:175px}.library{border-radius:34px}.fixedCard{border-radius:34px}}
+@media(max-width:390px){.sectionNav a{font-size:12px;padding:0 6px}.toolbar{width:calc(100% - 14px)}.wordmark{max-width:154px}.library{border-radius:34px}.fixedCard{border-radius:34px}}
 @keyframes pulse{to{opacity:.2;transform:scale(.8)}}
 @keyframes spin{to{transform:rotate(360deg)}}
