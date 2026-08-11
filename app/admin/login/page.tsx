@@ -7,9 +7,17 @@ import styles from "./login.module.css";
 type Theme = "light" | "dark";
 type Language = "ru" | "uz";
 
+type StaffRole = "super_admin" | "admin" | "sales_manager";
+
 interface LoginResponse {
   success: boolean;
   error?: string;
+  user?: { role?: StaffRole };
+}
+
+interface MeResponse {
+  success?: boolean;
+  user?: { role?: StaffRole };
 }
 
 const copy = {
@@ -224,6 +232,18 @@ export default function AdminLoginPage() {
   }, [applyLanguage]);
 
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
+      .then(async (response) => ({ response, data: await response.json().catch(() => null) as MeResponse | null }))
+      .then(({ response, data }) => {
+        if (cancelled || !response.ok || !data?.user?.role) return;
+        router.replace(data.user.role === "sales_manager" ? "/admin/cars/" : "/admin/staff/");
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [router]);
+
+  useEffect(() => {
     if (!menuOpen) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -272,7 +292,10 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.replace("/admin/staff/");
+      const destination = data.user?.role === "sales_manager"
+        ? "/admin/cars/"
+        : "/admin/staff/";
+      router.replace(destination);
       router.refresh();
     } catch {
       setError(text.networkError);
