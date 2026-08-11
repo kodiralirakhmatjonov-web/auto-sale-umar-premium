@@ -1,1 +1,296 @@
+name: AutoSale ZIP Patch Installer
 
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'patch-*.zip'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autosale-zip-patch-installer
+  cancel-in-progress: false
+
+jobs:
+  apply-patch:
+    name: Verify and apply ZIP patch
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout uploaded patch commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect uploaded ZIP
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t ALL_CHANGED < <(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA")
+          mapfile -t PATCHES < <(printf '%s\n' "${ALL_CHANGED[@]}" | grep -E '^patch-[A-Za-z0-9._-]+\.zip$' || true)
+
+          if [ "${#PATCHES[@]}" -ne 1 ]; then
+            echo "Exactly one root-level patch-*.zip must be uploaded in a patch commit."
+            printf 'Changed files:\n%s\n' "${ALL_CHANGED[*]}"
+            exit 1
+          fi
+
+          if [ "${#ALL_CHANGED[@]}" -ne 1 ]; then
+            echo "Patch commit must contain only the ZIP file. Do not mix manual file edits with a patch upload."
+            printf 'Changed files:\n%s\n' "${ALL_CHANGED[*]}"
+            exit 1
+          fi
+
+          PATCH_ZIP="${PATCHES[0]}"
+          cp "$PATCH_ZIP" /tmp/autosale-patch.zip
+          echo "zip=$PATCH_ZIP" >> "$GITHUB_OUTPUT"
+          echo "Patch detected: $PATCH_ZIP"
+
+      - name: Validate ZIP and apply paths safely
+        id: apply
+        shell: bash
+        env:
+          PATCH_ZIP: ${{ steps.detect.outputs.zip }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import shutil
+          import stat
+          import sys
+          import zipfile
+          from pathlib import Path, PurePosixPath
+
+          repo = Path.cwd().resolve()
+          zip_path = Path('/tmp/autosale-patch.zip')
+          patch_name = os.environ['PATCH_ZIP']
+
+          MAX_TOTAL = 200 * 1024 * 1024
+          MAX_FILE = 95 * 1024 * 1024
+          SOURCE_EXTS = {'.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.css'}
+          PROTECTED_PREFIXES = (
+              '.git/',
+              '.github/workflows/',
+              '.github/actions/',
+              'node_modules/',
+              '.next/',
+              'out/',
+          )
+          PROTECTED_FILES = {
+              '.env', '.env.local', '.env.production', '.env.development',
+          }
+
+          def clean_path(raw: str) -> str:
+              if '\\' in raw:
+                  raise ValueError(f'Backslashes are not allowed in ZIP paths: {raw!r}')
+              if raw.startswith('/'):
+                  raise ValueError(f'Absolute path is not allowed: {raw!r}')
+              p = PurePosixPath(raw)
+              parts = p.parts
+              if not parts:
+                  raise ValueError('Empty ZIP path is not allowed')
+              if any(part in ('', '.', '..') for part in parts):
+                  raise ValueError(f'Unsafe path component: {raw!r}')
+              if any(part != part.strip() for part in parts):
+                  raise ValueError(f'Leading/trailing whitespace in path component: {raw!r}')
+              if any(any(ord(ch) < 32 for ch in part) for part in parts):
+                  raise ValueError(f'Control character in path: {raw!r}')
+              normalized = p.as_posix()
+              low = normalized.lower()
+              if low in PROTECTED_FILES:
+                  raise ValueError(f'Protected file cannot be changed by ZIP patch: {normalized}')
+              if any(low.startswith(prefix.lower()) for prefix in PROTECTED_PREFIXES):
+                  raise ValueError(f'Protected path cannot be changed by ZIP patch: {normalized}')
+              if re.fullmatch(r'patch-[A-Za-z0-9._-]+\.zip', normalized):
+                  raise ValueError(f'Nested patch ZIP is not allowed: {normalized}')
+              return normalized
+
+          if not zip_path.is_file():
+              raise SystemExit('Temporary patch ZIP is missing')
+
+          with zipfile.ZipFile(zip_path) as zf:
+              infos = [i for i in zf.infolist() if not i.is_dir()]
+              if not infos:
+                  raise SystemExit('Patch ZIP is empty')
+
+              total = sum(i.file_size for i in infos)
+              if total > MAX_TOTAL:
+                  raise SystemExit(f'Patch is too large when unpacked: {total} bytes')
+
+              seen = set()
+              seen_lower = set()
+              files = []
+              manifest = None
+
+              for info in infos:
+                  mode = (info.external_attr >> 16) & 0o170000
+                  if mode == stat.S_IFLNK:
+                      raise SystemExit(f'Symlink is not allowed in ZIP: {info.filename}')
+                  if info.file_size > MAX_FILE:
+                      raise SystemExit(f'File exceeds safe size limit: {info.filename}')
+
+                  name = clean_path(info.filename)
+                  if name in seen or name.lower() in seen_lower:
+                      raise SystemExit(f'Duplicate/case-conflicting path in ZIP: {name}')
+                  seen.add(name)
+                  seen_lower.add(name.lower())
+
+                  if name == '_patch.json':
+                      try:
+                          manifest = json.loads(zf.read(info).decode('utf-8'))
+                      except Exception as exc:
+                          raise SystemExit(f'Invalid _patch.json: {exc}')
+                      continue
+                  files.append((info, name))
+
+              deletes = []
+              message = None
+              if manifest is not None:
+                  if not isinstance(manifest, dict):
+                      raise SystemExit('_patch.json must contain a JSON object')
+                  raw_deletes = manifest.get('delete', [])
+                  if not isinstance(raw_deletes, list) or not all(isinstance(x, str) for x in raw_deletes):
+                      raise SystemExit('_patch.json "delete" must be an array of repository paths')
+                  deletes = [clean_path(x) for x in raw_deletes]
+                  if len({x.lower() for x in deletes}) != len(deletes):
+                      raise SystemExit('Duplicate delete paths in _patch.json')
+                  raw_message = manifest.get('message')
+                  if raw_message is not None:
+                      if not isinstance(raw_message, str) or not raw_message.strip():
+                          raise SystemExit('_patch.json "message" must be a non-empty string')
+                      message = raw_message.strip()[:120]
+
+              if not files and not deletes:
+                  raise SystemExit('Patch does not contain files or delete instructions')
+
+              written = []
+              for info, name in files:
+                  target = (repo / name).resolve()
+                  if repo not in target.parents:
+                      raise SystemExit(f'Path escaped repository root: {name}')
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  with zf.open(info) as src, open(target, 'wb') as dst:
+                      shutil.copyfileobj(src, dst)
+                  written.append(name)
+
+              deleted = []
+              for name in deletes:
+                  target = (repo / name).resolve()
+                  if repo not in target.parents:
+                      raise SystemExit(f'Delete path escaped repository root: {name}')
+                  if target.is_dir():
+                      shutil.rmtree(target)
+                      deleted.append(name + '/')
+                  elif target.exists():
+                      target.unlink()
+                      deleted.append(name)
+
+          # The uploaded ZIP is an inbox item, never part of the resulting repository head.
+          inbox = repo / patch_name
+          if inbox.exists():
+              inbox.unlink()
+
+          # Guard against the exact failures that previously broke deployment.
+          for name in written:
+              path = repo / name
+              if path.suffix.lower() in SOURCE_EXTS and path.is_file() and path.stat().st_size == 0:
+                  raise SystemExit(f'Rejected zero-byte source file: {name}')
+              if name.endswith('/page.tsx') or name == 'page.tsx':
+                  text = path.read_text('utf-8', errors='replace')
+                  if not re.search(r'export\s+(?:default\b|\{[^}]*\bdefault\b[^}]*\}\s+from\b)', text):
+                      raise SystemExit(f'Rejected page.tsx without a default export: {name}')
+
+          summary = Path(os.environ.get('GITHUB_STEP_SUMMARY', '/tmp/patch-summary.md'))
+          with summary.open('a', encoding='utf-8') as f:
+              f.write('## AutoSale ZIP patch\n\n')
+              f.write(f'**ZIP:** `{patch_name}`\n\n')
+              f.write(f'**Files written:** {len(written)}  \n')
+              f.write(f'**Paths deleted:** {len(deleted)}\n\n')
+              if written:
+                  f.write('### Written\n')
+                  for name in written:
+                      f.write(f'- `{name}`\n')
+              if deleted:
+                  f.write('\n### Deleted\n')
+                  for name in deleted:
+                      f.write(f'- `{name}`\n')
+
+          if message:
+              Path('/tmp/patch-commit-message.txt').write_text(message, encoding='utf-8')
+          PY
+
+          echo "ZIP paths validated and applied to the temporary working tree."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified patch to main
+        shell: bash
+        env:
+          PATCH_ZIP: ${{ steps.detect.outputs.zip }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "autosale-patch-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Nothing changed after verification."
+            exit 0
+          fi
+
+          if [ -s /tmp/patch-commit-message.txt ]; then
+            MSG="$(cat /tmp/patch-commit-message.txt)"
+          else
+            MSG="Apply verified ZIP patch: ${PATCH_ZIP}"
+          fi
+
+          git commit -m "$MSG"
+          git push origin HEAD:main
+
+      - name: Remove rejected ZIP from main
+        if: ${{ failure() && steps.detect.outputs.zip != '' }}
+        shell: bash
+        env:
+          PATCH_ZIP: ${{ steps.detect.outputs.zip }}
+        run: |
+          set +e
+
+          # Discard any unverified files that were unpacked locally.
+          git reset --hard "$GITHUB_SHA"
+          git clean -fd
+
+          if [ -n "$PATCH_ZIP" ] && [ -f "$PATCH_ZIP" ]; then
+            rm -f "$PATCH_ZIP"
+            git config user.name "autosale-patch-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            if ! git diff --cached --quiet; then
+              git commit -m "Remove rejected ZIP patch: ${PATCH_ZIP}"
+              git push origin HEAD:main
+            fi
+          fi
+
+          echo "Rejected patch was not applied to source files."
