@@ -25,23 +25,6 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  icons: {
-    icon: [
-      {
-        url: "/asu-favicon-round-v2-96.png",
-        type: "image/png",
-        sizes: "96x96",
-      },
-    ],
-    shortcut: ["/asu-favicon-round-v2-96.png"],
-    apple: [
-      {
-        url: "/asu-apple-touch-round-v2.png",
-        type: "image/png",
-        sizes: "180x180",
-      },
-    ],
-  },
   manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
