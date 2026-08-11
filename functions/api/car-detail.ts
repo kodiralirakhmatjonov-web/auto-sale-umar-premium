@@ -253,7 +253,7 @@ async function requireAdmin(request: Request, env: DetailEnv) {
   if (!env.DB || !env.AUTH_PEPPER) return { response: json({ success: false, error: "Серверная конфигурация не завершена." }, 500), user: null };
   const user = await getAuthenticatedUser(request, env);
   if (!user) return { response: json({ success: false, error: "Требуется вход в систему." }, 401), user: null };
-  if (user.role !== "super_admin" && user.role !== "admin") return { response: json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403), user: null };
+  if (user.role !== "super_admin" && user.role !== "admin" && user.role !== "sales_manager") return { response: json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403), user: null };
   return { response: null, user };
 }
 
