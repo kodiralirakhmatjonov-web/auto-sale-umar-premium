@@ -2,10 +2,12 @@
 
 import {
   ArrowLeft,
+  ExternalLink,
   Film,
   LockKeyhole,
   Menu,
   Plus,
+  Save,
   Trash2,
   Upload,
   X,
@@ -15,6 +17,8 @@ import styles from "./home.module.css";
 
 type Language = "ru" | "uz";
 type Theme = "light" | "dark";
+type VideoStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved";
+type Currency = "USD" | "UZS" | "EUR";
 
 interface MeResponse {
   user?: { role?: "super_admin" | "admin" | "sales_manager" };
@@ -26,6 +30,12 @@ interface VideoItem {
   url: string;
   size: number;
   uploadedAt: string | null;
+  brand: string;
+  model: string;
+  price: number | null;
+  currency: Currency;
+  priceOnRequest: boolean;
+  status: VideoStatus;
 }
 
 interface MediaResponse {
@@ -43,22 +53,33 @@ const TEXT = {
     home: "Главная",
     eyebrow: "AUTO SALE UMAR / CONTROL SYSTEM",
     title: "Главная страница",
-    lead: "Управляйте короткими видео первого блока публичного сайта. Базовое intro-видео всегда остаётся первым.",
+    lead: "Управляйте рекламной видео-каруселью и подписью каждого ролика. Данные меняются вместе с видео на публичной главной.",
     fixed: "Системное видео",
     fixedTitle: "Intro · первый слайд",
-    fixedText: "Используется при загрузке сайта и всегда стоит первым в рекламной карусели.",
+    fixedText: "Используется при загрузке сайта и всегда остаётся первым. Его карточка на главной подписана Auto Sale Umar.",
     uploaded: "Видео карусели",
     count: "добавлено",
     add: "Добавить видео",
-    uploadHint: "MP4, WebM или MOV · до 80 МБ. Для максимальной совместимости используйте MP4.",
+    uploadHint: "MP4, WebM или MOV · до 80 МБ. Вертикальные 9:16 подходят лучше всего для мобильной главной.",
     uploading: "Загружаем…",
     empty: "Дополнительных видео пока нет.",
-    emptyText: "Добавьте короткие автомобильные видео — они появятся после intro.mp4 на главной странице.",
+    emptyText: "Добавьте короткий ролик автомобиля, затем укажите марку, модель, цену и статус.",
     delete: "Удалить",
     deleteConfirm: "Удалить это видео с главной страницы?",
+    save: "Сохранить подпись",
+    saving: "Сохраняем…",
+    saved: "Сохранено",
+    brand: "Марка",
+    model: "Модель / комплектация",
+    price: "Цена",
+    currency: "Валюта",
+    request: "Цена по запросу",
+    status: "Статус",
+    publicSite: "Открыть основной сайт",
     errorLoad: "Не удалось загрузить список видео.",
     errorUpload: "Не удалось загрузить видео.",
     errorDelete: "Не удалось удалить видео.",
+    errorSave: "Не удалось сохранить подпись видео.",
     managerDenied: "У вашей роли нет доступа к управлению главной страницей.",
   },
   uz: {
@@ -68,25 +89,41 @@ const TEXT = {
     home: "Bosh sahifa",
     eyebrow: "AUTO SALE UMAR / CONTROL SYSTEM",
     title: "Bosh sahifa",
-    lead: "Ommaviy saytning birinchi blokidagi qisqa videolarni boshqaring. Asosiy intro-video doimo birinchi bo‘lib qoladi.",
+    lead: "Reklama video karuseli va har bir rolik yozuvini boshqaring. Ma’lumotlar ommaviy sahifada video bilan birga almashadi.",
     fixed: "Tizim videosi",
     fixedTitle: "Intro · birinchi slayd",
-    fixedText: "Sayt yuklanishida ishlatiladi va reklama karuselida doimo birinchi turadi.",
+    fixedText: "Sayt yuklanishida ishlatiladi va doimo birinchi bo‘lib qoladi. Ommaviy sahifada Auto Sale Umar sifatida ko‘rsatiladi.",
     uploaded: "Karusel videolari",
     count: "qo‘shilgan",
     add: "Video qo‘shish",
-    uploadHint: "MP4, WebM yoki MOV · 80 MB gacha. Eng yaxshi moslik uchun MP4 ishlating.",
+    uploadHint: "MP4, WebM yoki MOV · 80 MB gacha. Mobil bosh sahifa uchun vertikal 9:16 eng mos.",
     uploading: "Yuklanmoqda…",
     empty: "Qo‘shimcha videolar hali yo‘q.",
-    emptyText: "Qisqa avtomobil videolarini qo‘shing — ular bosh sahifada intro.mp4 dan keyin chiqadi.",
+    emptyText: "Avtomobilning qisqa videosini qo‘shing, keyin marka, model, narx va statusni kiriting.",
     delete: "O‘chirish",
     deleteConfirm: "Bu videoni bosh sahifadan o‘chirasizmi?",
+    save: "Yozuvni saqlash",
+    saving: "Saqlanmoqda…",
+    saved: "Saqlandi",
+    brand: "Marka",
+    model: "Model / komplektatsiya",
+    price: "Narx",
+    currency: "Valyuta",
+    request: "Narx so‘rov bo‘yicha",
+    status: "Status",
+    publicSite: "Asosiy saytni ochish",
     errorLoad: "Video ro‘yxatini yuklab bo‘lmadi.",
     errorUpload: "Videoni yuklab bo‘lmadi.",
     errorDelete: "Videoni o‘chirib bo‘lmadi.",
+    errorSave: "Video yozuvini saqlab bo‘lmadi.",
     managerDenied: "Sizning rolingiz bosh sahifani boshqarishga ruxsat bermaydi.",
   },
 } as const;
+
+const STATUS_LABEL: Record<Language, Record<VideoStatus, string>> = {
+  ru: { in_stock: "В наличии", in_showroom: "В шоуруме", in_transit: "В пути", made_to_order: "Под заказ", reserved: "Резерв" },
+  uz: { in_stock: "Mavjud", in_showroom: "Shourumda", in_transit: "Yo‘lda", made_to_order: "Buyurtma", reserved: "Rezerv" },
+};
 
 function formatSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return "—";
@@ -102,6 +139,8 @@ export default function AdminHomePage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [savedKey, setSavedKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -154,6 +193,11 @@ export default function AdminHomePage() {
     try { localStorage.setItem("asu-language", next); } catch {}
   }
 
+  function updateVideo(key: string, patch: Partial<VideoItem>) {
+    setSavedKey((current) => current === key ? null : current);
+    setVideos((current) => current.map((video) => video.key === key ? { ...video, ...patch } : video));
+  }
+
   async function uploadVideo(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.currentTarget.value = "";
@@ -162,6 +206,9 @@ export default function AdminHomePage() {
     setError(null);
     const body = new FormData();
     body.set("file", file, file.name);
+    body.set("status", "in_showroom");
+    body.set("currency", "USD");
+    body.set("priceOnRequest", "1");
     try {
       const response = await fetch("/api/home-media", { method: "POST", credentials: "same-origin", body });
       const data = await response.json().catch(() => null) as MediaResponse | null;
@@ -172,6 +219,39 @@ export default function AdminHomePage() {
       setError(requestError instanceof Error ? requestError.message : c.errorUpload);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function saveVideo(video: VideoItem) {
+    if (savingKey) return;
+    setSavingKey(video.key);
+    setSavedKey(null);
+    setError(null);
+    try {
+      const response = await fetch("/api/home-media", {
+        method: "PATCH",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          key: video.key,
+          brand: video.brand,
+          model: video.model,
+          price: video.price,
+          currency: video.currency,
+          priceOnRequest: video.priceOnRequest,
+          status: video.status,
+        }),
+      });
+      const data = await response.json().catch(() => null) as MediaResponse | null;
+      if (response.status === 401) { location.replace("/admin/login/"); return; }
+      if (!response.ok || !data?.success || !data.video) throw new Error(data?.error || c.errorSave);
+      setVideos((current) => current.map((item) => item.key === video.key ? data.video as VideoItem : item));
+      setSavedKey(video.key);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : c.errorSave);
+    } finally {
+      setSavingKey(null);
     }
   }
 
@@ -197,10 +277,11 @@ export default function AdminHomePage() {
   return (
     <main className={styles.page} data-theme={theme}>
       <header className={styles.toolbar}>
-        <a className={styles.roundControl} href="/admin/" aria-label="Back"><ArrowLeft /></a>
-        <a className={styles.wordmark} href="/admin/"><img src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"} alt="Auto Sale Umar" /></a>
-        <button className={styles.roundControl} type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="Menu">{menuOpen ? <X /> : <Menu />}</button>
+        <a className={styles.roundControl} href="/" aria-label={c.publicSite}><ArrowLeft /></a>
+        <a className={styles.wordmark} href="/admin/home/"><img src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"} alt="Auto Sale Umar" /></a>
+        <button className={styles.roundControl} type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="Menu" aria-expanded={menuOpen}>{menuOpen ? <X /> : <Menu />}</button>
         <div className={styles.quickMenu} data-open={menuOpen}>
+          <a className={styles.publicLink} href="/"><ExternalLink />{c.publicSite}</a>
           <div className={styles.menuRow}>
             <button type="button" data-active={language === "ru"} onClick={() => changeLanguage("ru")}>RU</button>
             <button type="button" data-active={language === "uz"} onClick={() => changeLanguage("uz")}>UZ</button>
@@ -232,7 +313,7 @@ export default function AdminHomePage() {
             <video src="/intro.mp4" poster="/intro-poster.jpg" muted playsInline controls preload="metadata" />
             <span><LockKeyhole />{c.fixed}</span>
           </div>
-          <div className={styles.fixedCopy}><p>01</p><h2>{c.fixedTitle}</h2><span>{c.fixedText}</span></div>
+          <div className={styles.fixedCopy}><p>INTRO</p><h2>{c.fixedTitle}</h2><span>{c.fixedText}</span></div>
         </section>
 
         <section className={styles.library}>
@@ -249,15 +330,29 @@ export default function AdminHomePage() {
             <div className={styles.empty}><Film /><h3>{c.empty}</h3><p>{c.emptyText}</p></div>
           ) : (
             <div className={styles.videoGrid}>
-              {videos.map((video, index) => (
+              {videos.map((video) => (
                 <article className={styles.videoCard} key={video.key}>
                   <div className={styles.videoPreview}>
                     <video src={video.url} muted playsInline controls preload="metadata" />
-                    <b>{String(index + 2).padStart(2, "0")}</b>
+                    <span className={styles.previewStatus}>{STATUS_LABEL[language][video.status]}</span>
                   </div>
-                  <div className={styles.videoMeta}>
-                    <div><strong>Hero video {index + 2}</strong><small>{formatSize(video.size)}</small></div>
-                    <button type="button" disabled={deletingKey === video.key} onClick={() => void deleteVideo(video)} aria-label={c.delete}><Trash2 /></button>
+
+                  <div className={styles.videoEditor}>
+                    <div className={styles.editorGrid}>
+                      <label><span>{c.brand}</span><input value={video.brand} onChange={(event) => updateVideo(video.key, { brand: event.target.value })} placeholder="Rolls-Royce" /></label>
+                      <label><span>{c.model}</span><input value={video.model} onChange={(event) => updateVideo(video.key, { model: event.target.value })} placeholder="Cullinan Black Badge" /></label>
+                      <label><span>{c.status}</span><select value={video.status} onChange={(event) => updateVideo(video.key, { status: event.target.value as VideoStatus })}>{(Object.keys(STATUS_LABEL[language]) as VideoStatus[]).map((status) => <option key={status} value={status}>{STATUS_LABEL[language][status]}</option>)}</select></label>
+                      <label><span>{c.currency}</span><select value={video.currency} onChange={(event) => updateVideo(video.key, { currency: event.target.value as Currency })}><option>USD</option><option>EUR</option><option>UZS</option></select></label>
+                      <label className={styles.priceField}><span>{c.price}</span><input inputMode="numeric" value={video.price ?? ""} disabled={video.priceOnRequest} onChange={(event) => updateVideo(video.key, { price: event.target.value.trim() ? Number(event.target.value.replace(/\D/g, "")) : null })} placeholder="258000" /></label>
+                    </div>
+
+                    <label className={styles.requestToggle}><input type="checkbox" checked={video.priceOnRequest} onChange={(event) => updateVideo(video.key, { priceOnRequest: event.target.checked })} /><span>{c.request}</span></label>
+
+                    <div className={styles.videoActions}>
+                      <div><strong>{video.brand || "Auto Sale Umar"} {video.model}</strong><small>{formatSize(video.size)}</small></div>
+                      <button className={styles.saveButton} type="button" disabled={savingKey === video.key} onClick={() => void saveVideo(video)}><Save />{savingKey === video.key ? c.saving : savedKey === video.key ? c.saved : c.save}</button>
+                      <button className={styles.deleteButton} type="button" disabled={deletingKey === video.key} onClick={() => void deleteVideo(video)} aria-label={c.delete}><Trash2 /></button>
+                    </div>
                   </div>
                 </article>
               ))}
