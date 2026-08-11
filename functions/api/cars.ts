@@ -118,6 +118,28 @@ interface BrandRow {
   name: string;
 }
 
+interface CardVariantRow {
+  car_id: number;
+  variant_id: number;
+  exterior_color_name: string | null;
+  interior_color_name: string | null;
+  exterior_swatch: string | null;
+  interior_swatch: string | null;
+  vin: string | null;
+  stock_number: string | null;
+  quantity: number | null;
+  sort_order: number;
+}
+
+interface CardMediaRow {
+  id: number;
+  car_id: number;
+  variant_id: number;
+  public_url: string;
+  is_cover: number;
+  sort_order: number;
+}
+
 export function normalizeText(value: unknown, maxLength = 500): string {
   if (typeof value !== "string") return "";
   return value.trim().slice(0, maxLength);
@@ -553,7 +575,14 @@ export async function onRequestGet(context: {
         OR c.model LIKE ?${position} COLLATE NOCASE
         OR c.trim LIKE ?${position} COLLATE NOCASE
         OR c.vin LIKE ?${position} COLLATE NOCASE
-        OR c.stock_number LIKE ?${position} COLLATE NOCASE)`,
+        OR c.stock_number LIKE ?${position} COLLATE NOCASE
+        OR EXISTS (
+          SELECT 1
+          FROM car_variants qv
+          INNER JOIN car_variant_inventory qi ON qi.variant_id = qv.id
+          WHERE qv.car_id = c.id
+            AND (qi.vin LIKE ?${position} COLLATE NOCASE OR qi.stock_number LIKE ?${position} COLLATE NOCASE)
+        ))`,
     );
   }
 
@@ -594,6 +623,83 @@ export async function onRequestGet(context: {
     const listResult = await listStatement.all<CarListRow>();
     const rows = Array.isArray(listResult.results) ? listResult.results : [];
 
+    const variantsByCar = new Map<number, Array<{
+      id: number;
+      exteriorColorName: string | null;
+      exteriorSwatch: string;
+      interiorColorName: string | null;
+      interiorSwatch: string;
+      vin: string | null;
+      stockNumber: string | null;
+      quantity: number;
+      exteriorPhotos: Array<{ id: number; url: string; isCover: boolean; sortOrder: number }>;
+    }>>();
+
+    if (rows.length > 0) {
+      const ids = rows.map((row) => row.id);
+      const placeholders = ids.map((_, index) => `?${index + 1}`).join(", ");
+
+      const variantsStatement = (env.DB.prepare(`
+        SELECT
+          v.car_id,
+          v.id AS variant_id,
+          v.color_name_ru AS exterior_color_name,
+          v.interior_color_ru AS interior_color_name,
+          st.exterior_swatch,
+          st.interior_swatch,
+          inv.vin,
+          inv.stock_number,
+          COALESCE(inv.quantity, v.quantity, 1) AS quantity,
+          v.sort_order
+        FROM car_variants v
+        LEFT JOIN car_variant_style st ON st.variant_id = v.id
+        LEFT JOIN car_variant_inventory inv ON inv.variant_id = v.id
+        WHERE v.car_id IN (${placeholders})
+        ORDER BY v.car_id ASC, v.sort_order ASC, v.id ASC
+      `) as unknown as D1ListStatementLike).bind(...ids);
+
+      const mediaStatement = (env.DB.prepare(`
+        SELECT id, car_id, variant_id, public_url, is_cover, sort_order
+        FROM car_variant_media
+        WHERE car_id IN (${placeholders})
+          AND photo_group = 'exterior'
+        ORDER BY car_id ASC, variant_id ASC, is_cover DESC, sort_order ASC, id ASC
+      `) as unknown as D1ListStatementLike).bind(...ids);
+
+      const [variantResult, mediaResult] = await Promise.all([
+        variantsStatement.all<CardVariantRow>(),
+        mediaStatement.all<CardMediaRow>(),
+      ]);
+
+      const mediaByVariant = new Map<number, CardMediaRow[]>();
+      for (const media of Array.isArray(mediaResult.results) ? mediaResult.results : []) {
+        const current = mediaByVariant.get(media.variant_id) ?? [];
+        current.push(media);
+        mediaByVariant.set(media.variant_id, current);
+      }
+
+      for (const variant of Array.isArray(variantResult.results) ? variantResult.results : []) {
+        const current = variantsByCar.get(variant.car_id) ?? [];
+        current.push({
+          id: variant.variant_id,
+          exteriorColorName: variant.exterior_color_name,
+          exteriorSwatch: variant.exterior_swatch || "#111214",
+          interiorColorName: variant.interior_color_name,
+          interiorSwatch: variant.interior_swatch || "#111214",
+          vin: variant.vin,
+          stockNumber: variant.stock_number,
+          quantity: variant.quantity || 1,
+          exteriorPhotos: (mediaByVariant.get(variant.variant_id) ?? []).map((media) => ({
+            id: media.id,
+            url: media.public_url,
+            isCover: media.is_cover === 1,
+            sortOrder: media.sort_order,
+          })),
+        });
+        variantsByCar.set(variant.car_id, current);
+      }
+    }
+
     const countPrepared = env.DB.prepare(countSql);
     const countRow = bindings.length > 0
       ? await countPrepared.bind(...bindings).first<{ count: number }>()
@@ -606,7 +712,10 @@ export async function onRequestGet(context: {
         role: currentUser.role,
       },
       total: countRow?.count ?? rows.length,
-      cars: rows.map(toStaffCar),
+      cars: rows.map((row) => ({
+        ...toStaffCar(row),
+        variants: variantsByCar.get(row.id) ?? [],
+      })),
     });
   } catch (error) {
     console.error("Cars list failed", error);
@@ -894,9 +1003,12 @@ export async function onRequestPatch(context: {
 }): Promise<Response> {
   const { request, env } = context;
   if (!env.DB || !env.AUTH_PEPPER) return json({ success: false, error: "Серверная конфигурация не завершена." }, 500);
+
   const currentUser = await getAuthenticatedUser(request, env);
   if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
-  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") return json({ success: false, error: "Недостаточно прав." }, 403);
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    return json({ success: false, error: "Недостаточно прав." }, 403);
+  }
 
   let body: {
     id?: unknown;
@@ -907,14 +1019,7 @@ export async function onRequestPatch(context: {
     priceOnRequest?: unknown;
   };
   try {
-    body = await request.json() as {
-      id?: unknown;
-      isPublic?: unknown;
-      status?: unknown;
-      price?: unknown;
-      currency?: unknown;
-      priceOnRequest?: unknown;
-    };
+    body = await request.json() as typeof body;
   } catch {
     return json({ success: false, error: "Некорректный JSON-запрос." }, 400);
   }
@@ -922,78 +1027,102 @@ export async function onRequestPatch(context: {
   const id = parseOptionalInteger(body.id, 1, 2_000_000_000);
   if (id === "invalid" || id == null) return json({ success: false, error: "Некорректный ID автомобиля." }, 400);
 
-  const hasPublish = typeof body.isPublic === "boolean";
-  const hasStatus = typeof body.status === "string" && body.status.trim().length > 0;
-  const hasPrice = body.price !== undefined;
-  const hasCurrency = typeof body.currency === "string" && body.currency.trim().length > 0;
-  const hasPriceOnRequest = typeof body.priceOnRequest === "boolean";
+  const existing = await env.DB.prepare(`
+    SELECT id, status, price_amount, price_currency, price_on_request, is_published
+    FROM cars
+    WHERE id = ?1
+    LIMIT 1
+  `).bind(id).first<{
+    id: number;
+    status: CarStatus;
+    price_amount: number | null;
+    price_currency: Currency;
+    price_on_request: number;
+    is_published: number;
+  }>();
 
-  if (!hasPublish && !hasStatus && !hasPrice && !hasCurrency && !hasPriceOnRequest) {
-    return json({ success: false, error: "Нет полей для обновления." }, 400);
+  if (!existing) return json({ success: false, error: "Автомобиль не найден." }, 404);
+
+  const hasStatus = Object.prototype.hasOwnProperty.call(body, "status");
+  const hasPrice = Object.prototype.hasOwnProperty.call(body, "price");
+  const hasCurrency = Object.prototype.hasOwnProperty.call(body, "currency");
+  const hasPriceOnRequest = Object.prototype.hasOwnProperty.call(body, "priceOnRequest");
+  const hasIsPublic = Object.prototype.hasOwnProperty.call(body, "isPublic");
+
+  if (!hasStatus && !hasPrice && !hasCurrency && !hasPriceOnRequest && !hasIsPublic) {
+    return json({ success: false, error: "Не указаны изменения автомобиля." }, 400);
   }
 
-  const isPublic = parseBoolean(body.isPublic, false);
-  if (hasPublish && isPublic) {
+  let nextStatus = existing.status;
+  if (hasStatus) {
+    const rawStatus = normalizeText(body.status, 30);
+    if (!isCarStatus(rawStatus)) return json({ success: false, error: "Некорректный статус автомобиля." }, 400);
+    nextStatus = rawStatus;
+  }
+
+  let nextCurrency = existing.price_currency || "USD";
+  if (hasCurrency) {
+    const rawCurrency = normalizeText(body.currency, 10).toUpperCase();
+    if (!isCurrency(rawCurrency)) return json({ success: false, error: "Некорректная валюта." }, 400);
+    nextCurrency = rawCurrency;
+  }
+
+  let nextPriceOnRequest = existing.price_on_request === 1;
+  if (hasPriceOnRequest) {
+    if (typeof body.priceOnRequest !== "boolean") {
+      return json({ success: false, error: "Некорректное значение «Цена по запросу»." }, 400);
+    }
+    nextPriceOnRequest = body.priceOnRequest;
+  }
+
+  let nextPrice = existing.price_amount;
+  if (hasPrice) {
+    const parsedPrice = parseOptionalInteger(body.price, 0, 9_000_000_000_000);
+    if (parsedPrice === "invalid") return json({ success: false, error: "Проверьте цену автомобиля." }, 400);
+    nextPrice = parsedPrice;
+  }
+  if (nextPriceOnRequest) nextPrice = null;
+  if (!nextPriceOnRequest && nextPrice == null) {
+    return json({ success: false, error: "Укажите цену или включите «Цена по запросу»." }, 400);
+  }
+
+  let nextIsPublic = existing.is_published === 1;
+  if (hasIsPublic) {
+    if (typeof body.isPublic !== "boolean") return json({ success: false, error: "Некорректный статус публикации." }, 400);
+    nextIsPublic = body.isPublic;
+  }
+
+  if (nextIsPublic) {
     const cover = await env.DB.prepare(
       `SELECT id FROM car_variant_media WHERE car_id = ?1 AND photo_group = 'exterior' LIMIT 1`,
     ).bind(id).first<{ id: number }>();
     if (!cover) return json({ success: false, error: "Для публикации добавьте хотя бы одну фотографию кузова." }, 400);
   }
 
-  const fields: string[] = [];
-  const bindings: unknown[] = [];
-
-  if (hasPublish) {
-    fields.push(`is_published = ?${bindings.length + 1}`);
-    bindings.push(isPublic ? 1 : 0);
-  }
-
-  if (hasStatus) {
-    const status = normalizeText(body.status, 30);
-    if (!isCarStatus(status)) {
-      return json({ success: false, error: "Некорректный статус автомобиля." }, 400);
-    }
-    fields.push(`status = ?${bindings.length + 1}`);
-    bindings.push(status);
-  }
-
-  if (hasCurrency) {
-    const currency = normalizeText(body.currency, 8).toUpperCase();
-    if (!isCurrency(currency)) {
-      return json({ success: false, error: "Некорректная валюта." }, 400);
-    }
-    fields.push(`price_currency = ?${bindings.length + 1}`);
-    bindings.push(currency);
-  }
-
-  if (hasPriceOnRequest) {
-    const priceOnRequest = parseBoolean(body.priceOnRequest, false);
-    fields.push(`price_on_request = ?${bindings.length + 1}`);
-    bindings.push(priceOnRequest ? 1 : 0);
-  }
-
-  if (hasPrice) {
-    if (body.price === null || body.price === "") {
-      fields.push(`price_amount = ?${bindings.length + 1}`);
-      bindings.push(null);
-    } else {
-      const price = parseOptionalInteger(body.price, 0, 9_999_999_999);
-      if (price === "invalid") {
-        return json({ success: false, error: "Некорректная цена автомобиля." }, 400);
-      }
-      fields.push(`price_amount = ?${bindings.length + 1}`);
-      bindings.push(price);
-    }
-  }
-
-  fields.push(`updated_by = ?${bindings.length + 1}`);
-  bindings.push(currentUser.id);
-  fields.push(`updated_at = CURRENT_TIMESTAMP`);
-
-  bindings.push(id);
-  await env.DB.prepare(
-    `UPDATE cars SET ${fields.join(", ")} WHERE id = ?${bindings.length}`,
-  ).bind(...bindings).run();
+  await env.DB.prepare(`
+    UPDATE cars
+    SET
+      status = ?1,
+      price_amount = ?2,
+      price_currency = ?3,
+      price_on_request = ?4,
+      is_published = ?5,
+      arrival_date = CASE
+        WHEN ?1 IN ('in_transit', 'made_to_order', 'reserved') THEN arrival_date
+        ELSE NULL
+      END,
+      updated_by = ?6,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?7
+  `).bind(
+    nextStatus,
+    nextPrice,
+    nextCurrency,
+    nextPriceOnRequest ? 1 : 0,
+    nextIsPublic ? 1 : 0,
+    currentUser.id,
+    id,
+  ).run();
 
   const car = await getCarById(env, id);
   if (!car) return json({ success: false, error: "Автомобиль не найден." }, 404);
