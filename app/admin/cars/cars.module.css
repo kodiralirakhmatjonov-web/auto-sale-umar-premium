@@ -834,9 +834,9 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 28px;
+  border-radius: 36px;
   background: var(--surface-soft);
-  box-shadow: 0 10px 30px rgba(20, 23, 28, .045);
+  box-shadow: 0 14px 38px rgba(20, 23, 28, .055);
   transition:
     transform 260ms var(--spring),
     border-color 260ms var(--ease),
@@ -862,6 +862,9 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   background: color-mix(in srgb, var(--text) 5%, var(--solid));
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .carMedia img {
@@ -887,8 +890,7 @@
   height: auto;
 }
 
-.statusBadge,
-.publishBadge {
+.statusBadge {
   position: absolute;
   top: 12px;
   min-height: 32px;
@@ -910,14 +912,6 @@
   left: 12px;
 }
 
-.publishBadge {
-  right: 12px;
-}
-
-.publishBadge[data-published="false"] {
-  color: #161719;
-  background: rgba(255,255,255,.78);
-}
 
 .statusBadge[data-status="in_stock"],
 .statusBadge[data-status="in_showroom"] {
@@ -2098,48 +2092,38 @@
   transition: opacity 180ms var(--ease), transform 360ms var(--ease);
 }
 
-.mediaNav {
-  position: absolute;
-  top: 50%;
-  z-index: 3;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(255,255,255,.30);
-  border-radius: 50%;
-  color: #fff !important;
-  background: rgba(10,10,11,.58);
-  -webkit-backdrop-filter: blur(14px) saturate(145%);
-  backdrop-filter: blur(14px) saturate(145%);
-  box-shadow: 0 8px 24px rgba(0,0,0,.16);
-  transform: translateY(-50%);
-  cursor: pointer;
-}
-
-.mediaNav svg { width: 22px; height: 22px; }
-.mediaNavPrev { left: 12px; }
-.mediaNavNext { right: 12px; }
-
-.mediaCounter {
+.mediaDots {
   position: absolute;
   z-index: 3;
   left: 50%;
   bottom: 12px;
-  min-height: 28px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: 0 10px;
-  border: 1px solid rgba(255,255,255,.24);
+  justify-content: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,255,255,.18);
   border-radius: 999px;
-  color: #fff;
-  background: rgba(10,10,11,.58);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  font-size: 11px;
-  font-weight: 720;
+  background: rgba(10,10,11,.28);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+  backdrop-filter: blur(12px) saturate(135%);
   transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.mediaDot {
+  width: 5px;
+  height: 5px;
+  display: block;
+  border-radius: 999px;
+  background: rgba(255,255,255,.48);
+  transition: width 220ms var(--spring), background-color 180ms var(--ease), opacity 180ms var(--ease);
+}
+
+.mediaDot[data-active="true"] {
+  width: 15px;
+  background: rgba(255,255,255,.96);
 }
 
 .variantChooser {
@@ -2274,13 +2258,13 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border-radius: 16px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 720;
   cursor: pointer;
   transition: transform 180ms var(--spring), background 180ms var(--ease), border-color 180ms var(--ease);
 }
-.editAction:active, .statusAction:active, .mediaNav:active { transform: scale(.96); }
+.editAction:active, .statusAction:active { transform: scale(.96); }
 .editAction {
   border: 1px solid var(--line-strong);
   color: var(--text) !important;
@@ -2409,7 +2393,7 @@
   .carBottom { grid-template-columns: 1fr; }
   .priceBlock { padding-bottom: 2px; }
   .cardActions { grid-template-columns: 1fr 1.08fr; }
-  .editAction, .statusAction { min-height: 54px; font-size: 12px; }
+  .editAction, .statusAction { min-height: 56px; border-radius: 999px; font-size: 12px; }
   .quickStatusGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 

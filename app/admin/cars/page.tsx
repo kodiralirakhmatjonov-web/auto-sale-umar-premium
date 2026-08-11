@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./cars.module.css";
 
 type Theme = "light" | "dark";
@@ -1082,16 +1082,12 @@ function CatalogCarCard({
     window.location.assign(`/admin/cars/edit/?id=${car.id}`);
   }
 
-  function previousPhoto(event: ReactMouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
-    if (photos.length < 2) return;
-    setPhotoIndex((current) => (current - 1 + photos.length) % photos.length);
-  }
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const swipeGuardRef = useRef(false);
 
-  function nextPhoto(event: ReactMouseEvent<HTMLButtonElement>) {
-    event.stopPropagation();
+  function changePhoto(direction: -1 | 1) {
     if (photos.length < 2) return;
-    setPhotoIndex((current) => (current + 1) % photos.length);
+    setPhotoIndex((current) => (current + direction + photos.length) % photos.length);
   }
 
   return (
@@ -1109,26 +1105,55 @@ function CatalogCarCard({
       }}
       aria-label={`${t("Редактировать")}: ${car.brand} ${car.model}`}
     >
-      <div className={styles.carMedia}>
+      <div
+        className={styles.carMedia}
+        onClick={(event) => {
+          if (!swipeGuardRef.current) return;
+          event.stopPropagation();
+          swipeGuardRef.current = false;
+        }}
+        onTouchStart={(event) => {
+          const touch = event.touches[0];
+          swipeGuardRef.current = false;
+          if (touch) touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+        }}
+        onTouchCancel={() => { touchStartRef.current = null; }}
+        onTouchEnd={(event) => {
+          const touch = event.changedTouches[0];
+          const touchStart = touchStartRef.current;
+          touchStartRef.current = null;
+
+          if (!touchStart || !touch || photos.length < 2) return;
+
+          const deltaX = touch.clientX - touchStart.x;
+          const deltaY = touch.clientY - touchStart.y;
+          if (Math.abs(deltaX) < 42 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) return;
+
+          event.stopPropagation();
+          swipeGuardRef.current = true;
+          window.setTimeout(() => { swipeGuardRef.current = false; }, 650);
+          changePhoto(deltaX < 0 ? 1 : -1);
+        }}
+      >
         {currentPhoto ? (
-          <img key={`${activeVariant?.id ?? 0}-${currentPhoto.id}`} src={currentPhoto.url} alt={`${car.brand} ${car.model}`} loading="lazy" />
+          <img key={`${activeVariant?.id ?? 0}-${currentPhoto.id}`} src={currentPhoto.url} alt={`${car.brand} ${car.model}`} loading="lazy" draggable={false} />
         ) : (
           <div className={styles.carMediaFallback} aria-hidden="true"><CarOutlineIcon /></div>
         )}
 
         <span className={styles.statusBadge} data-status={car.status}>{STATUS_LABELS[language][car.status]}</span>
-        <span className={styles.publishBadge} data-published={car.isPublic}>{car.isPublic ? t("Опубликован") : t("Черновик")}</span>
 
         {photos.length > 1 ? (
-          <>
-            <button className={`${styles.mediaNav} ${styles.mediaNavPrev}`} type="button" onClick={previousPhoto} aria-label={t("Предыдущее фото")}>
-              <ChevronSmallLeftIcon />
-            </button>
-            <button className={`${styles.mediaNav} ${styles.mediaNavNext}`} type="button" onClick={nextPhoto} aria-label={t("Следующее фото")}>
-              <ChevronSmallRightIcon />
-            </button>
-            <span className={styles.mediaCounter} aria-label={t("Быстрый просмотр фотографий")}>{safeIndex + 1} / {photos.length}</span>
-          </>
+          <div className={styles.mediaDots} aria-label={t("Быстрый просмотр фотографий")}>
+            {photos.map((photo, index) => (
+              <span
+                key={photo.id}
+                className={styles.mediaDot}
+                data-active={index === safeIndex}
+                aria-hidden="true"
+              />
+            ))}
+          </div>
         ) : null}
       </div>
 
@@ -1222,14 +1247,6 @@ function EditIcon() {
 
 function SlidersIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M8 14v6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="8" cy="17" r="2" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg>;
-}
-
-function ChevronSmallLeftIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
-}
-
-function ChevronSmallRightIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }
 
 function MenuIcon({ open }: { open: boolean }) {
