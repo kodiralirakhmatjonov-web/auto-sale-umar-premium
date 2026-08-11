@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./home.module.css";
+import AdminChrome from "../_components/AdminChrome";
 
 type Language = "ru" | "uz";
 type Theme = "light" | "dark";
@@ -290,29 +291,14 @@ export default function AdminHomePage() {
 
   return (
     <main className={styles.page} data-theme={theme}>
-      <header className={styles.toolbar}>
-        <a className={styles.roundControl} href="/" aria-label={c.publicSite}><ArrowLeft /></a>
-        <a className={styles.wordmark} href="/admin/home/"><img src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"} alt="Auto Sale Umar" /></a>
-        <button className={styles.roundControl} type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="Menu" aria-expanded={menuOpen}>{menuOpen ? <X /> : <Menu />}</button>
-        <div className={styles.quickMenu} data-open={menuOpen}>
-          <a className={styles.publicLink} href="/"><ExternalLink />{c.publicSite}</a>
-          <div className={styles.menuRow}>
-            <button type="button" data-active={language === "ru"} onClick={() => changeLanguage("ru")}>RU</button>
-            <button type="button" data-active={language === "uz"} onClick={() => changeLanguage("uz")}>UZ</button>
-          </div>
-          <div className={styles.menuRow}>
-            <button type="button" data-active={theme === "light"} onClick={() => applyTheme("light")}>Light</button>
-            <button type="button" data-active={theme === "dark"} onClick={() => applyTheme("dark")}>Dark</button>
-          </div>
-        </div>
-      </header>
-
-      <nav className={styles.sectionNav} aria-label={c.nav}>
-        <a href="/admin/staff/">{c.team}</a>
-        <a href="/admin/cars/">{c.cars}</a>
-        <a className={styles.active} href="/admin/home/" aria-current="page">{c.home}</a>
-        <a href="/admin/visits/">{c.visits}</a>
-      </nav>
+      <AdminChrome
+        current="home"
+        language={language}
+        theme={theme}
+        role="admin"
+        onLanguageChange={changeLanguage}
+        onThemeChange={applyTheme}
+      />
 
       <div className={styles.shell}>
         <section className={styles.hero}>
