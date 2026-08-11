@@ -27,11 +27,20 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon-48x48.png", type: "image/png", sizes: "48x48" },
-      { url: "/favicon-512.png", type: "image/png", sizes: "512x512" },
+      {
+        url: "/asu-favicon-round-v2-96.png",
+        type: "image/png",
+        sizes: "96x96",
+      },
     ],
-    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+    shortcut: ["/asu-favicon-round-v2-96.png"],
+    apple: [
+      {
+        url: "/asu-apple-touch-round-v2.png",
+        type: "image/png",
+        sizes: "180x180",
+      },
+    ],
   },
   manifest: "/site.webmanifest",
   openGraph: {
