@@ -2,20 +2,16 @@
 
 import {
   ArrowUpRight,
-  BadgeCheck,
   CarFront,
   ChevronRight,
-  CircleCheck,
   Globe2,
   Instagram,
-  LogIn,
   MapPin,
   Menu,
   MessageCircle,
   Monitor,
   Moon,
   Phone,
-  ShieldCheck,
   Ship,
   Sparkles,
   Sun,
@@ -151,7 +147,7 @@ const COPY = {
     close: "Закрыть",
     cars: "Автомобили",
     employees: "Сотрудники",
-    employeeLogin: "Вход для сотрудников",
+    showroomMenu: "Шоурум",
     contacts: "Контакты",
     language: "Язык",
     theme: "Тема",
@@ -216,7 +212,7 @@ const COPY = {
     close: "Yopish",
     cars: "Avtomobillar",
     employees: "Xodimlar",
-    employeeLogin: "Xodimlar uchun kirish",
+    showroomMenu: "Shourum",
     contacts: "Kontaktlar",
     language: "Til",
     theme: "Mavzu",
@@ -303,6 +299,7 @@ export default function HomeClient() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
   const [introVisible, setIntroVisible] = useState(true);
   const [muted, setMuted] = useState(true);
   const [cars, setCars] = useState<CatalogCar[]>([]);
@@ -422,6 +419,30 @@ export default function HomeClient() {
     if (next !== heroIndex) setHeroIndex(next);
   }
 
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    function updateHeader() {
+      const nextY = window.scrollY;
+      const delta = nextY - lastY;
+      if (menuOpen || nextY < 110) setHeaderHidden(false);
+      else if (delta > 8) setHeaderHidden(true);
+      else if (delta < -8) setHeaderHidden(false);
+      lastY = nextY;
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateHeader);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [menuOpen]);
+
   const wordmark = resolvedTheme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png";
 
   return (
@@ -435,7 +456,7 @@ export default function HomeClient() {
         </div>
       ) : null}
 
-      <header className={styles.header}>
+      <header className={styles.header} data-hidden={headerHidden && !menuOpen}>
         <a className={styles.headerBrand} href="#top" aria-label="Auto Sale Umar">
           <img src={wordmark} alt="Auto Sale Umar" />
         </a>
@@ -448,9 +469,9 @@ export default function HomeClient() {
       <aside className={styles.menuPanel} data-open={menuOpen} aria-hidden={!menuOpen}>
         <nav className={styles.menuNav}>
           <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
+          <a href="#showroom" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.showroomMenu}</span><ChevronRight /></a>
           <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
-          <a href="/admin/staff/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
-          <a href="/admin/login/" onClick={() => setMenuOpen(false)}><LogIn /><span>{c.employeeLogin}</span><ChevronRight /></a>
+          <a href="/admin/login/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
         </nav>
 
         <div className={styles.menuControls}>
@@ -519,15 +540,6 @@ export default function HomeClient() {
       <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} />
       <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} />
 
-      <section className={styles.section}>
-        <SectionHeading kicker={c.trustKicker} title={c.trustTitle} />
-        <div className={styles.trustGrid}>
-          <TrustCard icon={<CircleCheck />} title={c.trust1} text={c.trust1d} />
-          <TrustCard icon={<BadgeCheck />} title={c.trust2} text={c.trust2d} />
-          <TrustCard icon={<ShieldCheck />} title={c.trust3} text={c.trust3d} />
-        </div>
-      </section>
-
       <section className={`${styles.section} ${styles.showroomSection}`} id="showroom">
         <SectionHeading kicker={c.showroomKicker} title={c.showroomTitle} text={c.showroomText} />
         <div className={styles.showroomRail}>
@@ -535,7 +547,6 @@ export default function HomeClient() {
             <article className={styles.showroomStory} key={story.image}>
               <div className={styles.showroomImageWrap}>
                 <img src={story.image} alt="Auto Sale Umar showroom" loading={index < 2 ? "eager" : "lazy"} />
-                <span>{String(index + 1).padStart(2, "0")}</span>
               </div>
               <div className={styles.showroomStoryCopy}>
                 <h3>{language === "ru" ? story.ruTitle : story.uzTitle}</h3>
@@ -692,9 +703,6 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
   );
 }
 
-function TrustCard({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
-  return <article className={styles.trustCard}><span>{icon}</span><h3>{title}</h3><p>{text}</p></article>;
-}
 
 function ContactCard({ href, icon, label, detail }: { href: string; icon: ReactNode; label: string; detail: string }) {
   return <a className={styles.contactCard} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}><span>{icon}</span><div><b>{label}</b><small>{detail}</small></div><ArrowUpRight /></a>;
