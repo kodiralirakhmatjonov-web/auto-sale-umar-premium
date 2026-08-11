@@ -537,7 +537,7 @@ export async function onRequestGet(context: {
     return json({ success: false, error: "Требуется вход в систему." }, 401);
   }
 
-  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin" && currentUser.role !== "sales_manager") {
     return json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403);
   }
 
@@ -741,7 +741,7 @@ export async function onRequestPost(context: {
 
   const currentUser = await getAuthenticatedUser(request, env);
   if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
-  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin" && currentUser.role !== "sales_manager") {
     return json({ success: false, error: "Недостаточно прав для управления автомобилями." }, 403);
   }
 
@@ -1006,7 +1006,7 @@ export async function onRequestPatch(context: {
 
   const currentUser = await getAuthenticatedUser(request, env);
   if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
-  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin" && currentUser.role !== "sales_manager") {
     return json({ success: false, error: "Недостаточно прав." }, 403);
   }
 

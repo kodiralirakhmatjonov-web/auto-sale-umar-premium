@@ -101,26 +101,34 @@ function mediaHeaders(object: R2ObjectLike): Headers {
 
 async function getMediaResponse(request: Request, env: HomeMediaEnv, key: string, headOnly = false): Promise<Response> {
   if (!env.MEDIA) return new Response("Media unavailable", { status: 503 });
-  const metadata = await env.MEDIA.head(key);
-  if (!metadata) return new Response("Not found", { status: 404 });
+  try {
+    const metadata = await env.MEDIA.head(key);
+    if (!metadata) return new Response("Not found", { status: 404 });
 
-  const headers = mediaHeaders(metadata);
-  const range = parseRange(request.headers.get("range"), metadata.size);
-  if (range) {
-    headers.set("content-range", `bytes ${range.offset}-${range.end}/${metadata.size}`);
-    headers.set("content-length", String(range.length));
-    if (headOnly) return new Response(null, { status: 206, headers });
-    const object = await env.MEDIA.get(key, { range: { offset: range.offset, length: range.length } });
+    const headers = mediaHeaders(metadata);
+    const range = parseRange(request.headers.get("range"), metadata.size);
+    if (range) {
+      headers.set("content-range", `bytes ${range.offset}-${range.end}/${metadata.size}`);
+      headers.set("content-length", String(range.length));
+      if (headOnly) return new Response(null, { status: 206, headers });
+      const object = await env.MEDIA.get(key, { range: { offset: range.offset, length: range.length } });
+      if (!object) return new Response("Not found", { status: 404 });
+      return new Response(object.body, { status: 206, headers });
+    }
+
+    headers.set("content-length", String(metadata.size));
+    if (headOnly) return new Response(null, { status: 200, headers });
+    const object = await env.MEDIA.get(key);
     if (!object) return new Response("Not found", { status: 404 });
-    return new Response(object.body, { status: 206, headers });
+    if (typeof object.writeHttpMetadata === "function") object.writeHttpMetadata(headers);
+    return new Response(object.body, { status: 200, headers });
+  } catch (error) {
+    console.error("Homepage media read failed", error);
+    return new Response("Media temporarily unavailable", {
+      status: 503,
+      headers: { "cache-control": "no-store" },
+    });
   }
-
-  headers.set("content-length", String(metadata.size));
-  if (headOnly) return new Response(null, { status: 200, headers });
-  const object = await env.MEDIA.get(key);
-  if (!object) return new Response("Not found", { status: 404 });
-  if (typeof object.writeHttpMetadata === "function") object.writeHttpMetadata(headers);
-  return new Response(object.body, { status: 200, headers });
 }
 
 async function listVideos(env: HomeMediaEnv): Promise<Response> {
