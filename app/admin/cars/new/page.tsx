@@ -232,6 +232,7 @@ const UZ_COPY: Record<string, string> = {
   "Тёмная": "Tungi",
   "Язык": "Til",
   "Настройки сохраняются автоматически": "Sozlamalar avtomatik saqlanadi",
+  "Вернуться на сайт": "Saytga qaytish",
   "CONTROL SYSTEM · АВТОМОБИЛИ": "CONTROL SYSTEM · AVTOMOBILLAR",
   "Новый автомобиль": "Yangi avtomobil",
   "Быстрая форма: основные данные один раз, цвета и фотографии — отдельными вариантами.": "Tezkor shakl: asosiy ma’lumotlar bir marta, ranglar va suratlar esa alohida variantlarda.",
@@ -1033,6 +1034,7 @@ export default function NewCarPage() {
               </div>
             </div>
           </div>
+          <a className={styles.settingsPublicLink} href="/">{t("Вернуться на сайт")}</a>
           <footer className={styles.settingsFooter}>{t("Настройки сохраняются автоматически")}</footer>
         </section>
       </header>
