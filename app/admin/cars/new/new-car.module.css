@@ -2015,3 +2015,12 @@
 /* ===== v6 final unified admin bar for create/edit ===== */
 .toolbar{top:4px!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:calc(100% - 8px)!important;max-width:1280px!important;padding:0!important;margin:0!important;position:fixed!important}.toolbarInner{position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;width:100%!important;min-height:86px!important;padding:10px 11px!important;border-radius:43px!important}.wordmarkLink{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(274px,58vw)!important;height:60px!important;z-index:1!important}.wordmark{width:100%!important;height:100%!important;object-fit:contain!important}.roundControl{position:relative!important;z-index:2!important;width:64px!important;height:64px!important}.settingsMenu{top:96px!important;right:0!important;left:auto!important;width:min(760px,calc(100vw - 8px))!important;max-height:calc(100dvh - 100px)!important}
 @media(max-width:760px){.toolbar{top:4px!important;width:calc(100% - 8px)!important}.toolbarInner{min-height:82px!important}.wordmarkLink{width:min(266px,62vw)!important;height:56px!important}.roundControl{width:62px!important;height:62px!important}.settingsMenu{top:90px!important;width:calc(100vw - 8px)!important;max-height:calc(100dvh - 94px)!important}}
+
+
+/* ===== v3 consistent white brand tiles ===== */
+.brandRail{touch-action:pan-x pan-y!important}
+.brandTile,.page[data-theme="dark"] .brandTile{background:#fff!important;color:#0a0a0b!important;border-color:rgba(20,22,25,.13)!important;box-shadow:0 8px 24px rgba(20,22,25,.04),inset 0 1px 0 rgba(255,255,255,.8)!important}
+.brandLogo,.page[data-theme="dark"] .brandLogo{filter:none!important;mix-blend-mode:normal!important}
+.brandName,.page[data-theme="dark"] .brandName{color:#66676d!important}
+.brandTileActive,.page[data-theme="dark"] .brandTileActive{background:#fff!important;border-color:#0a0a0b!important;box-shadow:0 0 0 1px #0a0a0b,0 12px 28px rgba(18,18,20,.08)!important}
+.brandTileActive .brandName{color:#0a0a0b!important}

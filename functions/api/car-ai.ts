@@ -56,7 +56,7 @@ const nullableBoolean = (description: string) => ({
 const responseSchema = {
   type: "object",
   properties: {
-    brand: nullableString("Exact vehicle brand. Prefer one of: Mercedes-Benz, Range Rover, Rolls-Royce, Cadillac, Lexus, Toyota, Genesis, BMW, Lamborghini."),
+    brand: nullableString("Exact vehicle brand. Prefer one of: Mercedes-Benz, Range Rover, Rolls-Royce, Cadillac, Lexus, Toyota, Genesis, BMW, Lamborghini, Porsche."),
     model: nullableString("Vehicle model only, without trim. Use uppercase-friendly canonical model name."),
     year: nullableInteger("Model year."),
     trim: nullableString("Trim / grade / package name."),
@@ -168,6 +168,7 @@ function sanitizeAiResult(raw: Record<string, unknown>) {
     ["genesis", "Genesis"],
     ["bmw", "BMW"],
     ["lamborghini", "Lamborghini"],
+    ["porsche", "Porsche"],
   ]);
 
   const brandRaw = cleanText(raw.brand, 80);

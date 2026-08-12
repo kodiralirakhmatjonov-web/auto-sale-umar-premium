@@ -168,6 +168,7 @@ const BRANDS = [
   { value: "Genesis", logo: "/brands/genesis.png" },
   { value: "BMW", logo: "/brands/bmw.png" },
   { value: "Lamborghini", logo: "/brands/lamborghini.png" },
+  { value: "Porsche", logo: "/brands/porsche.png" },
 ] as const;
 
 const STATUS_OPTIONS: Array<{ value: CarStatus; label: Record<Language, string> }> = [

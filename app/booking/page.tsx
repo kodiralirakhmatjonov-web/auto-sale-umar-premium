@@ -55,6 +55,7 @@ const BRANDS = [
   { name: "Genesis", logo: "/brands/genesis.png" },
   { name: "BMW", logo: "/brands/bmw.png" },
   { name: "Lamborghini", logo: "/brands/lamborghini.png" },
+  { name: "Porsche", logo: "/brands/porsche.png" },
 ];
 
 const TIME_SLOTS = ["09:00–11:00", "11:00–13:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"];

@@ -1269,174 +1269,97 @@
   .marketRail{width:calc(100% + 40px)!important;margin-left:-20px!important;margin-right:-20px!important;padding-left:20px!important;padding-right:20px!important}
 }
 
-/* ===== v9: precise mobile rails + shared public chrome ===== */
-.hero {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding-top: 0;
+
+/* ===== v9 campaign swipe + metadata-below-video + white brand tiles ===== */
+.hero{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  background:transparent!important;
 }
-
-.heroRail {
-  border-radius: 0 0 34px 34px;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
+.heroRail{
+  height:auto!important;
+  display:flex!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x mandatory!important;
+  scroll-behavior:smooth;
+  touch-action:pan-x pan-y!important;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  background:transparent!important;
 }
-
-.heroSlide {
-  scroll-snap-stop: always;
-  touch-action: pan-x;
+.heroSlide{
+  position:relative!important;
+  flex:0 0 100%!important;
+  min-width:100%!important;
+  height:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:visible!important;
+  scroll-snap-align:start!important;
+  scroll-snap-stop:always;
+  background:var(--surface)!important;
 }
-
-.heroSlide video {
-  pointer-events: none;
-  -webkit-user-select: none;
-  user-select: none;
+.heroVideoFrame{
+  position:relative;
+  width:100%;
+  height:min(82dvh,880px);
+  min-height:560px;
+  overflow:hidden;
+  background:#000;
 }
-
-.brandRail,
-.showroomRail,
-.carRail {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overscroll-behavior-x: contain;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
+.heroVideoFrame video{
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  object-fit:cover!important;
+  pointer-events:none!important;
+  touch-action:none!important;
+  -webkit-user-select:none;
+  user-select:none;
 }
-
-.brandRail::-webkit-scrollbar,
-.showroomRail::-webkit-scrollbar,
-.carRail::-webkit-scrollbar { display: none; }
-
-.carRail {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  padding: 2px 0 14px;
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  overflow-y: visible;
-  scroll-snap-type: x proximity;
+.heroCaption{
+  position:static!important;
+  inset:auto!important;
+  min-height:0!important;
+  padding:22px max(24px,calc((100% - 1180px)/2)) 24px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:18px!important;
+  color:var(--text)!important;
+  background:var(--surface)!important;
+  border-bottom:1px solid var(--line)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  pointer-events:auto!important;
 }
-
-.carRail .carCard {
-  flex: 0 0 min(520px, 88vw);
-  width: min(520px, 88vw);
-  scroll-snap-align: start;
+.heroCaptionMain span{color:var(--muted)!important}
+.heroCaptionMain strong{color:var(--text)!important}
+.heroCaptionMeta b{color:var(--text)!important}
+.heroCaptionMeta i{
+  color:var(--text)!important;
+  border-color:var(--line-strong)!important;
+  background:var(--surface-soft)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
 }
-
-.carRail .carCard:first-child { margin-left: 0; }
-.carRail .carCard:last-child { margin-right: 0; }
-
-.carMediaRail {
-  overscroll-behavior-x: contain;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
-}
-
-.carMediaSlide { scroll-snap-stop: always; }
-.carMediaSlide img { pointer-events: none; user-select: none; -webkit-user-select: none; }
-
-@media (min-width: 761px) {
-  .hero {
-    height: min(76dvh, 820px);
-    min-height: 560px;
-  }
-  .heroRail { border-radius: 0 0 38px 38px; }
-}
-
-@media (max-width: 760px) {
-  .hero {
-    width: 100vw !important;
-    height: min(78dvh, 760px) !important;
-    min-height: 560px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .heroRail {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 0 0 30px 30px !important;
-    box-shadow: none !important;
-  }
-
-  .heroCaption {
-    left: 20px !important;
-    right: 20px !important;
-    bottom: 34px !important;
-    padding: 18px 18px 17px !important;
-    border-radius: 24px !important;
-  }
-
-  .heroDots { bottom: 148px !important; }
-
-  .section,
-  .heroStatement,
-  .footer {
-    width: calc(100% - 32px) !important;
-  }
-
-  .section { padding-top: 78px !important; }
-  .sectionHeading { margin-bottom: 26px !important; }
-
-  .brandRail,
-  .showroomRail,
-  .carRail {
-    width: 100vw !important;
-    margin-left: calc(50% - 50vw) !important;
-    margin-right: calc(50% - 50vw) !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    scroll-padding-left: 0 !important;
-  }
-
-  .brandRail { gap: 10px !important; }
-  .brandCard {
-    flex-basis: 150px !important;
-    min-height: 134px !important;
-    border-radius: 30px !important;
-  }
-
-  .carRail { gap: 12px !important; }
-  .carRail .carCard {
-    flex-basis: 88vw !important;
-    width: 88vw !important;
-    border-radius: 32px !important;
-  }
-
-  .carInfo { padding: 20px 20px 22px !important; }
-
-  .showroomRail { gap: 12px !important; }
-  .showroomStory {
-    flex-basis: 88vw !important;
-    width: 88vw !important;
-  }
-
-  .showroomActions {
-    width: 100% !important;
-    margin: 20px 0 0 !important;
-    padding: 20px !important;
-    grid-template-columns: 1fr !important;
-    gap: 18px !important;
-    border-radius: 28px !important;
-  }
-
-  .showroomActionButtons {
-    width: 100% !important;
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-
-  .bookingPill,
-  .showroomRoutePill {
-    min-height: 54px !important;
-    width: 100% !important;
-    justify-content: center !important;
-    border-radius: 999px !important;
-  }
+.page .soundButton{right:18px!important;bottom:18px!important}
+.heroDots{left:50%!important;bottom:22px!important}
+.brandRail,.showroomRail,.marketRail,.carMediaRail{touch-action:pan-x pan-y!important}
+.brandCard{color:#6f7075!important;background:#fff!important;border-color:rgba(20,22,25,.12)!important}
+.brandCard[data-active="true"]{color:#0a0a0b!important;border-color:rgba(10,10,11,.42)!important}
+.brandCard img{filter:none!important;mix-blend-mode:normal!important}
+.page[data-theme="dark"] .brandCard{color:#66676d!important;background:#fff!important}
+.page[data-theme="dark"] .brandCard[data-active="true"]{color:#0a0a0b!important;border-color:rgba(10,10,11,.42)!important}
+@media(max-width:760px){
+  .heroVideoFrame{height:auto!important;min-height:0!important;aspect-ratio:9/16!important}
+  .heroCaption{min-height:112px!important;padding:18px 18px 20px!important;gap:10px!important}
+  .heroCaptionMain{min-width:0!important}
+  .heroCaptionMain strong{max-width:58vw!important;font-size:clamp(1.45rem,7vw,2rem)!important}
+  .heroCaptionMeta b{font-size:1.02rem!important}
+  .heroCaptionMeta i{min-height:29px!important;padding:0 10px!important;font-size:10px!important}
+  .page .soundButton{right:14px!important;bottom:16px!important;width:44px!important;height:44px!important}
+  .heroDots{bottom:20px!important}
 }

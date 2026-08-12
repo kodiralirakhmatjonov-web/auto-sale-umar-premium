@@ -133,6 +133,7 @@ const BRANDS = [
   { name: "Genesis", logo: "/brands/genesis.png" },
   { name: "BMW", logo: "/brands/bmw.png" },
   { name: "Lamborghini", logo: "/brands/lamborghini.png" },
+  { name: "Porsche", logo: "/brands/porsche.png" },
 ] as const;
 
 const STATUS_LABEL: Record<Language, Record<VideoStatus, string>> = {
