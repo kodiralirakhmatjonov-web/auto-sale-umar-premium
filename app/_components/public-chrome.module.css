@@ -68,16 +68,18 @@
 
 .brand {
   justify-self: center;
-  width: min(226px, 52vw);
-  height: 42px;
+  width: min(184px, 46vw);
+  height: 46px;
   display: grid;
   place-items: center;
   overflow: hidden;
 }
 
 .brand img {
+  display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 46px;
   object-fit: contain;
   object-position: center;
 }
@@ -201,7 +203,7 @@
   .leadingSpacer,
   .control { width: 48px; height: 48px; }
   .control svg { width: 22px; height: 22px; }
-  .brand { width: min(216px, 55vw); height: 39px; }
+  .brand { width: min(182px, 46vw); height: 45px; }
   .drawer {
     top: 69px;
     width: 100%;
@@ -216,6 +218,6 @@
   .chrome { left: 5px; right: 5px; grid-template-columns: 46px minmax(0, 1fr) 46px; }
   .leadingSpacer,
   .control { width: 46px; height: 46px; }
-  .brand { width: min(202px, 54vw); }
+  .brand { width: min(166px, 44vw); }
   .themeSegments button b { display: none; }
 }

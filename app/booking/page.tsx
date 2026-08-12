@@ -2,13 +2,9 @@
 
 import {
   ArrowUpRight,
-  CalendarDays,
   CarFront,
   Check,
-  Clock3,
   MapPin,
-  Phone,
-  Sparkles,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./booking.module.css";
@@ -300,7 +296,7 @@ export default function BookingPage() {
 
       <form className={styles.form} onSubmit={submit}>
         <section className={styles.formSection}>
-          <div className={styles.sectionTitle}><CalendarDays /><div><small>01</small><h2>{c.date}</h2></div></div>
+          <div className={styles.sectionTitle}><div><small>01</small><h2>{c.date}</h2></div></div>
           <div className={styles.dateRail}>
             {dates.map((item, index) => {
               const value = localIso(item);
@@ -311,20 +307,20 @@ export default function BookingPage() {
         </section>
 
         <section className={styles.formSection}>
-          <div className={styles.sectionTitle}><Clock3 /><div><small>02</small><h2>{c.time}</h2></div></div>
+          <div className={styles.sectionTitle}><div><small>02</small><h2>{c.time}</h2></div></div>
           <div className={styles.slotGrid}>{TIME_SLOTS.map((slot) => <button type="button" key={slot} data-active={timeSlot === slot} onClick={() => setTimeSlot(slot)}>{slot}</button>)}</div>
         </section>
 
         <section className={styles.formSection}>
-          <div className={styles.sectionTitle}><Sparkles /><div><small>03</small><h2>{c.brand}</h2></div></div>
+          <div className={styles.sectionTitle}><div><small>03</small><h2>{c.brand}</h2></div></div>
           <div className={styles.brandRail}>
-            <button className={styles.brandCard} type="button" data-active={!brand} onClick={() => selectBrand("")}><span className={styles.allBrand}><Sparkles /></span><b>{c.anyBrand}</b></button>
+            <button className={`${styles.brandCard} ${styles.anyBrandCard}`} type="button" data-active={!brand} onClick={() => selectBrand("")}><span className={styles.anyBrandMark}>AUTO</span><b>{c.anyBrand}</b></button>
             {BRANDS.map((item) => <button className={styles.brandCard} type="button" key={item.name} data-active={brand === item.name} onClick={() => selectBrand(item.name)}><span><img src={item.logo} alt="" /></span><b>{item.name}</b></button>)}
           </div>
         </section>
 
         <section className={styles.formSection}>
-          <div className={styles.sectionTitle}><CarFront /><div><small>04 · {c.optional}</small><h2>{c.car}</h2></div></div>
+          <div className={styles.sectionTitle}><div><small>04 · {c.optional}</small><h2>{c.car}</h2></div></div>
           <div className={styles.carChoiceGrid}>
             <button type="button" className={styles.carChoice} data-active={carId == null} onClick={() => setCarId(null)}><span className={styles.carChoiceIcon}><CarFront /></span><div><b>{c.anyCar}</b><small>{brand || c.anyBrand}</small></div></button>
             {filteredCars.slice(0, 12).map((car) => <button type="button" className={styles.carChoice} data-active={carId === car.id} key={car.id} onClick={() => { setCarId(car.id); setBrand(car.brand); }}>
@@ -335,7 +331,7 @@ export default function BookingPage() {
         </section>
 
         <section className={styles.formSection}>
-          <div className={styles.sectionTitle}><Phone /><div><small>05</small><h2>{c.details}</h2></div></div>
+          <div className={styles.sectionTitle}><div><small>05</small><h2>{c.details}</h2></div></div>
           <div className={styles.fields}>
             <label><span>{c.name}</span><input required value={name} onChange={(event) => setName(event.target.value)} placeholder={language === "ru" ? "Имя и фамилия" : "Ism va familiya"} /></label>
             <label><span>{c.phone}</span><input required type="tel" inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+998 90 123 45 67" /></label>
