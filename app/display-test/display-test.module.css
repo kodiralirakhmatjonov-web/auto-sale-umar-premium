@@ -138,37 +138,36 @@
   overflow: hidden;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 70% 42%, rgba(255, 255, 255, 0.055), transparent 30%),
-    linear-gradient(135deg, #171817 0%, #111211 48%, #0b0c0b 100%);
+    radial-gradient(circle at 62% 34%, rgba(255, 255, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.05), transparent 22%),
+    linear-gradient(132deg, #181917 0%, #111210 42%, #0a0b0a 100%);
   color: #f7f7f4;
   isolation: isolate;
 }
 
 .texture {
   position: absolute;
-  inset: 0;
+  inset: -4%;
   z-index: -3;
-  opacity: 0.33;
+  opacity: 0.42;
   pointer-events: none;
   background-image:
-    linear-gradient(
-      92deg,
-      transparent 0 13%,
-      rgba(255, 255, 255, 0.025) 13.1% 13.18%,
-      transparent 13.3% 44%,
-      rgba(255, 255, 255, 0.018) 44.1% 44.18%,
-      transparent 44.3%
-    ),
-    radial-gradient(ellipse at 18% 12%, rgba(255, 255, 255, 0.07), transparent 22%),
-    repeating-linear-gradient(103deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 9px);
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.075), transparent 18%),
+    radial-gradient(circle at 68% 28%, rgba(255, 255, 255, 0.05), transparent 24%),
+    radial-gradient(circle at 60% 72%, rgba(255, 255, 255, 0.035), transparent 18%),
+    repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 9px),
+    linear-gradient(112deg, transparent 0 16%, rgba(255, 255, 255, 0.028) 16.1% 16.18%, transparent 16.3% 44%, rgba(255, 255, 255, 0.017) 44.1% 44.18%, transparent 44.3%),
+    linear-gradient(166deg, transparent 8%, rgba(255, 255, 255, 0.018) 8.1% 8.18%, transparent 8.3% 58%, rgba(255, 255, 255, 0.014) 58.1% 58.18%, transparent 58.3%);
   mix-blend-mode: screen;
+  filter: blur(0.04cqw);
+  animation: marbleDrift 28s ease-in-out infinite alternate;
 }
 
 .texture::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.24), transparent 36%, rgba(0, 0, 0, 0.14));
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 32%, rgba(0, 0, 0, 0.14));
 }
 
 .ambientGlow {
@@ -179,14 +178,20 @@
   right: 4cqw;
   top: 3cqh;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.055), transparent 68%);
-  filter: blur(3cqw);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.085), transparent 68%);
+  filter: blur(3.4cqw);
   pointer-events: none;
+  animation: glowDrift 18s ease-in-out infinite alternate;
+}
+
+.scene,
+.introScene,
+.loadingScene {
+  position: absolute;
+  inset: 0;
 }
 
 .scene {
-  position: absolute;
-  inset: 0;
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: 3.2cqh 3.05cqw 2.5cqh;
@@ -207,6 +212,7 @@
   width: 17cqw;
   height: auto;
   object-fit: contain;
+  animation: panelFloat 16s ease-in-out infinite alternate;
 }
 
 .displayMeta {
@@ -309,10 +315,10 @@
   max-width: 100%;
   margin-top: 2.35cqh;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 1.15cqw;
   line-height: 1.15;
-  font-weight: 460;
+  font-weight: 470;
   letter-spacing: -0.015em;
   text-overflow: ellipsis;
   text-transform: uppercase;
@@ -335,6 +341,7 @@
   font-weight: 560;
   letter-spacing: 0.015em;
   white-space: nowrap;
+  box-shadow: inset 0 0.08cqw 0 rgba(255, 255, 255, 0.04);
 }
 
 .statusPill i {
@@ -351,14 +358,14 @@
 .statusPill[data-status="made_to_order"] i { background: #e2e2df; }
 
 .price {
-  margin-top: 4cqh;
+  margin-top: 4.2cqh;
   padding-bottom: 2.5cqh;
   border-bottom: 0.07cqw solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.93);
-  font-size: 1.65cqw;
-  line-height: 1;
-  font-weight: 520;
-  letter-spacing: -0.025em;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 2cqw;
+  line-height: 0.98;
+  font-weight: 620;
+  letter-spacing: -0.035em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -424,11 +431,11 @@
   min-height: 0;
   overflow: hidden;
   border: 0.07cqw solid rgba(255, 255, 255, 0.72);
-  border-radius: 3.45cqw;
-  background: #f5f5f2;
+  border-radius: 4cqw;
+  background: linear-gradient(180deg, #f7f7f4 0%, #efefeb 100%);
   box-shadow:
-    0 1.65cqw 5cqw rgba(0, 0, 0, 0.28),
-    inset 0 0.08cqw 0 rgba(255, 255, 255, 0.86);
+    0 1.85cqw 5.2cqw rgba(0, 0, 0, 0.28),
+    inset 0 0.08cqw 0 rgba(255, 255, 255, 0.88);
   transform: translateZ(0);
 }
 
@@ -437,49 +444,43 @@
   inset: 0;
   overflow: hidden;
   border-radius: inherit;
-  background: radial-gradient(circle at 56% 48%, #fff 0 30%, #f4f4f1 67%, #ecece8 100%);
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.96) 0 34%, rgba(244, 244, 240, 0.95) 62%, rgba(233, 233, 227, 0.92) 100%),
+    linear-gradient(180deg, #f8f8f5 0%, #ededea 100%);
+}
+
+.imageStage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.22), transparent 24%),
+    linear-gradient(124deg, rgba(255, 255, 255, 0.12), transparent 30%, rgba(0, 0, 0, 0.04) 76%, transparent 100%);
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 .carImage {
   position: absolute;
-  top: 5.5%;
-  left: 3.5%;
-  width: 93%;
-  height: 88%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: block;
-  object-fit: contain;
-  object-position: center;
-  filter: contrast(1.015) saturate(0.98);
-  will-change: transform, opacity;
+  object-fit: cover;
+  object-position: center center;
+  filter: contrast(1.02) saturate(0.99);
+  will-change: transform, opacity, filter;
 }
 
 .softSweep {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(105deg, transparent 17%, rgba(255, 255, 255, 0.24) 35%, transparent 53%);
+  background: linear-gradient(106deg, transparent 17%, rgba(255, 255, 255, 0.22) 35%, transparent 54%);
   transform: translateX(-115%);
   animation: softSweep 5s cubic-bezier(0.22, 1, 0.36, 1) both;
   mix-blend-mode: screen;
-  opacity: 0.5;
-}
-
-.profileBadge {
-  position: absolute;
-  left: 2.2cqw;
-  bottom: 2.5cqh;
-  z-index: 3;
-  padding: 1.05cqh 1.4cqw;
-  border: 0.07cqw solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.85cqw;
-  background: rgba(20, 20, 20, 0.78);
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.9cqw;
-  line-height: 1;
-  font-weight: 530;
-  letter-spacing: 0.015em;
-  backdrop-filter: blur(1cqw);
-  -webkit-backdrop-filter: blur(1cqw);
+  opacity: 0.55;
 }
 
 .qrCard {
@@ -487,29 +488,29 @@
   right: 2.05cqw;
   bottom: 2.2cqh;
   z-index: 4;
-  min-width: 17cqw;
+  min-width: 17.6cqw;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 1.2cqw;
   padding: 1.35cqh 1.35cqw;
   border: 0.07cqw solid rgba(255, 255, 255, 0.24);
-  border-radius: 1.65cqw;
-  background: rgba(25, 25, 24, 0.9);
+  border-radius: 1.85cqw;
+  background: rgba(21, 21, 20, 0.86);
   color: #fff;
   text-decoration: none;
-  box-shadow: 0 0.9cqw 2.5cqw rgba(0, 0, 0, 0.22);
+  box-shadow: 0 0.95cqw 2.6cqw rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(1.25cqw) saturate(1.05);
   -webkit-backdrop-filter: blur(1.25cqw) saturate(1.05);
 }
 
 .qrWrap {
-  width: 5.5cqw;
+  width: 5.8cqw;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   padding: 0.4cqw;
-  border-radius: 0.75cqw;
+  border-radius: 0.82cqw;
   background: #fff;
 }
 
@@ -529,7 +530,7 @@
 
 .qrCard strong {
   color: #fff;
-  font-size: 0.95cqw;
+  font-size: 0.98cqw;
   line-height: 1.04;
   font-weight: 650;
   letter-spacing: -0.018em;
@@ -567,8 +568,8 @@
   box-shadow: 0 0 1.1cqw rgba(244, 119, 45, 0.32);
 }
 
-.progressRail .progressPaused {
-  animation-play-state: paused;
+.progressPaused {
+  animation-play-state: paused !important;
 }
 
 .footerMeta {
@@ -593,8 +594,6 @@
 }
 
 .loadingScene {
-  position: absolute;
-  inset: 0;
   display: grid;
   place-content: center;
   justify-items: center;
@@ -602,23 +601,63 @@
   text-align: center;
 }
 
-.loadingScene img {
+.loadingScene img,
+.introBrand img {
   width: 21cqw;
+  height: auto;
+  object-fit: contain;
+}
+
+.loadingScene img {
   margin-bottom: 2cqh;
   opacity: 0.96;
   animation: loadingPulse 1.8s ease-in-out infinite;
 }
 
-.loadingScene span {
+.loadingScene span,
+.introBrand span {
   color: rgba(255, 255, 255, 0.52);
   font-size: 0.8cqw;
   letter-spacing: 0.08em;
 }
 
-.loadingScene strong {
+.loadingScene strong,
+.introBrand strong {
   color: rgba(255, 255, 255, 0.86);
   font-size: 1.1cqw;
   letter-spacing: 0.02em;
+}
+
+.introScene {
+  overflow: hidden;
+}
+
+.introVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.introVeil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(7, 7, 7, 0.38) 0%, rgba(10, 10, 10, 0.1) 32%, rgba(7, 7, 7, 0.46) 100%),
+    radial-gradient(circle at 50% 54%, rgba(255, 255, 255, 0.08), transparent 26%);
+}
+
+.introBrand {
+  position: absolute;
+  left: 50%;
+  bottom: 8.6cqh;
+  display: grid;
+  justify-items: center;
+  gap: 0.9cqh;
+  transform: translateX(-50%);
+  text-align: center;
+  animation: brandDrift 8s ease-in-out infinite alternate;
 }
 
 .testFooter {
@@ -666,6 +705,26 @@
   50% { opacity: 1; transform: scale(1); }
 }
 
+@keyframes marbleDrift {
+  from { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
+  to { transform: translate3d(1.5%, 1.2%, 0) scale(1.04); }
+}
+
+@keyframes glowDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  to { transform: translate3d(-1cqw, 1.5cqh, 0) scale(1.06); opacity: 1; }
+}
+
+@keyframes panelFloat {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -0.3cqh, 0); }
+}
+
+@keyframes brandDrift {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-0.35cqh); }
+}
+
 @media (orientation: landscape) and (max-height: 620px) {
   .testRoot {
     grid-template-rows: 1fr;
@@ -677,80 +736,37 @@
       max(8px, env(safe-area-inset-left));
   }
 
-  .testHeader {
-    position: fixed;
-    z-index: 50;
-    top: max(8px, env(safe-area-inset-top));
-    right: max(10px, env(safe-area-inset-right));
-    width: auto;
-    margin: 0;
-    padding: 6px;
-    border-radius: 999px;
-    background: rgba(12, 13, 12, 0.66);
-  }
-
-  .testHeader > div:first-child {
-    display: none;
-  }
-
-  .testControls {
-    gap: 4px;
-  }
-
-  .testControls button {
-    width: 34px;
-    height: 34px;
-  }
-
-  .previewArea {
+  .testHeader,
+  .testFooter {
     position: absolute;
-    inset: 0;
-    padding:
-      max(5px, env(safe-area-inset-top))
-      max(5px, env(safe-area-inset-right))
-      max(5px, env(safe-area-inset-bottom))
-      max(5px, env(safe-area-inset-left));
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .screenFrame {
-    width: min(calc(100vw - 10px), calc((100dvh - 10px) * 16 / 9));
-    max-width: none;
-    border-radius: 20px;
-  }
-
-  .testFooter {
-    display: none;
+    width: min(100%, calc((100dvh - 18px) * 16 / 9));
   }
 }
 
-@media (max-width: 430px) and (orientation: portrait) {
-  .testRoot {
-    gap: 10px;
-  }
-
-  .testHeader {
-    border-radius: 20px;
-  }
-
+@media (max-width: 820px) and (orientation: portrait) {
   .screenFrame {
     width: 100%;
-    border-radius: 18px;
   }
 
   .testFooter {
-    gap: 6px;
     font-size: 9px;
-  }
-
-  .landscapeHint {
-    max-width: 50%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .texture,
+  .ambientGlow,
+  .topBar > img,
   .softSweep,
   .progressRail span,
-  .loadingScene img {
+  .loadingScene img,
+  .introBrand {
     animation: none !important;
   }
 }

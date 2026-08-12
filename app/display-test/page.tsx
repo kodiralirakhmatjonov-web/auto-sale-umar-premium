@@ -2,11 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./display-test.module.css";
 
 type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved" | "sold" | "hidden";
 type Currency = "USD" | "UZS" | "EUR";
+type DisplayPhase = "loading" | "intro" | "catalog";
 
 interface CatalogPhoto {
   id: number;
@@ -54,6 +55,7 @@ interface CatalogResponse {
 
 const ROTATION_MS = 5000;
 const CATALOG_REFRESH_MS = 60_000;
+const INTRO_FALLBACK_MS = 9_000;
 
 const STATUS_LABELS: Record<CarStatus, string> = {
   in_stock: "В НАЛИЧИИ",
@@ -143,6 +145,11 @@ function displayDescription(car: DisplayCar): string {
   return "Автомобиль, выбранный точно.";
 }
 
+function clampIndex(value: number, length: number): number {
+  if (length <= 0) return 0;
+  return Math.min(Math.max(value, 0), length - 1);
+}
+
 function SpecCell({ value }: { value: string }) {
   return (
     <div className={styles.specCell}>
@@ -157,11 +164,33 @@ export default function DisplayTestPage() {
   const [time, setTime] = useState(() => new Date());
   const [error, setError] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [phase, setPhase] = useState<DisplayPhase>("loading");
+  const [introCycle, setIntroCycle] = useState(0);
+
   const currentSlugRef = useRef<string | null>(null);
+  const pendingIndexRef = useRef<number | null>(0);
 
   useEffect(() => {
     currentSlugRef.current = cars[index]?.slug ?? null;
   }, [cars, index]);
+
+  const startIntro = useCallback(
+    (targetIndex: number) => {
+      pendingIndexRef.current = clampIndex(targetIndex, cars.length);
+      setPhase("intro");
+      setIntroCycle((current) => current + 1);
+    },
+    [cars.length],
+  );
+
+  const finishIntro = useCallback(() => {
+    setPhase("catalog");
+    setIndex((current) => {
+      const nextIndex = pendingIndexRef.current;
+      pendingIndexRef.current = null;
+      return clampIndex(nextIndex ?? current, cars.length);
+    });
+  }, [cars.length]);
 
   const loadCars = useCallback(async () => {
     try {
@@ -184,6 +213,7 @@ export default function DisplayTestPage() {
         });
       } else {
         setIndex(0);
+        setPhase("loading");
       }
       setError(false);
     } catch (catalogError) {
@@ -204,20 +234,40 @@ export default function DisplayTestPage() {
   }, []);
 
   useEffect(() => {
-    if (paused || cars.length < 2) return;
-    const rotation = window.setInterval(() => {
-      setIndex((current) => (current + 1) % cars.length);
+    if (cars.length > 0 && phase === "loading") {
+      startIntro(index);
+    }
+  }, [cars.length, index, phase, startIntro]);
+
+  useEffect(() => {
+    if (phase !== "intro") return;
+    const fallback = window.setTimeout(() => finishIntro(), INTRO_FALLBACK_MS);
+    return () => window.clearTimeout(fallback);
+  }, [finishIntro, introCycle, phase]);
+
+  useEffect(() => {
+    if (phase !== "catalog" || paused || cars.length === 0) return;
+    const rotation = window.setTimeout(() => {
+      if (index >= cars.length - 1) {
+        startIntro(0);
+        return;
+      }
+      setIndex((current) => clampIndex(current + 1, cars.length));
     }, ROTATION_MS);
-    return () => window.clearInterval(rotation);
-  }, [cars.length, paused]);
+    return () => window.clearTimeout(rotation);
+  }, [cars.length, index, paused, phase, startIntro]);
 
   const previous = useCallback(() => {
     if (cars.length === 0) return;
+    pendingIndexRef.current = null;
+    setPhase("catalog");
     setIndex((current) => (current - 1 + cars.length) % cars.length);
   }, [cars.length]);
 
   const next = useCallback(() => {
     if (cars.length === 0) return;
+    pendingIndexRef.current = null;
+    setPhase("catalog");
     setIndex((current) => (current + 1) % cars.length);
   }, [cars.length]);
 
@@ -226,6 +276,12 @@ export default function DisplayTestPage() {
     if (!car || cars.length === 0) return "00 / 00";
     return `${pad(index + 1)} / ${pad(cars.length)}`;
   }, [car, cars.length, index]);
+
+  const yearLine = car
+    ? [car.year ? String(car.year) : null, car.engineText || normalizeFuel(car.fuelType)].filter(Boolean).join(" · ")
+    : "";
+  const country = car?.countryCode ? COUNTRY_LABELS[car.countryCode] ?? car.countryCode : null;
+  const image = car ? carImage(car) : "/intro-poster.jpg";
 
   const testControls = (
     <div className={styles.testControls}>
@@ -262,21 +318,56 @@ export default function DisplayTestPage() {
             <div className={styles.texture} aria-hidden="true" />
             <div className={styles.ambientGlow} aria-hidden="true" />
 
-            {!car ? (
-              <div className={styles.loadingScene}>
-                <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
-                <span>SHOWROOM DISPLAY</span>
-                <strong>{error ? "ОБНОВЛЯЕМ ДАННЫЕ" : "ЗАГРУЖАЕМ КОЛЛЕКЦИЮ"}</strong>
-              </div>
-            ) : (
-              <AnimatePresence initial={false} mode="sync">
+            <AnimatePresence initial={false} mode="wait">
+              {phase === "intro" ? (
+                <motion.section
+                  key={`intro-${introCycle}`}
+                  className={styles.introScene}
+                  initial={{ opacity: 0, scale: 1.01, filter: "blur(0.65cqw)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.995, filter: "blur(0.85cqw)" }}
+                  transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <video
+                    key={`intro-video-${introCycle}`}
+                    className={styles.introVideo}
+                    autoPlay
+                    muted
+                    playsInline
+                    preload="auto"
+                    poster="/intro-poster.jpg"
+                    onEnded={finishIntro}
+                  >
+                    <source src="/intro.mp4" type="video/mp4" />
+                  </video>
+                  <div className={styles.introVeil} aria-hidden="true" />
+                  <div className={styles.introBrand}>
+                    <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
+                    <span>SHOWROOM DISPLAY</span>
+                    <strong>PREMIUM COLLECTION</strong>
+                  </div>
+                </motion.section>
+              ) : !car ? (
+                <motion.section
+                  key="loading"
+                  className={styles.loadingScene}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45 }}
+                >
+                  <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
+                  <span>SHOWROOM DISPLAY</span>
+                  <strong>{error ? "ОБНОВЛЯЕМ ДАННЫЕ" : "ЗАГРУЖАЕМ КОЛЛЕКЦИЮ"}</strong>
+                </motion.section>
+              ) : (
                 <motion.section
                   className={styles.scene}
                   key={`${car.id}-${car.slug}`}
                   initial={{ opacity: 0, y: "1.2cqh", scale: 0.997, filter: "blur(0.45cqw)" }}
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: "-0.8cqh", scale: 1.002, filter: "blur(0.45cqw)" }}
-                  transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
+                  exit={{ opacity: 0, y: "-0.8cqh", scale: 1.003, filter: "blur(0.48cqw)" }}
+                  transition={{ duration: 0.92, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <header className={styles.topBar}>
                     <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
@@ -297,11 +388,7 @@ export default function DisplayTestPage() {
                         {car.trim ? <p>{car.trim}</p> : null}
                       </div>
 
-                      <div className={styles.yearLine}>
-                        {[car.year ? String(car.year) : null, car.engineText || normalizeFuel(car.fuelType)]
-                          .filter(Boolean)
-                          .join(" · ") || "PREMIUM"}
-                      </div>
+                      <div className={styles.yearLine}>{yearLine || "PREMIUM"}</div>
 
                       <span className={styles.statusPill} data-status={car.status}>
                         <i aria-hidden="true" />
@@ -314,13 +401,7 @@ export default function DisplayTestPage() {
                         <SpecCell value={normalizeFuel(car.fuelType)} />
                         <SpecCell value={normalizeDrive(car.driveType)} />
                         <SpecCell value={`${new Intl.NumberFormat("ru-RU").format(car.mileageKm || 0)} КМ`} />
-                        <SpecCell
-                          value={
-                            car.countryCode
-                              ? COUNTRY_LABELS[car.countryCode] ?? car.countryCode
-                              : compactTrim(car.trim)
-                          }
-                        />
+                        <SpecCell value={country ?? compactTrim(car.trim)} />
                       </div>
 
                       <div className={styles.description}>{displayDescription(car)}</div>
@@ -329,14 +410,14 @@ export default function DisplayTestPage() {
                     <div className={styles.visualCard}>
                       <div className={styles.imageStage}>
                         <motion.img
-                          key={carImage(car)}
+                          key={image}
                           className={styles.carImage}
-                          src={carImage(car)}
+                          src={image}
                           alt={`${car.brand} ${car.model}`}
-                          initial={{ opacity: 0, scale: 1.018 }}
-                          animate={{ opacity: 1, scale: 1.002 }}
-                          transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1] }}
-                          onError={(event) => {
+                          initial={{ opacity: 0, scale: 1.03, filter: "blur(0.4cqw)" }}
+                          animate={{ opacity: 1, scale: 1.002, filter: "blur(0px)" }}
+                          transition={{ duration: 1.18, ease: [0.22, 1, 0.36, 1] }}
+                          onError={(event: SyntheticEvent<HTMLImageElement>) => {
                             const target = event.currentTarget;
                             if (!target.src.endsWith("/intro-poster.jpg")) target.src = "/intro-poster.jpg";
                           }}
@@ -344,14 +425,16 @@ export default function DisplayTestPage() {
                         <div className={styles.softSweep} aria-hidden="true" />
                       </div>
 
-                      <div className={styles.profileBadge}>{pad(index + 1)} · ПРОФИЛЬ</div>
-
                       <a className={styles.qrCard} href={publicCarUrl(car.slug)}>
                         <div className={styles.qrWrap}>
                           <img src={qrUrl(car.slug)} alt={`QR ${car.brand} ${car.model}`} />
                         </div>
                         <div>
-                          <strong>ОТКРЫТЬ<br />АВТОМОБИЛЬ</strong>
+                          <strong>
+                            ОТКРЫТЬ
+                            <br />
+                            АВТОМОБИЛЬ
+                          </strong>
                           <span>Наведите камеру телефона</span>
                         </div>
                       </a>
@@ -371,15 +454,21 @@ export default function DisplayTestPage() {
                     </div>
                   </footer>
                 </motion.section>
-              </AnimatePresence>
-            )}
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </section>
 
       <footer className={styles.testFooter}>
         <span className={styles.liveDot} aria-hidden="true" />
-        <span>{paused ? "Автопереключение приостановлено" : "Автопереключение каждые 5 секунд"}</span>
+        <span>
+          {phase === "intro"
+            ? "Сейчас проигрывается intro перед каталогом"
+            : paused
+              ? "Автопереключение приостановлено"
+              : "Автопереключение каждые 5 секунд"}
+        </span>
         <span className={styles.landscapeHint}>Поверни iPhone горизонтально для крупного preview</span>
       </footer>
     </main>

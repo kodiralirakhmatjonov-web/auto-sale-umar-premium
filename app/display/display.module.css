@@ -1,6 +1,6 @@
 .displayRoot {
   --ink: #f7f7f4;
-  --muted: rgba(244, 244, 240, 0.62);
+  --muted: rgba(244, 244, 240, 0.66);
   --accent: #f4772d;
   position: fixed;
   inset: 0;
@@ -8,8 +8,9 @@
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 70% 42%, rgba(255, 255, 255, 0.055), transparent 30%),
-    linear-gradient(135deg, #171817 0%, #111211 48%, #0b0c0b 100%);
+    radial-gradient(circle at 62% 34%, rgba(255, 255, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.05), transparent 22%),
+    linear-gradient(132deg, #181917 0%, #111210 42%, #0a0b0a 100%);
   color: var(--ink);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   isolation: isolate;
@@ -20,29 +21,27 @@
 
 .texture {
   position: absolute;
-  inset: 0;
+  inset: -4%;
   z-index: -3;
-  opacity: 0.33;
+  opacity: 0.42;
   pointer-events: none;
   background-image:
-    linear-gradient(
-      92deg,
-      transparent 0 13%,
-      rgba(255, 255, 255, 0.025) 13.1% 13.18%,
-      transparent 13.3% 44%,
-      rgba(255, 255, 255, 0.018) 44.1% 44.18%,
-      transparent 44.3%
-    ),
-    radial-gradient(ellipse at 18% 12%, rgba(255, 255, 255, 0.07), transparent 22%),
-    repeating-linear-gradient(103deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 9px);
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.075), transparent 18%),
+    radial-gradient(circle at 68% 28%, rgba(255, 255, 255, 0.05), transparent 24%),
+    radial-gradient(circle at 60% 72%, rgba(255, 255, 255, 0.035), transparent 18%),
+    repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 9px),
+    linear-gradient(112deg, transparent 0 16%, rgba(255, 255, 255, 0.028) 16.1% 16.18%, transparent 16.3% 44%, rgba(255, 255, 255, 0.017) 44.1% 44.18%, transparent 44.3%),
+    linear-gradient(166deg, transparent 8%, rgba(255, 255, 255, 0.018) 8.1% 8.18%, transparent 8.3% 58%, rgba(255, 255, 255, 0.014) 58.1% 58.18%, transparent 58.3%);
   mix-blend-mode: screen;
+  filter: blur(0.4px);
+  animation: marbleDrift 28s ease-in-out infinite alternate;
 }
 
 .texture::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.24), transparent 36%, rgba(0, 0, 0, 0.14));
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 32%, rgba(0, 0, 0, 0.14));
 }
 
 .ambientGlow {
@@ -50,52 +49,61 @@
   z-index: -2;
   width: 54vw;
   height: 54vw;
-  right: 4vw;
-  top: 3vh;
+  right: 3vw;
+  top: 2vh;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.055), transparent 68%);
-  filter: blur(42px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.085), transparent 68%);
+  filter: blur(54px);
   pointer-events: none;
+  animation: glowDrift 18s ease-in-out infinite alternate;
+}
+
+.scene,
+.introScene,
+.loadingStage {
+  position: absolute;
+  inset: 0;
 }
 
 .scene {
-  position: absolute;
-  inset: 0;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  padding: clamp(28px, 3.2vh, 68px) clamp(38px, 3.05vw, 118px) clamp(24px, 2.5vh, 54px);
+  padding: clamp(26px, 3.2vh, 58px) clamp(42px, 3.05vw, 92px) clamp(24px, 2.5vh, 56px);
   will-change: opacity, transform, filter;
 }
 
 .topBar {
+  min-width: 0;
+  min-height: clamp(56px, 7.2vh, 132px);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  min-height: clamp(64px, 7.2vh, 132px);
+  gap: clamp(22px, 2vw, 52px);
 }
 
 .topBar > img {
   display: block;
-  width: clamp(230px, 17vw, 620px);
+  width: clamp(230px, 17vw, 520px);
   height: auto;
   object-fit: contain;
+  animation: panelFloat 16s ease-in-out infinite alternate;
 }
 
 .displayMeta {
   display: flex;
   align-items: center;
-  gap: clamp(12px, 0.9vw, 26px);
-  padding-top: 0.35vh;
+  gap: clamp(10px, 0.9vw, 18px);
+  padding-top: clamp(4px, 0.35vh, 9px);
   color: rgba(255, 255, 255, 0.74);
-  font-size: clamp(16px, 0.83vw, 30px);
+  font-size: clamp(14px, 0.83vw, 24px);
   font-weight: 530;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .displayMeta i {
-  width: clamp(7px, 0.42vw, 13px);
-  height: clamp(7px, 0.42vw, 13px);
+  width: clamp(6px, 0.42vw, 12px);
+  height: clamp(6px, 0.42vw, 12px);
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 18px rgba(244, 119, 45, 0.34);
@@ -106,100 +114,125 @@
 }
 
 .contentGrid {
-  display: grid;
-  grid-template-columns: minmax(360px, 27.5vw) minmax(0, 1fr);
-  gap: clamp(34px, 3.4vw, 104px);
-  align-items: center;
+  min-width: 0;
   min-height: 0;
-  padding: clamp(12px, 1.2vh, 24px) 0 clamp(18px, 1.8vh, 36px);
+  display: grid;
+  grid-template-columns: minmax(320px, 27.5vw) minmax(0, 1fr);
+  gap: clamp(30px, 3.4vw, 86px);
+  align-items: center;
+  padding: clamp(10px, 1.2vh, 24px) 0 clamp(18px, 1.8vh, 40px);
 }
 
 .infoPanel {
   align-self: stretch;
+  min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-right: clamp(4px, 0.4vw, 16px);
+  padding-right: clamp(4px, 0.4vw, 12px);
 }
 
 .selectionLabel {
-  margin-bottom: clamp(22px, 2.6vh, 54px);
+  margin-bottom: clamp(20px, 2.6vh, 54px);
   color: rgba(255, 255, 255, 0.58);
-  font-size: clamp(15px, 0.78vw, 27px);
+  font-size: clamp(12px, 0.78vw, 22px);
   line-height: 1;
   letter-spacing: 0.055em;
   font-weight: 520;
 }
 
 .identity {
+  min-width: 0;
   display: grid;
-  gap: clamp(4px, 0.4vh, 10px);
+  gap: clamp(3px, 0.4vh, 10px);
+}
+
+.identity > span,
+.identity h1,
+.identity p,
+.yearLine,
+.specCell strong,
+.description {
+  text-wrap: balance;
 }
 
 .identity > span {
   max-width: 100%;
+  overflow: hidden;
   color: #fff;
-  font-size: clamp(36px, 2.42vw, 82px);
+  font-size: clamp(34px, 2.42vw, 74px);
   line-height: 0.96;
   font-weight: 790;
   letter-spacing: -0.045em;
-  text-wrap: balance;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .identity h1 {
   margin: 0;
   max-width: 100%;
+  overflow: hidden;
   color: #fff;
-  font-size: clamp(58px, 4.15vw, 142px);
+  font-size: clamp(58px, 4.15vw, 128px);
   line-height: 0.88;
   font-weight: 850;
   letter-spacing: -0.065em;
-  text-wrap: balance;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .identity p {
-  margin: clamp(7px, 0.7vh, 15px) 0 0;
+  margin: clamp(8px, 0.7vh, 18px) 0 0;
   max-width: 92%;
+  overflow: hidden;
   color: rgba(255, 255, 255, 0.62);
-  font-size: clamp(17px, 0.92vw, 34px);
-  line-height: 1.2;
+  font-size: clamp(16px, 0.92vw, 31px);
+  line-height: 1.22;
   font-weight: 510;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .yearLine {
-  margin-top: clamp(24px, 2.35vh, 48px);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: clamp(22px, 1.15vw, 42px);
+  max-width: 100%;
+  margin-top: clamp(18px, 2.35vh, 50px);
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(20px, 1.15vw, 36px);
   line-height: 1.15;
-  font-weight: 460;
+  font-weight: 470;
   letter-spacing: -0.015em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .statusPill {
   width: fit-content;
   display: inline-flex;
   align-items: center;
-  gap: clamp(10px, 0.65vw, 18px);
-  margin-top: clamp(18px, 1.65vh, 34px);
-  padding: clamp(10px, 0.8vh, 16px) clamp(16px, 1.05vw, 31px);
+  gap: clamp(8px, 0.65vw, 17px);
+  margin-top: clamp(14px, 1.65vh, 32px);
+  padding: clamp(10px, 0.8vh, 18px) clamp(16px, 1.05vw, 29px);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.055);
   color: rgba(255, 255, 255, 0.84);
-  font-size: clamp(16px, 0.88vw, 31px);
+  font-size: clamp(15px, 0.88vw, 28px);
   line-height: 1;
   font-weight: 560;
   letter-spacing: 0.015em;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .statusPill i {
-  width: clamp(8px, 0.48vw, 15px);
-  height: clamp(8px, 0.48vw, 15px);
+  width: clamp(7px, 0.48vw, 13px);
+  height: clamp(7px, 0.48vw, 13px);
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 14px rgba(244, 119, 45, 0.34);
+  box-shadow: 0 0 16px rgba(244, 119, 45, 0.34);
 }
 
 .statusPill[data-status="reserved"] i { background: #d4a33e; }
@@ -208,16 +241,17 @@
 .statusPill[data-status="made_to_order"] i { background: #e2e2df; }
 
 .price {
-  margin-top: clamp(38px, 4vh, 84px);
+  margin-top: clamp(40px, 4.2vh, 92px);
   padding-bottom: clamp(26px, 2.5vh, 52px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.93);
-  font-size: clamp(28px, 1.65vw, 58px);
-  line-height: 1;
-  font-weight: 520;
-  letter-spacing: -0.025em;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: clamp(34px, 1.95vw, 72px);
+  line-height: 0.98;
+  font-weight: 620;
+  letter-spacing: -0.035em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .specGrid {
@@ -280,11 +314,11 @@
   min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: clamp(42px, 3.45vw, 98px);
-  background: #f5f5f2;
+  border-radius: clamp(50px, 4vw, 112px);
+  background: linear-gradient(180deg, #f7f7f4 0%, #efefeb 100%);
   box-shadow:
-    0 26px 80px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    0 30px 86px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
   transform: translateZ(0);
 }
 
@@ -293,49 +327,43 @@
   inset: 0;
   overflow: hidden;
   border-radius: inherit;
-  background: radial-gradient(circle at 56% 48%, #fff 0 30%, #f4f4f1 67%, #ecece8 100%);
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.96) 0 34%, rgba(244, 244, 240, 0.95) 62%, rgba(233, 233, 227, 0.92) 100%),
+    linear-gradient(180deg, #f8f8f5 0%, #ededea 100%);
+}
+
+.imageStage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.22), transparent 24%),
+    linear-gradient(124deg, rgba(255, 255, 255, 0.12), transparent 30%, rgba(0, 0, 0, 0.04) 76%, transparent 100%);
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
 .carImage {
   position: absolute;
-  top: 5.5%;
-  left: 3.5%;
-  width: 93%;
-  height: 88%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: block;
-  object-fit: contain;
-  object-position: center;
-  filter: contrast(1.015) saturate(0.98);
-  will-change: transform, opacity;
+  object-fit: cover;
+  object-position: center center;
+  filter: contrast(1.02) saturate(0.99);
+  will-change: transform, opacity, filter;
 }
 
 .softSweep {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(105deg, transparent 17%, rgba(255, 255, 255, 0.24) 35%, transparent 53%);
+  background: linear-gradient(106deg, transparent 17%, rgba(255, 255, 255, 0.22) 35%, transparent 54%);
   transform: translateX(-115%);
   animation: softSweep 5s cubic-bezier(0.22, 1, 0.36, 1) both;
   mix-blend-mode: screen;
-  opacity: 0.5;
-}
-
-.profileBadge {
-  position: absolute;
-  left: clamp(28px, 2.2vw, 68px);
-  bottom: clamp(26px, 2.5vh, 54px);
-  z-index: 3;
-  padding: clamp(13px, 1.05vh, 23px) clamp(18px, 1.4vw, 38px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: clamp(13px, 0.85vw, 23px);
-  background: rgba(20, 20, 20, 0.78);
-  color: rgba(255, 255, 255, 0.86);
-  font-size: clamp(16px, 0.9vw, 31px);
-  line-height: 1;
-  font-weight: 530;
-  letter-spacing: 0.015em;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  opacity: 0.55;
 }
 
 .qrCard {
@@ -343,29 +371,29 @@
   right: clamp(28px, 2.05vw, 64px);
   bottom: clamp(24px, 2.2vh, 49px);
   z-index: 4;
-  min-width: clamp(270px, 17vw, 590px);
+  min-width: clamp(300px, 18vw, 620px);
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: clamp(16px, 1.2vw, 34px);
   padding: clamp(14px, 1.35vh, 26px) clamp(18px, 1.35vw, 38px);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: clamp(24px, 1.65vw, 46px);
-  background: rgba(25, 25, 24, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: clamp(28px, 1.9vw, 52px);
+  background: rgba(21, 21, 20, 0.86);
   color: #fff;
   text-decoration: none;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(20px) saturate(1.05);
-  -webkit-backdrop-filter: blur(20px) saturate(1.05);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(22px) saturate(1.06);
+  -webkit-backdrop-filter: blur(22px) saturate(1.06);
 }
 
 .qrWrap {
   display: grid;
   place-items: center;
-  width: clamp(82px, 5.5vw, 176px);
+  width: clamp(90px, 5.9vw, 186px);
   aspect-ratio: 1;
-  padding: clamp(6px, 0.4vw, 12px);
-  border-radius: clamp(12px, 0.75vw, 22px);
+  padding: clamp(7px, 0.4vw, 12px);
+  border-radius: clamp(14px, 0.85vw, 24px);
   background: #fff;
 }
 
@@ -385,14 +413,14 @@
 
 .qrCard strong {
   color: #fff;
-  font-size: clamp(17px, 0.95vw, 34px);
+  font-size: clamp(18px, 1.02vw, 36px);
   line-height: 1.04;
   font-weight: 650;
   letter-spacing: -0.018em;
 }
 
 .qrCard span {
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.64);
   font-size: clamp(11px, 0.62vw, 22px);
   line-height: 1.18;
   white-space: nowrap;
@@ -444,6 +472,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.loadingStage {
+  display: grid;
+  place-items: center;
+}
+
 .loadingLogo {
   position: absolute;
   left: 50%;
@@ -466,15 +499,55 @@
   text-align: center;
 }
 
-.loadingCopy span {
+.loadingCopy span,
+.introBrand span {
   font-size: clamp(14px, 0.8vw, 28px);
   letter-spacing: 0.08em;
 }
 
-.loadingCopy strong {
+.loadingCopy strong,
+.introBrand strong {
   color: rgba(255, 255, 255, 0.86);
   font-size: clamp(19px, 1.1vw, 40px);
   letter-spacing: 0.02em;
+}
+
+.introScene {
+  overflow: hidden;
+}
+
+.introVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.introVeil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(7, 7, 7, 0.38) 0%, rgba(10, 10, 10, 0.1) 32%, rgba(7, 7, 7, 0.46) 100%),
+    radial-gradient(circle at 50% 54%, rgba(255, 255, 255, 0.08), transparent 26%);
+}
+
+.introBrand {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(48px, 10vh, 126px);
+  display: grid;
+  justify-items: center;
+  gap: clamp(10px, 0.9vh, 18px);
+  transform: translateX(-50%);
+  text-align: center;
+  animation: brandDrift 8s ease-in-out infinite alternate;
+}
+
+.introBrand img {
+  width: clamp(280px, 24vw, 760px);
+  height: auto;
+  object-fit: contain;
 }
 
 @keyframes displayProgress {
@@ -491,6 +564,26 @@
 @keyframes loadingPulse {
   0%, 100% { opacity: 0.58; transform: translate(-50%, -50%) scale(0.995); }
   50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes marbleDrift {
+  from { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
+  to { transform: translate3d(1.5%, 1.2%, 0) scale(1.04); }
+}
+
+@keyframes glowDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  to { transform: translate3d(-1vw, 1.5vh, 0) scale(1.06); opacity: 1; }
+}
+
+@keyframes panelFloat {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -5px, 0); }
+}
+
+@keyframes brandDrift {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-6px); }
 }
 
 @media (max-aspect-ratio: 5/4) {
@@ -518,14 +611,18 @@
 
   .identity h1 { font-size: clamp(48px, 7vw, 90px); }
   .identity > span { font-size: clamp(28px, 4vw, 48px); }
-  .price { margin-top: 1vh; padding-bottom: 1.5vh; }
+  .price { margin-top: 1vh; padding-bottom: 1.5vh; font-size: clamp(34px, 4.5vw, 64px); }
   .visualCard { min-height: 56vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .texture,
+  .ambientGlow,
+  .topBar > img,
   .softSweep,
   .progressRail span,
-  .loadingLogo {
+  .loadingLogo,
+  .introBrand {
     animation: none !important;
   }
 }
