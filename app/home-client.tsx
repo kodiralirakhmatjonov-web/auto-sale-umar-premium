@@ -682,6 +682,8 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
   const [variantIndex, setVariantIndex] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
   const mediaRef = useRef<HTMLDivElement | null>(null);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const pointerMovedRef = useRef(false);
   const safeVariantIndex = Math.min(variantIndex, Math.max(variants.length - 1, 0));
   const activeVariant = variants[safeVariantIndex] ?? null;
   const photos = activeVariant?.photos?.length
@@ -703,8 +705,35 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
     if (next !== photoIndex) setPhotoIndex(next);
   }
 
+  function openCar() {
+    window.location.href = `/car/?slug=${encodeURIComponent(car.slug)}`;
+  }
+
   return (
-    <article className={styles.carCard}>
+    <article
+      className={styles.carCard}
+      role="link"
+      tabIndex={0}
+      aria-label={`${car.brand} ${car.model}`}
+      onPointerDown={(event) => {
+        pointerStartRef.current = { x: event.clientX, y: event.clientY };
+        pointerMovedRef.current = false;
+      }}
+      onPointerMove={(event) => {
+        const start = pointerStartRef.current;
+        if (!start) return;
+        if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) pointerMovedRef.current = true;
+      }}
+      onClick={(event) => {
+        const target = event.target as HTMLElement;
+        if (pointerMovedRef.current) { pointerMovedRef.current = false; return; }
+        if (target.closest("button, a")) return;
+        openCar();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" && event.target === event.currentTarget) openCar();
+      }}
+    >
       <div className={styles.carMediaShell}>
         <div className={styles.carMediaRail} ref={mediaRef} onScroll={handlePhotoScroll}>
           {photos.length ? photos.map((photo) => (

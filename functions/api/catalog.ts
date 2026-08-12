@@ -32,8 +32,23 @@ interface PublicMediaRow {
   car_id: number;
   variant_id: number;
   public_url: string;
+  photo_group: "exterior" | "interior";
   is_cover: number;
   sort_order: number;
+}
+
+interface PublicPerformanceRow {
+  engine_displacement_l: number | null;
+  horsepower_hp: number | null;
+  torque_nm: number | null;
+  acceleration_0_100_s: number | null;
+  top_speed_kmh: number | null;
+  fuel_consumption_l_100km: number | null;
+  electric_range_km: number | null;
+}
+
+interface PublicLinkRow {
+  instagram_url: string | null;
 }
 
 interface PublicVariant {
@@ -43,6 +58,12 @@ interface PublicVariant {
   interiorColorName: string | null;
   interiorSwatch: string;
   photos: Array<{
+    id: number;
+    url: string;
+    isCover: boolean;
+    sortOrder: number;
+  }>;
+  interiorPhotos: Array<{
     id: number;
     url: string;
     isCover: boolean;
@@ -78,11 +99,11 @@ async function loadPublicVariants(env: Env, carIds: number[]): Promise<Map<numbe
   `) as unknown as D1ListStatementLike).bind(...carIds);
 
   const mediaStatement = (env.DB.prepare(`
-    SELECT id, car_id, variant_id, public_url, is_cover, sort_order
+    SELECT id, car_id, variant_id, public_url, photo_group, is_cover, sort_order
     FROM car_variant_media
     WHERE car_id IN (${placeholders})
-      AND photo_group = 'exterior'
-    ORDER BY car_id ASC, variant_id ASC, is_cover DESC, sort_order ASC, id ASC
+      AND photo_group IN ('exterior', 'interior')
+    ORDER BY car_id ASC, variant_id ASC, photo_group ASC, is_cover DESC, sort_order ASC, id ASC
   `) as unknown as D1ListStatementLike).bind(...carIds);
 
   const [variantResult, mediaResult] = await Promise.all([
@@ -105,12 +126,22 @@ async function loadPublicVariants(env: Env, carIds: number[]): Promise<Map<numbe
       exteriorSwatch: variant.exterior_swatch || "#111214",
       interiorColorName: variant.interior_color_name,
       interiorSwatch: variant.interior_swatch || "#111214",
-      photos: (mediaByVariant.get(variant.variant_id) ?? []).map((media) => ({
-        id: media.id,
-        url: media.public_url,
-        isCover: media.is_cover === 1,
-        sortOrder: media.sort_order,
-      })),
+      photos: (mediaByVariant.get(variant.variant_id) ?? [])
+        .filter((media) => media.photo_group === "exterior")
+        .map((media) => ({
+          id: media.id,
+          url: media.public_url,
+          isCover: media.is_cover === 1,
+          sortOrder: media.sort_order,
+        })),
+      interiorPhotos: (mediaByVariant.get(variant.variant_id) ?? [])
+        .filter((media) => media.photo_group === "interior")
+        .map((media) => ({
+          id: media.id,
+          url: media.public_url,
+          isCover: media.is_cover === 1,
+          sortOrder: media.sort_order,
+        })),
     });
     byCar.set(variant.car_id, current);
   }
@@ -138,11 +169,36 @@ async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
       return json({ success: false, error: "Автомобиль не найден." }, 404);
     }
 
-    const variants = await loadPublicVariants(env, [car.id]);
+    const [variants, performance, links] = await Promise.all([
+      loadPublicVariants(env, [car.id]),
+      env.DB.prepare(`
+        SELECT
+          engine_displacement_l, horsepower_hp, torque_nm, acceleration_0_100_s,
+          top_speed_kmh, fuel_consumption_l_100km, electric_range_km
+        FROM car_performance
+        WHERE car_id = ?1
+        LIMIT 1
+      `).bind(car.id).first<PublicPerformanceRow>(),
+      env.DB.prepare(`
+        SELECT instagram_url
+        FROM car_links
+        WHERE car_id = ?1
+        LIMIT 1
+      `).bind(car.id).first<PublicLinkRow>(),
+    ]);
+
     return json({
       success: true,
       car: {
         ...toPublicCatalogCar(car),
+        engineDisplacementL: performance?.engine_displacement_l ?? null,
+        horsepowerHp: performance?.horsepower_hp ?? null,
+        torqueNm: performance?.torque_nm ?? null,
+        acceleration0100: performance?.acceleration_0_100_s ?? null,
+        topSpeedKmh: performance?.top_speed_kmh ?? null,
+        fuelConsumptionL100: performance?.fuel_consumption_l_100km ?? null,
+        electricRangeKm: performance?.electric_range_km ?? null,
+        instagramUrl: links?.instagram_url ?? null,
         variants: variants.get(car.id) ?? [],
       },
     });
