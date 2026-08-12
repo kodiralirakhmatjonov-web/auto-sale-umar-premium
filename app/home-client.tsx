@@ -170,14 +170,19 @@ const COPY = {
     brandsKicker: "ВЫБЕРИТЕ МАРКУ",
     brandsTitle: "Начните с характера.",
     brandsText: "Коллекция формируется из автомобилей, которые действительно есть в базе Auto Sale Umar.",
+    showroomCarsKicker: "В ШОУРУМЕ",
+    showroomCarsTitle: "Можно посмотреть сегодня.",
+    showroomCarsText: "Автомобили, которые сейчас находятся в шоуруме и доступны для просмотра.",
     stockKicker: "В НАЛИЧИИ",
-    stockTitle: "Можно увидеть сегодня.",
-    stockText: "Автомобили, которые уже доступны для просмотра и покупки.",
+    stockTitle: "Без ожидания поставки.",
+    stockText: "Автомобили в шоуруме и на складе, которые можно купить без ожидания приезда.",
     transitKicker: "В ПУТИ",
     transitTitle: "Следующее поступление.",
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
+    emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
     emptyTransit: "Сейчас опубликованных автомобилей в пути нет.",
+    seeAll: "Посмотреть все",
     trustKicker: "ПОЧЕМУ AUTO SALE UMAR",
     trustTitle: "Спокойствие строится на деталях.",
     trust1: "Статус без догадок",
@@ -243,14 +248,19 @@ const COPY = {
     brandsKicker: "MARKANI TANLANG",
     brandsTitle: "Xarakterdan boshlang.",
     brandsText: "Kolleksiya Auto Sale Umar bazasida haqiqatan mavjud bo‘lgan avtomobillardan shakllanadi.",
+    showroomCarsKicker: "SHOURUMDA",
+    showroomCarsTitle: "Bugun ko‘rish mumkin.",
+    showroomCarsText: "Hozir shourumda turgan va ko‘rish uchun mavjud avtomobillar.",
     stockKicker: "MAVJUD",
-    stockTitle: "Bugun ko‘rish mumkin.",
-    stockText: "Ko‘rish va xarid qilish uchun hozirning o‘zida mavjud avtomobillar.",
+    stockTitle: "Yetkazib berishni kutmasdan.",
+    stockText: "Shourum va ombordagi, kelishini kutmasdan xarid qilish mumkin bo‘lgan avtomobillar.",
     transitKicker: "YO‘LDA",
     transitTitle: "Keyingi kelish.",
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
+    emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
     emptyTransit: "Hozir ommaviy katalogda yo‘ldagi avtomobil yo‘q.",
+    seeAll: "Barchasini ko‘rish",
     trustKicker: "NEGA AUTO SALE UMAR",
     trustTitle: "Xotirjamlik tafsilotlardan boshlanadi.",
     trust1: "Aniq status",
@@ -420,13 +430,17 @@ export default function HomeClient() {
     ...videos,
   ], [videos, language]);
 
+  const showroomCars = useMemo(() => cars.filter((car) =>
+    car.status === "in_showroom" && (brand === "all" || car.brand === brand),
+  ), [cars, brand]);
+
   const stockCars = useMemo(() => cars.filter((car) =>
     (car.status === "in_stock" || car.status === "in_showroom") && (brand === "all" || car.brand === brand),
-  ).slice(0, 8), [cars, brand]);
+  ), [cars, brand]);
 
   const transitCars = useMemo(() => cars.filter((car) =>
     (car.status === "in_transit" || car.status === "made_to_order") && (brand === "all" || car.brand === brand),
-  ).slice(0, 8), [cars, brand]);
+  ), [cars, brand]);
 
   const closeIntro = useCallback(() => setIntroVisible(false), []);
 
@@ -560,6 +574,7 @@ export default function HomeClient() {
         </div>
       </section>
 
+      <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} />
       <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} />
       <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} />
 
@@ -648,10 +663,16 @@ function SectionHeading({ kicker, title, text }: { kicker: string; title: string
 }
 
 function InventorySection({ id, kicker, title, text, empty, cars, language }: { id: string; kicker: string; title: string; text: string; empty: string; cars: CatalogCar[]; language: Language }) {
+  const visibleCars = cars.slice(0, 6);
   return (
     <section className={styles.section} id={id}>
       <SectionHeading kicker={kicker} title={title} text={text} />
-      {cars.length ? <div className={styles.carGrid}>{cars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div> : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
+      {visibleCars.length ? (
+        <>
+          <div className={styles.carGrid}>{visibleCars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div>
+          {cars.length > 6 ? <a className={styles.seeAllPill} href="#cars">{COPY[language].seeAll}<ChevronRight /></a> : null}
+        </>
+      ) : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
     </section>
   );
 }
