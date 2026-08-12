@@ -1268,3 +1268,175 @@
   .exportCard{padding:26px 20px 30px!important;border-radius:34px!important}
   .marketRail{width:calc(100% + 40px)!important;margin-left:-20px!important;margin-right:-20px!important;padding-left:20px!important;padding-right:20px!important}
 }
+
+/* ===== v9: precise mobile rails + shared public chrome ===== */
+.hero {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-top: 0;
+}
+
+.heroRail {
+  border-radius: 0 0 34px 34px;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+.heroSlide {
+  scroll-snap-stop: always;
+  touch-action: pan-x;
+}
+
+.heroSlide video {
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.brandRail,
+.showroomRail,
+.carRail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+.brandRail::-webkit-scrollbar,
+.showroomRail::-webkit-scrollbar,
+.carRail::-webkit-scrollbar { display: none; }
+
+.carRail {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 2px 0 14px;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x proximity;
+}
+
+.carRail .carCard {
+  flex: 0 0 min(520px, 88vw);
+  width: min(520px, 88vw);
+  scroll-snap-align: start;
+}
+
+.carRail .carCard:first-child { margin-left: 0; }
+.carRail .carCard:last-child { margin-right: 0; }
+
+.carMediaRail {
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+.carMediaSlide { scroll-snap-stop: always; }
+.carMediaSlide img { pointer-events: none; user-select: none; -webkit-user-select: none; }
+
+@media (min-width: 761px) {
+  .hero {
+    height: min(76dvh, 820px);
+    min-height: 560px;
+  }
+  .heroRail { border-radius: 0 0 38px 38px; }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    width: 100vw !important;
+    height: min(78dvh, 760px) !important;
+    min-height: 560px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .heroRail {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 0 30px 30px !important;
+    box-shadow: none !important;
+  }
+
+  .heroCaption {
+    left: 20px !important;
+    right: 20px !important;
+    bottom: 34px !important;
+    padding: 18px 18px 17px !important;
+    border-radius: 24px !important;
+  }
+
+  .heroDots { bottom: 148px !important; }
+
+  .section,
+  .heroStatement,
+  .footer {
+    width: calc(100% - 32px) !important;
+  }
+
+  .section { padding-top: 78px !important; }
+  .sectionHeading { margin-bottom: 26px !important; }
+
+  .brandRail,
+  .showroomRail,
+  .carRail {
+    width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    scroll-padding-left: 0 !important;
+  }
+
+  .brandRail { gap: 10px !important; }
+  .brandCard {
+    flex-basis: 150px !important;
+    min-height: 134px !important;
+    border-radius: 30px !important;
+  }
+
+  .carRail { gap: 12px !important; }
+  .carRail .carCard {
+    flex-basis: 88vw !important;
+    width: 88vw !important;
+    border-radius: 32px !important;
+  }
+
+  .carInfo { padding: 20px 20px 22px !important; }
+
+  .showroomRail { gap: 12px !important; }
+  .showroomStory {
+    flex-basis: 88vw !important;
+    width: 88vw !important;
+  }
+
+  .showroomActions {
+    width: 100% !important;
+    margin: 20px 0 0 !important;
+    padding: 20px !important;
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    border-radius: 28px !important;
+  }
+
+  .showroomActionButtons {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .bookingPill,
+  .showroomRoutePill {
+    min-height: 54px !important;
+    width: 100% !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+  }
+}

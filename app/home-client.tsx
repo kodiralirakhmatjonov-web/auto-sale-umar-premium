@@ -7,21 +7,16 @@ import {
   ChevronRight,
   Instagram,
   MapPin,
-  Menu,
   MessageCircle,
-  Monitor,
-  Moon,
   Phone,
   Ship,
   Sparkles,
-  Sun,
-  Users,
   Volume2,
   VolumeX,
-  X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import styles from "./home.module.css";
+import PublicChrome from "./_components/PublicChrome";
 
 type Language = "ru" | "uz";
 type ThemeMode = "system" | "light" | "dark";
@@ -172,6 +167,10 @@ const COPY = {
     stockKicker: "В НАЛИЧИИ",
     stockTitle: "Можно увидеть сегодня.",
     stockText: "Автомобили, которые уже доступны для просмотра и покупки.",
+    showroomCarsKicker: "В ШОУРУМЕ",
+    showroomCarsTitle: "Можно посмотреть лично.",
+    showroomCarsText: "Автомобили, которые сейчас находятся в шоуруме Auto Sale Umar.",
+    emptyShowroomCars: "Сейчас опубликованных автомобилей в шоуруме нет.",
     transitKicker: "В ПУТИ",
     transitTitle: "Следующее поступление.",
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
@@ -245,6 +244,10 @@ const COPY = {
     stockKicker: "MAVJUD",
     stockTitle: "Bugun ko‘rish mumkin.",
     stockText: "Ko‘rish va xarid qilish uchun hozirning o‘zida mavjud avtomobillar.",
+    showroomCarsKicker: "SHOURUMDA",
+    showroomCarsTitle: "Shaxsan ko‘rish mumkin.",
+    showroomCarsText: "Hozir Auto Sale Umar shourumida turgan avtomobillar.",
+    emptyShowroomCars: "Hozir shourumda e’lon qilingan avtomobil yo‘q.",
     transitKicker: "YO‘LDA",
     transitTitle: "Keyingi kelish.",
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
@@ -328,7 +331,6 @@ export default function HomeClient() {
   const [language, setLanguage] = useState<Language>("ru");
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [introVisible, setIntroVisible] = useState(true);
   const [muted, setMuted] = useState(true);
   const [cars, setCars] = useState<CatalogCar[]>([]);
@@ -372,20 +374,6 @@ export default function HomeClient() {
   }, [themeMode]);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [menuOpen]);
-
-  useEffect(() => {
     let cancelled = false;
     Promise.all([
       fetch("/api/catalog?pageSize=100", { cache: "no-store", headers: { Accept: "application/json" } })
@@ -420,12 +408,16 @@ export default function HomeClient() {
   ], [videos, language]);
 
   const stockCars = useMemo(() => cars.filter((car) =>
-    (car.status === "in_stock" || car.status === "in_showroom") && (brand === "all" || car.brand === brand),
-  ).slice(0, 8), [cars, brand]);
+    car.status === "in_stock" && (brand === "all" || car.brand === brand),
+  ).slice(0, 10), [cars, brand]);
+
+  const showroomCars = useMemo(() => cars.filter((car) =>
+    car.status === "in_showroom" && (brand === "all" || car.brand === brand),
+  ).slice(0, 10), [cars, brand]);
 
   const transitCars = useMemo(() => cars.filter((car) =>
     (car.status === "in_transit" || car.status === "made_to_order") && (brand === "all" || car.brand === brand),
-  ).slice(0, 8), [cars, brand]);
+  ).slice(0, 10), [cars, brand]);
 
   const closeIntro = useCallback(() => setIntroVisible(false), []);
 
@@ -475,43 +467,13 @@ export default function HomeClient() {
         </div>
       ) : null}
 
-      <header className={styles.header}>
-        <span className={styles.headerSpacer} aria-hidden="true" />
-        <a className={styles.headerBrand} href="#top" aria-label="Auto Sale Umar">
-          <img src={wordmark} alt="Auto Sale Umar" />
-        </a>
-        <button className={styles.circleButton} type="button" onClick={() => setMenuOpen((open) => !open)} aria-label={c.menu} aria-expanded={menuOpen}>
-          {menuOpen ? <X /> : <Menu />}
-        </button>
-      </header>
-
-      <button className={styles.menuBackdrop} data-open={menuOpen} type="button" onClick={() => setMenuOpen(false)} aria-label={c.close} />
-      <aside className={styles.menuPanel} data-open={menuOpen} aria-hidden={!menuOpen}>
-        <nav className={styles.menuNav}>
-          <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
-          <a href="#showroom" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.showroomMenu}</span><ChevronRight /></a>
-          <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
-          <a href="/admin/login/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
-        </nav>
-
-        <div className={styles.menuControls}>
-          <div className={styles.menuControlGroup}>
-            <span>{c.language}</span>
-            <div className={styles.segmented}>
-              <button type="button" data-active={language === "ru"} onClick={() => changeLanguage("ru")}>RU</button>
-              <button type="button" data-active={language === "uz"} onClick={() => changeLanguage("uz")}>UZ</button>
-            </div>
-          </div>
-          <div className={styles.menuControlGroup}>
-            <span>{c.theme}</span>
-            <div className={styles.themeSegmented}>
-              <button type="button" data-active={themeMode === "system"} onClick={() => changeTheme("system")} aria-label={c.system}><Monitor /><b>{c.system}</b></button>
-              <button type="button" data-active={themeMode === "light"} onClick={() => changeTheme("light")} aria-label={c.light}><Sun /><b>{c.light}</b></button>
-              <button type="button" data-active={themeMode === "dark"} onClick={() => changeTheme("dark")} aria-label={c.dark}><Moon /><b>{c.dark}</b></button>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <PublicChrome
+        language={language}
+        themeMode={themeMode}
+        resolvedTheme={resolvedTheme}
+        onLanguageChange={changeLanguage}
+        onThemeChange={changeTheme}
+      />
 
       <section className={styles.hero} id="top">
         <div className={styles.heroRail} ref={heroRailRef} onScroll={handleHeroScroll}>
@@ -558,6 +520,7 @@ export default function HomeClient() {
       </section>
 
       <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} />
+      <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroomCars} cars={showroomCars} language={language} />
       <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} />
 
       <section className={`${styles.section} ${styles.showroomSection}`} id="showroom">
@@ -648,7 +611,7 @@ function InventorySection({ id, kicker, title, text, empty, cars, language }: { 
   return (
     <section className={styles.section} id={id}>
       <SectionHeading kicker={kicker} title={title} text={text} />
-      {cars.length ? <div className={styles.carGrid}>{cars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div> : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
+      {cars.length ? <div className={styles.carRail}>{cars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div> : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
     </section>
   );
 }

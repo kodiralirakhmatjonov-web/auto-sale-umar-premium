@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   ArrowUpRight,
   CalendarDays,
   CarFront,
@@ -13,9 +12,11 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./booking.module.css";
+import PublicChrome from "../_components/PublicChrome";
 
 type Language = "ru" | "uz";
-type Theme = "light" | "dark";
+type ThemeMode = "system" | "light" | "dark";
+type ResolvedTheme = "light" | "dark";
 
 interface CatalogCar {
   id: number;
@@ -141,7 +142,8 @@ function nextDates(count: number) {
 
 export default function BookingPage() {
   const [language, setLanguage] = useState<Language>("ru");
-  const [theme, setTheme] = useState<Theme>("light");
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
   const [cars, setCars] = useState<CatalogCar[]>([]);
   const [date, setDate] = useState(() => { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); return localIso(tomorrow); });
   const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[1]);
@@ -160,9 +162,9 @@ export default function BookingPage() {
   useEffect(() => {
     try {
       const storedLang = localStorage.getItem("asu-public-language") ?? localStorage.getItem("asu-language");
-      if (storedLang === "uz") setLanguage("uz");
-      const rootTheme = document.documentElement.dataset.asuTheme;
-      setTheme(rootTheme === "dark" ? "dark" : "light");
+      if (storedLang === "uz" || storedLang === "ru") setLanguage(storedLang);
+      const storedTheme = localStorage.getItem("asu-public-theme");
+      if (storedTheme === "system" || storedTheme === "light" || storedTheme === "dark") setThemeMode(storedTheme);
     } catch {}
 
     fetch("/api/catalog?pageSize=100", { cache: "no-store" })
@@ -170,6 +172,29 @@ export default function BookingPage() {
       .then((data) => setCars(Array.isArray(data.cars) ? data.cars : []))
       .catch(() => setCars([]));
   }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const next: ResolvedTheme = themeMode === "system" ? (media.matches ? "dark" : "light") : themeMode;
+      setResolvedTheme(next);
+      document.documentElement.dataset.asuPublicTheme = next;
+      document.documentElement.style.colorScheme = next;
+    };
+    apply();
+    if (themeMode === "system") media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, [themeMode]);
+
+  function changeLanguage(next: Language) {
+    setLanguage(next);
+    try { localStorage.setItem("asu-public-language", next); } catch {}
+  }
+
+  function changeTheme(next: ThemeMode) {
+    setThemeMode(next);
+    try { localStorage.setItem("asu-public-theme", next); } catch {}
+  }
 
   const dates = useMemo(() => nextDates(21), []);
   const filteredCars = useMemo(
@@ -222,12 +247,15 @@ export default function BookingPage() {
 
   if (success) {
     return (
-      <main className={styles.page} data-theme={theme}>
-        <header className={styles.header}>
-          <a className={styles.circle} href="/" aria-label={c.back}><ArrowLeft /></a>
-          <a className={styles.wordmark} href="/"><img src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"} alt="Auto Sale Umar" /></a>
-          <span className={styles.headerGhost} aria-hidden="true" />
-        </header>
+      <main className={styles.page} data-theme={resolvedTheme}>
+        <PublicChrome
+          language={language}
+          themeMode={themeMode}
+          resolvedTheme={resolvedTheme}
+          backHref="/"
+          onLanguageChange={changeLanguage}
+          onThemeChange={changeTheme}
+        />
         <section className={styles.successPage}>
           <div className={styles.successMark}><Check /></div>
           <p>{c.eyebrow}</p>
@@ -246,12 +274,15 @@ export default function BookingPage() {
   }
 
   return (
-    <main className={styles.page} data-theme={theme}>
-      <header className={styles.header}>
-        <a className={styles.circle} href="/" aria-label={c.back}><ArrowLeft /></a>
-        <a className={styles.wordmark} href="/"><img src={theme === "dark" ? "/brand/asu-wordmark-white.png" : "/brand/asu-wordmark-black.png"} alt="Auto Sale Umar" /></a>
-        <div className={styles.languageSwitch}><button type="button" data-active={language === "ru"} onClick={() => setLanguage("ru")}>RU</button><button type="button" data-active={language === "uz"} onClick={() => setLanguage("uz")}>UZ</button></div>
-      </header>
+    <main className={styles.page} data-theme={resolvedTheme}>
+      <PublicChrome
+        language={language}
+        themeMode={themeMode}
+        resolvedTheme={resolvedTheme}
+        backHref="/"
+        onLanguageChange={changeLanguage}
+        onThemeChange={changeTheme}
+      />
 
       <section className={styles.showroomHero}>
         <div className={styles.photoRail} ref={photoRailRef} onScroll={handlePhotoScroll}>
