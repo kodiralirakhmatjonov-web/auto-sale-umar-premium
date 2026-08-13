@@ -12,6 +12,7 @@ import {
   Monitor,
   Moon,
   Phone,
+  Search,
   Ship,
   Sparkles,
   Sun,
@@ -182,6 +183,10 @@ const COPY = {
     emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
     emptyTransit: "Сейчас опубликованных автомобилей в пути нет.",
+    requestKicker: "ПЕРСОНАЛЬНЫЙ ПОДБОР",
+    requestTitle: "Не нашли нужный автомобиль?",
+    requestText: "Укажите марку, модель, бюджет и срок покупки. Команда Auto Sale Umar начнёт поиск под ваш запрос.",
+    requestAction: "Найти автомобиль",
     seeAll: "Посмотреть все",
     trustKicker: "ПОЧЕМУ AUTO SALE UMAR",
     trustTitle: "Спокойствие строится на деталях.",
@@ -260,6 +265,10 @@ const COPY = {
     emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
     emptyTransit: "Hozir ommaviy katalogda yo‘ldagi avtomobil yo‘q.",
+    requestKicker: "SHAXSIY TANLOV",
+    requestTitle: "Kerakli avtomobilni topmadingizmi?",
+    requestText: "Marka, model, budjet va xarid muddatini kiriting. Auto Sale Umar jamoasi siz uchun qidiruvni boshlaydi.",
+    requestAction: "Avtomobil topish",
     seeAll: "Barchasini ko‘rish",
     trustKicker: "NEGA AUTO SALE UMAR",
     trustTitle: "Xotirjamlik tafsilotlardan boshlanadi.",
@@ -574,9 +583,9 @@ export default function HomeClient() {
         </div>
       </section>
 
-      <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} />
-      <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} />
-      <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} />
+      <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} requestBrand={brand} />
+      <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} requestBrand={brand} />
+      <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} />
 
       <section className={`${styles.section} ${styles.showroomSection}`} id="showroom">
         <SectionHeading kicker={c.showroomKicker} title={c.showroomTitle} text={c.showroomText} />
@@ -662,17 +671,29 @@ function SectionHeading({ kicker, title, text }: { kicker: string; title: string
   return <div className={styles.sectionHeading}><p className={styles.kicker}>{kicker}</p><h2>{title}</h2>{text ? <p>{text}</p> : null}</div>;
 }
 
-function InventorySection({ id, kicker, title, text, empty, cars, language }: { id: string; kicker: string; title: string; text: string; empty: string; cars: CatalogCar[]; language: Language }) {
+function InventorySection({ id, kicker, title, text, empty, cars, language, requestBrand }: { id: string; kicker: string; title: string; text: string; empty: string; cars: CatalogCar[]; language: Language; requestBrand: string }) {
   const visibleCars = cars.slice(0, 6);
+  const c = COPY[language];
+  const requestHref = requestBrand !== "all" ? `/request-car/?brand=${encodeURIComponent(requestBrand)}` : "/request-car/";
   return (
     <section className={styles.section} id={id}>
       <SectionHeading kicker={kicker} title={title} text={text} />
       {visibleCars.length ? (
         <>
           <div className={styles.carGrid}>{visibleCars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div>
-          {cars.length > 6 ? <a className={styles.seeAllPill} href="#cars">{COPY[language].seeAll}<ChevronRight /></a> : null}
+          {cars.length > 6 ? <a className={styles.seeAllPill} href="#cars">{c.seeAll}<ChevronRight /></a> : null}
         </>
-      ) : <div className={styles.emptyCard}><CarFront /><p>{empty}</p></div>}
+      ) : (
+        <div className={styles.requestCard}>
+          <div className={styles.requestIcon}><Search /></div>
+          <div className={styles.requestCopy}>
+            <span>{c.requestKicker}</span>
+            <h3>{c.requestTitle}</h3>
+            <p>{empty} {c.requestText}</p>
+          </div>
+          <a className={styles.requestButton} href={requestHref}>{c.requestAction}<ChevronRight /></a>
+        </div>
+      )}
     </section>
   );
 }

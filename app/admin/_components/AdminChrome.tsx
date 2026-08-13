@@ -7,7 +7,7 @@ import styles from "./admin-chrome.module.css";
 export type AdminLanguage = "ru" | "uz";
 export type AdminTheme = "light" | "dark";
 export type AdminRole = "super_admin" | "admin" | "sales_manager" | null;
-export type AdminSection = "staff" | "cars" | "home" | "visits";
+export type AdminSection = "staff" | "cars" | "home" | "visits" | "requests";
 
 interface AdminChromeProps {
   current: AdminSection;
@@ -25,6 +25,7 @@ const LABELS = {
     cars: "Автомобили",
     home: "Главная",
     visits: "Визиты",
+    requests: "Запросы",
     settings: "Настройки",
     appearance: "Оформление",
     language: "Язык",
@@ -39,6 +40,7 @@ const LABELS = {
     cars: "Avtomobillar",
     home: "Bosh sahifa",
     visits: "Tashriflar",
+    requests: "So‘rovlar",
     settings: "Sozlamalar",
     appearance: "Ko‘rinish",
     language: "Til",
@@ -55,6 +57,7 @@ const NAV: Array<{ id: AdminSection; href: string }> = [
   { id: "cars", href: "/admin/cars/" },
   { id: "home", href: "/admin/home/" },
   { id: "visits", href: "/admin/visits/" },
+  { id: "requests", href: "/admin/requests/" },
 ];
 
 export default function AdminChrome({
@@ -69,7 +72,7 @@ export default function AdminChrome({
   const [open, setOpen] = useState(false);
   const copy = LABELS[language];
   const manager = role === "sales_manager";
-  const visibleNav = NAV.filter((item) => !manager || item.id === "cars" || item.id === "visits");
+  const visibleNav = NAV.filter((item) => !manager || item.id === "cars" || item.id === "visits" || item.id === "requests");
 
   useEffect(() => {
     if (!open) return;
