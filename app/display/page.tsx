@@ -6,7 +6,7 @@ import styles from "./display.module.css";
 
 type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved" | "sold" | "hidden";
 type Currency = "USD" | "UZS" | "EUR";
-type DisplayPhase = "loading" | "intro" | "catalog";
+type DisplayPhase = "loading" | "intro" | "welcome" | "catalog";
 
 interface CatalogPhoto {
   id: number;
@@ -74,6 +74,7 @@ const ROTATION_MS = 11_000;
 const CATALOG_REFRESH_MS = 5 * 60_000;
 const DISPLAY_CACHE_TTL_MS = 30 * 60_000;
 const INTRO_FALLBACK_MS = 9_000;
+const WELCOME_DURATION_MS = 5_800;
 const DISPLAY_CACHE_KEY = "asu:display:catalog:v2";
 
 const STATUS_LABELS: Record<CarStatus, string> = {
@@ -312,6 +313,10 @@ export default function DisplayPage() {
   );
 
   const finishIntro = useCallback(() => {
+    setPhase("welcome");
+  }, []);
+
+  const finishWelcome = useCallback(() => {
     setPhase("catalog");
     setIndex((current) => {
       const nextIndex = pendingIndexRef.current;
@@ -444,6 +449,12 @@ export default function DisplayPage() {
   }, [finishIntro, introCycle, phase]);
 
   useEffect(() => {
+    if (phase !== "welcome") return;
+    const welcomeTimer = window.setTimeout(() => finishWelcome(), WELCOME_DURATION_MS);
+    return () => window.clearTimeout(welcomeTimer);
+  }, [finishWelcome, phase]);
+
+  useEffect(() => {
     if (phase !== "catalog" || cars.length === 0) return;
     const rotation = window.setTimeout(() => {
       if (index >= cars.length - 1) {
@@ -521,6 +532,46 @@ export default function DisplayPage() {
               <strong>PREMIUM COLLECTION</strong>
             </div>
           </motion.section>
+        ) : phase === "welcome" ? (
+          <motion.section
+            key={`welcome-${introCycle}`}
+            className={styles.welcomeScene}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className={styles.welcomeShade} aria-hidden="true" />
+
+            <motion.div
+              className={styles.welcomeRu}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.35, duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span>ДОБРО ПОЖАЛОВАТЬ</span>
+              <strong>В ШОУРУМ</strong>
+            </motion.div>
+
+            <motion.div
+              className={styles.welcomeUz}
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.65, duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span>SHOWROOMGA</span>
+              <strong>XUSH KELIBSIZ</strong>
+            </motion.div>
+
+            <motion.img
+              className={styles.welcomeLogo}
+              src="/brand/asu-wordmark-white.png"
+              alt="Auto Sale Umar"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.94 }}
+              transition={{ delay: 1.9, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            />
+          </motion.section>
         ) : !car ? (
           <motion.section
             key="loading"
@@ -540,10 +591,10 @@ export default function DisplayPage() {
           <motion.section
             className={styles.scene}
             key={`${car.id}-${car.slug}`}
-            initial={{ opacity: 0, scale: 1.004 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.999 }}
-            transition={{ duration: 1.55, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.75, ease: [0.22, 1, 0.36, 1] }}
           >
             <header className={styles.topBar}>
               <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
