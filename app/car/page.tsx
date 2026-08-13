@@ -86,6 +86,18 @@ interface DetailResponse {
   car?: PublicCar;
 }
 
+interface BrandCoverItem {
+  key: string;
+  url: string;
+  size: number;
+  uploadedAt: string | null;
+}
+
+interface BrandMediaResponse {
+  success?: boolean;
+  images?: BrandCoverItem[];
+}
+
 const COPY = {
   ru: {
     loading: "Загружаем автомобиль",
@@ -308,6 +320,7 @@ export default function CarPage() {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [favorite, setFavorite] = useState(false);
   const [coverIndex, setCoverIndex] = useState(0);
+  const [brandCovers, setBrandCovers] = useState<BrandCoverItem[]>([]);
   const photoRailRef = useRef<HTMLDivElement | null>(null);
   const coverRailRef = useRef<HTMLDivElement | null>(null);
 
@@ -347,6 +360,35 @@ export default function CarPage() {
     return () => { cancelled = true; };
   }, [c.error]);
 
+  useEffect(() => {
+    if (!car?.brand) {
+      setBrandCovers([]);
+      setCoverIndex(0);
+      return;
+    }
+
+    let cancelled = false;
+    setCoverIndex(0);
+    fetch(`/api/brand-media?brand=${encodeURIComponent(car.brand)}`, { cache: "no-store", headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        const body = await response.json().catch(() => null) as BrandMediaResponse | null;
+        if (!response.ok || !body?.success || !Array.isArray(body.images)) return [] as BrandCoverItem[];
+        return body.images.slice(0, 3);
+      })
+      .then((images) => { if (!cancelled) setBrandCovers(images); })
+      .catch(() => { if (!cancelled) setBrandCovers([]); });
+
+    return () => { cancelled = true; };
+  }, [car?.brand]);
+
+  useEffect(() => {
+    if (brandCovers.length < 2) return;
+    const timer = window.setInterval(() => {
+      setCoverIndex((current) => (current + 1) % brandCovers.length);
+    }, 5600);
+    return () => window.clearInterval(timer);
+  }, [brandCovers.length]);
+
   const activeVariant = car?.variants[Math.min(variantIndex, Math.max((car?.variants.length ?? 1) - 1, 0))] ?? null;
   const exteriorPhotos = useMemo(() => {
     if (!car) return [] as Photo[];
@@ -381,6 +423,7 @@ export default function CarPage() {
   }
 
   function handleCoverScroll() {
+    if (brandCovers.length) return;
     const rail = coverRailRef.current;
     if (!rail || rail.clientWidth <= 0) return;
     setCoverIndex(Math.round(rail.scrollLeft / rail.clientWidth));
@@ -437,18 +480,32 @@ export default function CarPage() {
       <PublicChrome language={language} themeMode={themeMode} resolvedTheme={resolvedTheme} backHref="/" onLanguageChange={changeLanguage} onThemeChange={changeTheme} />
 
       <section className={styles.brandStage} aria-label={car.brand}>
-        <div className={styles.brandCoverRail} ref={coverRailRef} onScroll={handleCoverScroll}>
-          {["quiet", "light", "dark"].map((variant) => (
-            <div className={styles.brandCover} data-variant={variant} key={variant}>
-              <span className={styles.brandGhost}>{car.brand}</span>
-              <div className={styles.brandCoverCenter}>
-                {logo ? <img src={logo} alt="" /> : <b>{car.brand}</b>}
+        {brandCovers.length ? (
+          <div className={styles.brandCoverShow}>
+            {brandCovers.map((cover, index) => (
+              <div className={styles.brandCoverImage} data-active={coverIndex === index} key={cover.key}>
+                <img src={cover.url} alt={`${car.brand} · ${index + 1}`} loading="eager" decoding="async" />
+                <div className={styles.brandCoverShade} aria-hidden="true" />
                 <small>AUTO SALE UMAR · {car.brand.toUpperCase()}</small>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        ) : (
+          <div className={styles.brandCoverRail} ref={coverRailRef} onScroll={handleCoverScroll}>
+            {["quiet", "light", "dark"].map((variant) => (
+              <div className={styles.brandCover} data-variant={variant} key={variant}>
+                <span className={styles.brandGhost}>{car.brand}</span>
+                <div className={styles.brandCoverCenter}>
+                  {logo ? <img src={logo} alt="" /> : <b>{car.brand}</b>}
+                  <small>AUTO SALE UMAR · {car.brand.toUpperCase()}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className={styles.coverDots} aria-hidden="true">
+          {Array.from({ length: brandCovers.length || 3 }, (_, index) => <i key={index} data-active={coverIndex === index} />)}
         </div>
-        <div className={styles.coverDots} aria-hidden="true">{[0, 1, 2].map((index) => <i key={index} data-active={coverIndex === index} />)}</div>
       </section>
 
       <section className={styles.brandMedallionWrap}>
@@ -466,7 +523,7 @@ export default function CarPage() {
           </div>
           {shortDescription ? <p>{shortDescription}</p> : null}
           <div className={styles.heroActions}>
-            <a className={styles.primaryButton} href={bookingHref}><CalendarDays />{c.book}</a>
+            <a className={styles.primaryButton} href={bookingHref}><CalendarDays /><span>{c.book}</span></a>
             <button className={styles.favoriteButton} type="button" onClick={toggleFavorite} data-active={favorite} aria-label={favorite ? c.favoriteRemove : c.favoriteAdd}>
               <Heart fill={favorite ? "currentColor" : "none"} />
               <span>{favorite ? c.favoriteRemove : c.favoriteAdd}</span>

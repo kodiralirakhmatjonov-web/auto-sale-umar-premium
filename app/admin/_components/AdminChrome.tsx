@@ -7,7 +7,7 @@ import styles from "./admin-chrome.module.css";
 export type AdminLanguage = "ru" | "uz";
 export type AdminTheme = "light" | "dark";
 export type AdminRole = "super_admin" | "admin" | "sales_manager" | null;
-export type AdminSection = "staff" | "cars" | "home" | "visits" | "requests";
+export type AdminSection = "staff" | "cars" | "brands" | "home" | "visits" | "requests";
 
 interface AdminChromeProps {
   current: AdminSection;
@@ -23,6 +23,7 @@ const LABELS = {
   ru: {
     staff: "Команда",
     cars: "Автомобили",
+    brands: "Марки",
     home: "Главная",
     visits: "Визиты",
     requests: "Запросы",
@@ -38,6 +39,7 @@ const LABELS = {
   uz: {
     staff: "Jamoa",
     cars: "Avtomobillar",
+    brands: "Markalar",
     home: "Bosh sahifa",
     visits: "Tashriflar",
     requests: "So‘rovlar",
@@ -55,6 +57,7 @@ const LABELS = {
 const NAV: Array<{ id: AdminSection; href: string }> = [
   { id: "staff", href: "/admin/staff/" },
   { id: "cars", href: "/admin/cars/" },
+  { id: "brands", href: "/admin/brands/" },
   { id: "home", href: "/admin/home/" },
   { id: "visits", href: "/admin/visits/" },
   { id: "requests", href: "/admin/requests/" },

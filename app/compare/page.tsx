@@ -309,6 +309,41 @@ const CRITERIA: AdviceCriterion[] = [
   "resale",
 ];
 
+const THINKING_STEPS: Record<PublicLanguage, Record<AiAction, readonly string[]>> = {
+  ru: {
+    advice: [
+      "Изучаю выбранные автомобили…",
+      "Учитываю ваш бюджет и критерии…",
+      "Сопоставляю комфорт, статус и владение…",
+      "Проверяю ключевые различия…",
+      "Формирую рекомендацию…",
+    ],
+    deep: [
+      "Изучаю данные Auto Sale Umar…",
+      "Проверяю официальные источники…",
+      "Сопоставляю комплектации и характеристики…",
+      "Проверяю различия конкретных автомобилей…",
+      "Почти готово — формирую вывод…",
+    ],
+  },
+  uz: {
+    advice: [
+      "Tanlangan avtomobillarni o‘rganmoqdaman…",
+      "Budjet va mezonlaringizni hisobga olyapman…",
+      "Qulaylik, status va egalikni solishtiryapman…",
+      "Asosiy farqlarni tekshiryapman…",
+      "Tavsiyani tayyorlayapman…",
+    ],
+    deep: [
+      "Auto Sale Umar ma’lumotlarini o‘rganyapman…",
+      "Rasmiy manbalarni tekshiryapman…",
+      "Komplektatsiya va xususiyatlarni solishtiryapman…",
+      "Aniq avtomobillar farqini tekshiryapman…",
+      "Deyarli tayyor — xulosani tuzyapman…",
+    ],
+  },
+};
+
 function usePublicPreferences() {
   const [language, setLanguage] = useState<PublicLanguage>("ru");
   const [themeMode, setThemeMode] = useState<PublicThemeMode>("system");
@@ -426,6 +461,10 @@ export default function ComparePage() {
   const [aiAction, setAiAction] = useState<AiAction | null>(null);
   const [aiError, setAiError] = useState("");
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [thinkingStep, setThinkingStep] = useState(0);
+  const [typedVerdict, setTypedVerdict] = useState("");
+  const [typedSummary, setTypedSummary] = useState("");
+  const [typingDone, setTypingDone] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -525,6 +564,53 @@ export default function ComparePage() {
     };
   }, [pickerTarget]);
 
+  useEffect(() => {
+    if (!aiAction) {
+      setThinkingStep(0);
+      return;
+    }
+    const steps = THINKING_STEPS[language][aiAction];
+    setThinkingStep(0);
+    const timer = window.setInterval(() => {
+      setThinkingStep((current) => Math.min(current + 1, steps.length - 1));
+    }, 1550);
+    return () => window.clearInterval(timer);
+  }, [aiAction, language]);
+
+  useEffect(() => {
+    if (!aiResult) {
+      setTypedVerdict("");
+      setTypedSummary("");
+      setTypingDone(true);
+      return;
+    }
+
+    const verdict = aiResult.verdict || "";
+    const summary = aiResult.summary || "";
+    let verdictIndex = 0;
+    let summaryIndex = 0;
+    setTypedVerdict("");
+    setTypedSummary("");
+    setTypingDone(false);
+
+    const timer = window.setInterval(() => {
+      if (verdictIndex < verdict.length) {
+        verdictIndex = Math.min(verdict.length, verdictIndex + 3);
+        setTypedVerdict(verdict.slice(0, verdictIndex));
+        return;
+      }
+      if (summaryIndex < summary.length) {
+        summaryIndex = Math.min(summary.length, summaryIndex + 4);
+        setTypedSummary(summary.slice(0, summaryIndex));
+        return;
+      }
+      setTypingDone(true);
+      window.clearInterval(timer);
+    }, 18);
+
+    return () => window.clearInterval(timer);
+  }, [aiResult]);
+
   const selectedCars = useMemo(() => selectedSlugs.map((slug) => details[slug] ?? catalog.find((car) => car.slug === slug)).filter((car): car is CompareCar => Boolean(car)), [catalog, details, selectedSlugs]);
   const selectedSet = useMemo(() => new Set(selectedSlugs), [selectedSlugs]);
   const pickerCars = useMemo(() => {
@@ -602,6 +688,10 @@ export default function ComparePage() {
 
     setAiAction(action);
     setAiError("");
+    setAiResult(null);
+    setTypedVerdict("");
+    setTypedSummary("");
+    setTypingDone(true);
     try {
       const response = await fetch("/api/compare-ai", {
         method: "POST",
@@ -770,6 +860,17 @@ export default function ComparePage() {
             {aiError ? <div className={styles.aiError}>{aiError}</div> : null}
             {selectedCars.length < 2 ? <div className={styles.aiHint}>{c.selectTwo}</div> : null}
 
+            {aiAction ? (
+              <div className={styles.consultantThinking} aria-live="polite">
+                <span className={styles.thinkingMark}><Sparkles /></span>
+                <div>
+                  <small>AUTO SALE UMAR · {language === "ru" ? "КОНСУЛЬТАНТ" : "MASLAHATCHI"}</small>
+                  <strong key={`${aiAction}-${thinkingStep}`}>{THINKING_STEPS[language][aiAction][thinkingStep]}</strong>
+                </div>
+                <span className={styles.thinkingDots} aria-hidden="true"><i /><i /><i /></span>
+              </div>
+            ) : null}
+
             <div className={styles.aiButtons}>
               <button type="button" onClick={() => void runAi("advice")} disabled={aiAction !== null || selectedCars.length < 2 || quota?.adviceRemaining === 0}>
                 <span><Sparkles />{aiAction === "advice" ? c.aiWorkingAdvice : c.advice}</span>
@@ -787,19 +888,19 @@ export default function ComparePage() {
               <div className={styles.resultHeading}>
                 <span>{c.recommended}</span>
                 <h3>{aiResult.title}</h3>
-                <p>{aiResult.verdict}</p>
+                <p className={typedVerdict.length < aiResult.verdict.length ? styles.typingText : undefined}>{typedVerdict}</p>
                 {aiResult.recommendedSlug ? (
                   <a href={`/car/?slug=${encodeURIComponent(aiResult.recommendedSlug)}`}>{c.openCar}<ChevronRight /></a>
                 ) : null}
               </div>
 
-              {aiResult.summary ? <p className={styles.resultSummary}>{aiResult.summary}</p> : null}
+              {aiResult.summary ? <p className={`${styles.resultSummary} ${typedVerdict.length >= aiResult.verdict.length && typedSummary.length < aiResult.summary.length ? styles.typingText : ""}`}>{typedSummary}</p> : null}
 
-              {aiResult.reasons.length ? (
+              {typingDone && aiResult.reasons.length ? (
                 <div className={styles.resultBlock}><strong>{c.reasons}</strong><ul>{aiResult.reasons.map((item, index) => <li key={`reason-${index}`}>{item}</li>)}</ul></div>
               ) : null}
 
-              {aiResult.bestFor.length ? (
+              {typingDone && aiResult.bestFor.length ? (
                 <div className={styles.bestForGrid}>
                   {aiResult.bestFor.map((item, index) => {
                     const match = selectedCars.find((car) => car.slug === item.slug);
@@ -808,7 +909,7 @@ export default function ComparePage() {
                 </div>
               ) : null}
 
-              {aiResult.expandedRows.length ? (
+              {typingDone && aiResult.expandedRows.length ? (
                 <div className={styles.expandedComparison}>
                   <strong>{c.deeper}</strong>
                   {aiResult.expandedRows.map((row, index) => (
@@ -826,15 +927,15 @@ export default function ComparePage() {
                 </div>
               ) : null}
 
-              {aiResult.cautions.length ? (
+              {typingDone && aiResult.cautions.length ? (
                 <div className={styles.resultBlock}><strong>{c.cautions}</strong><ul>{aiResult.cautions.map((item, index) => <li key={`caution-${index}`}>{item}</li>)}</ul></div>
               ) : null}
 
-              {aiResult.verificationNote ? (
+              {typingDone && aiResult.verificationNote ? (
                 <div className={styles.verification}><strong>{c.verification}</strong><p>{aiResult.verificationNote}</p></div>
               ) : null}
 
-              {aiResult.sources.length ? (
+              {typingDone && aiResult.sources.length ? (
                 <div className={styles.sources}>
                   <strong>{c.sources}</strong>
                   <div>{aiResult.sources.map((source) => <a href={source.url} target="_blank" rel="noreferrer" key={source.url}>{source.title}<ExternalLink /></a>)}</div>

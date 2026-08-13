@@ -1772,3 +1772,13 @@
     scroll-padding-right:0!important;
   }
 }
+
+/* p022: keep the public home wordmark visually centered inside the floating header. */
+.headerBrand {
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+.headerBrand img {
+  object-position: center center !important;
+  transform: none !important;
+}
