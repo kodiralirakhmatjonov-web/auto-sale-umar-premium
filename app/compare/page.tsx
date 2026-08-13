@@ -129,7 +129,7 @@ const COPY = {
     error: "Не удалось загрузить автомобили для сравнения.",
     kicker: "AUTO SALE UMAR · COMPARE",
     title: "Сравните не модели. Сравните конкретные автомобили.",
-    intro: "Цена, статус и характеристики берутся из каталога Auto Sale Umar. Gemini подключается только когда вы просите совет или углублённое сравнение.",
+    intro: "Цена, статус и характеристики берутся из каталога Auto Sale Umar. Консультант подключается только когда вы просите совет или углублённое сравнение.",
     chooseKicker: "ВАШЕ СРАВНЕНИЕ",
     choose: "Выберите автомобили",
     chooseText: "Сравнивайте два или три опубликованных автомобиля из одной реальной базы.",
@@ -162,7 +162,7 @@ const COPY = {
     exterior: "Цвет кузова",
     interior: "Цвет салона",
     emptyValue: "—",
-    aiKicker: "GEMINI · VERIFIED COMPARE",
+    aiKicker: "AUTO SALE UMAR · КОНСУЛЬТАНТ",
     aiTitle: "Нужен вывод, а не ещё одна таблица?",
     aiText: "Укажите, что важно именно вам. VIN используется только сервером для проверки конкретного автомобиля и не публикуется в браузере.",
     criteriaTitle: "В чём именно нужен совет?",
@@ -183,8 +183,8 @@ const COPY = {
     free: "бесплатно",
     selectTwo: "Сначала выберите минимум два автомобиля.",
     chooseCriterion: "Для совета выберите хотя бы один критерий или напишите комментарий.",
-    aiWorkingAdvice: "Gemini изучает автомобили и формирует совет…",
-    aiWorkingDeep: "Gemini проверяет дополнительные данные и официальные источники…",
+    aiWorkingAdvice: "Консультант изучает автомобили и формирует совет…",
+    aiWorkingDeep: "Консультант проверяет дополнительные данные и официальные источники…",
     recommended: "Рекомендация",
     reasons: "Почему",
     cautions: "Что учесть",
@@ -196,7 +196,8 @@ const COPY = {
     pickerTitle: "Выберите автомобиль",
     pickerText: "Можно выбрать до трёх автомобилей.",
     done: "Готово",
-    anonymous: "Лимит AI привязан к этому браузеру автоматически — аккаунт не нужен.",
+    anonymous: "Бесплатные консультации привязаны к этому браузеру автоматически — аккаунт не нужен.",
+    consultantUnavailable: "Консультант временно недоступен. Повторите попытку через несколько секунд.",
     in_showroom: "В шоуруме",
     in_stock: "В наличии",
     in_transit: "В пути",
@@ -211,7 +212,7 @@ const COPY = {
     error: "Solishtirish uchun avtomobillarni yuklab bo‘lmadi.",
     kicker: "AUTO SALE UMAR · COMPARE",
     title: "Modellarni emas. Aniq avtomobillarni solishtiring.",
-    intro: "Narx, status va xususiyatlar Auto Sale Umar katalogidan olinadi. Gemini faqat maslahat yoki chuqur solishtirish so‘ralganda ishga tushadi.",
+    intro: "Narx, status va xususiyatlar Auto Sale Umar katalogidan olinadi. Maslahatchi faqat maslahat yoki chuqur solishtirish so‘ralganda ishga tushadi.",
     chooseKicker: "SIZNING SOLISHTIRISHINGIZ",
     choose: "Avtomobillarni tanlang",
     chooseText: "Bitta real bazadagi ikki yoki uchta e’lon qilingan avtomobilni solishtiring.",
@@ -244,7 +245,7 @@ const COPY = {
     exterior: "Kuzov rangi",
     interior: "Salon rangi",
     emptyValue: "—",
-    aiKicker: "GEMINI · VERIFIED COMPARE",
+    aiKicker: "AUTO SALE UMAR · MASLAHATCHI",
     aiTitle: "Yana bir jadval emas, aniq xulosa kerakmi?",
     aiText: "Siz uchun nima muhimligini belgilang. VIN faqat serverda aniq avtomobilni tekshirish uchun ishlatiladi va brauzerda ko‘rsatilmaydi.",
     criteriaTitle: "Qaysi masalada maslahat kerak?",
@@ -265,8 +266,8 @@ const COPY = {
     free: "bepul",
     selectTwo: "Avval kamida ikkita avtomobil tanlang.",
     chooseCriterion: "Maslahat uchun kamida bitta mezon tanlang yoki izoh yozing.",
-    aiWorkingAdvice: "Gemini avtomobillarni o‘rganib, maslahat tayyorlamoqda…",
-    aiWorkingDeep: "Gemini qo‘shimcha ma’lumotlar va rasmiy manbalarni tekshirmoqda…",
+    aiWorkingAdvice: "Maslahatchi avtomobillarni o‘rganib, maslahat tayyorlamoqda…",
+    aiWorkingDeep: "Maslahatchi qo‘shimcha ma’lumotlar va rasmiy manbalarni tekshirmoqda…",
     recommended: "Tavsiya",
     reasons: "Nima uchun",
     cautions: "Nimani hisobga olish kerak",
@@ -278,7 +279,8 @@ const COPY = {
     pickerTitle: "Avtomobilni tanlang",
     pickerText: "Uchtagacha avtomobil tanlash mumkin.",
     done: "Tayyor",
-    anonymous: "AI limiti avtomatik ravishda shu brauzerga bog‘lanadi — akkaunt kerak emas.",
+    anonymous: "Bepul maslahatlar avtomatik ravishda shu brauzerga bog‘lanadi — akkaunt kerak emas.",
+    consultantUnavailable: "Maslahatchi vaqtincha ishlamayapti. Bir necha soniyadan keyin qayta urinib ko‘ring.",
     in_showroom: "Shourumda",
     in_stock: "Mavjud",
     in_transit: "Yo‘lda",
@@ -620,7 +622,7 @@ export default function ComparePage() {
       });
       const body = await response.json() as AiResponse;
       if (body.quota) setQuota(body.quota);
-      if (!response.ok || !body.success || !body.result) throw new Error(body.error || "AI unavailable");
+      if (!response.ok || !body.success || !body.result) throw new Error(body.error || c.consultantUnavailable);
       setAiResult(body.result);
     } catch (error) {
       setAiError(error instanceof Error ? error.message : c.error);
@@ -648,6 +650,8 @@ export default function ComparePage() {
   }
 
   const carCountStyle = { "--car-count": Math.max(2, selectedCars.length) } as CSSProperties;
+  const selectionSlots = Math.max(1, Math.min(3, selectedCars.length + (selectedSlugs.length < 3 ? 1 : 0)));
+  const selectionRailStyle = { "--slot-count": selectionSlots } as CSSProperties;
 
   return (
     <main className={styles.page} data-theme={resolvedTheme}>
@@ -666,7 +670,7 @@ export default function ComparePage() {
           <p>{c.chooseText}</p>
         </div>
 
-        <div className={styles.selectedRail}>
+        <div className={styles.selectedRail} style={selectionRailStyle}>
           {selectedCars.map((car, index) => (
             <article className={styles.selectedCard} key={car.slug}>
               <div className={styles.selectedImage}>

@@ -524,3 +524,282 @@
   .pickerList > button { grid-template-columns: 78px 1fr auto; }
   .pickerList > button img { width: 78px; height: 62px; }
 }
+
+/* Compact compare layout: all selected cars and values remain visible on phone. */
+.selectedImage img {
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.06);
+}
+
+@media (max-width: 900px) {
+  .selectedRail {
+    display: grid;
+    grid-template-columns: repeat(var(--slot-count), minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    margin-right: 0;
+    padding-right: 0;
+    scroll-snap-type: none;
+  }
+
+  .selectedCard,
+  .addCard {
+    min-width: 0;
+    width: auto;
+    flex: none;
+    scroll-snap-align: none;
+  }
+
+  .tableScroll {
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+
+  .compareTable {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(var(--car-count), minmax(0, 1fr));
+  }
+
+  .tableHeaderCell {
+    display: none;
+  }
+
+  .tableHeaderCar {
+    min-width: 0;
+    min-height: 66px;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tableHeaderCar b {
+    width: 100%;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tableHeaderCar span {
+    width: 100%;
+    overflow: hidden;
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tableLabel {
+    position: static;
+    grid-column: 1 / -1;
+    min-height: 0;
+    padding: 10px 11px 6px;
+    border-right: 0;
+    border-bottom: 0;
+    background: var(--surface-2);
+    box-shadow: none;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.1;
+    font-weight: 740;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .tableCell:not(.tableLabel):not(.tableHeaderCar):not(.tableHeaderCell) {
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 10px 11px;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 1.18;
+  }
+
+  .criteriaGrid {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  .criteriaGrid button {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .selectionSection {
+    padding-bottom: 64px;
+  }
+
+  .selectedRail {
+    gap: 7px;
+  }
+
+  .selectedCard,
+  .addCard {
+    min-height: 0;
+    border-radius: 20px;
+    box-shadow: 0 14px 34px rgba(14, 14, 16, .08);
+  }
+
+  .selectedCard {
+    grid-template-rows: clamp(92px, 27vw, 118px) auto auto;
+  }
+
+  .selectedImage img {
+    transform: scale(1.1);
+  }
+
+  .selectedImage > span {
+    left: 8px;
+    top: 8px;
+    min-height: 24px;
+    max-width: calc(100% - 16px);
+    padding: 0 8px;
+    overflow: hidden;
+    font-size: 8px;
+    letter-spacing: .02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .selectedCopy {
+    padding: 12px 10px 10px;
+  }
+
+  .selectedCopy small {
+    font-size: 9px;
+    letter-spacing: .055em;
+  }
+
+  .selectedCopy h3 {
+    margin: 6px 0 6px;
+    font-size: clamp(15px, 4.4vw, 21px);
+    line-height: .96;
+    letter-spacing: -.045em;
+  }
+
+  .selectedCopy p {
+    min-height: 0;
+    margin: 0 0 9px;
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.16;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .selectedCopy > strong {
+    font-size: clamp(15px, 4vw, 20px);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .selectedActions {
+    padding: 0 7px 7px;
+    grid-template-columns: 1fr 34px;
+    gap: 5px;
+  }
+
+  .selectedActions button {
+    min-height: 34px;
+    padding-inline: 6px;
+    font-size: 10px;
+  }
+
+  .selectedActions button:last-child {
+    width: 34px;
+  }
+
+  .selectedActions svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .addCard {
+    min-height: 220px;
+    padding: 14px 10px;
+  }
+
+  .addCard > span {
+    width: 38px;
+    height: 38px;
+  }
+
+  .addCard svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .addCard strong {
+    max-width: 100%;
+    font-size: clamp(15px, 4.3vw, 20px);
+    line-height: 1;
+  }
+
+  .addCard small {
+    font-size: 9px;
+  }
+
+  .tableSection {
+    padding-bottom: 64px;
+  }
+
+  .tableSection .sectionHeading {
+    margin-bottom: 20px;
+  }
+
+  .tableSection .sectionHeading h2 {
+    font-size: 38px;
+  }
+
+  .tableScroll {
+    border-radius: 22px;
+  }
+
+  .compareTable {
+    min-width: 0;
+    grid-template-columns: repeat(var(--car-count), minmax(0, 1fr));
+  }
+
+  .tableHeaderCar {
+    min-height: 58px;
+    padding: 9px 7px;
+  }
+
+  .tableHeaderCar b {
+    font-size: 11px;
+  }
+
+  .tableHeaderCar span {
+    font-size: 9px;
+  }
+
+  .tableLabel {
+    padding: 8px 8px 5px;
+    font-size: 9px;
+  }
+
+  .tableCell:not(.tableLabel):not(.tableHeaderCar):not(.tableHeaderCell) {
+    min-height: 40px;
+    padding: 6px 8px 9px;
+    font-size: 10.5px;
+    line-height: 1.18;
+  }
+
+  .criteriaGrid {
+    gap: 7px;
+  }
+
+  .criteriaGrid button {
+    min-height: 38px;
+    padding-inline: 11px;
+    font-size: 11px;
+  }
+}

@@ -602,7 +602,7 @@ export async function onRequestGet(context: { request: Request; env: CompareEnv 
     return json({ success: true, quota: quotaPayload(row) }, 200, { "set-cookie": identity.setCookie });
   } catch (error) {
     console.error("Compare quota status failed", error);
-    return json({ success: false, error: "Не удалось проверить лимит AI." }, 500);
+    return json({ success: false, error: "Не удалось проверить лимит консультаций." }, 500);
   }
 }
 
@@ -610,7 +610,10 @@ export async function onRequestPost(context: { request: Request; env: CompareEnv
   const { request, env } = context;
   if (!env.DB || !env.AUTH_PEPPER) return json({ success: false, error: "Сервис сравнения временно недоступен." }, 500);
   if (!isSameOriginBrowserRequest(request)) return json({ success: false, error: "Запрос отклонён." }, 403);
-  if (!env.GEMINI_API_KEY) return json({ success: false, error: "Gemini пока не подключён к сравнению." }, 503);
+  if (!env.GEMINI_API_KEY) {
+    console.error("Compare consultant provider key is not configured");
+    return json({ success: false, error: "Консультант временно не подключён. Обратитесь к администратору.", code: "CONSULTANT_NOT_CONFIGURED" }, 503);
+  }
 
   let body: Record<string, unknown>;
   try {
@@ -648,8 +651,8 @@ export async function onRequestPost(context: { request: Request; env: CompareEnv
       return json({
         success: false,
         error: action === "advice"
-          ? "Лимит бесплатных AI-советов для этого браузера исчерпан."
-          : "Лимит подробных AI-сравнений для этого браузера исчерпан.",
+          ? "Лимит бесплатных советов для этого браузера исчерпан."
+          : "Лимит подробных сравнений для этого браузера исчерпан.",
         code: "AI_LIMIT_REACHED",
         quota: quotaPayload(current),
       }, 429, { "set-cookie": identity.setCookie });
@@ -677,7 +680,7 @@ export async function onRequestPost(context: { request: Request; env: CompareEnv
         system_instruction: "Ты автомобильный аналитик Auto Sale Umar. Сравнивай конкретные дилерские автомобили строго по фактам, отделяй данные D1 от внешней проверки и не выдумывай комплектации по VIN.",
         tools: [{ type: "google_search" }],
         generation_config: {
-          thinking_level: action === "deep" ? "medium" : "low",
+          thinking_level: action === "deep" ? "high" : "medium",
         },
         response_format: {
           type: "text",
@@ -724,7 +727,8 @@ export async function onRequestPost(context: { request: Request; env: CompareEnv
     const currentQuota = identity ? await ensureProfile(env, identity.browserKey).catch(() => null) : null;
     return json({
       success: false,
-      error: "Не удалось получить ответ Gemini. Попробуйте ещё раз — неудачная попытка не списывает лимит.",
+      error: "Консультант не смог завершить запрос. Попробуйте ещё раз — неудачная попытка не списывает лимит.",
+      code: "CONSULTANT_PROVIDER_ERROR",
       quota: quotaPayload(currentQuota),
     }, 502, identity ? { "set-cookie": identity.setCookie } : undefined);
   }

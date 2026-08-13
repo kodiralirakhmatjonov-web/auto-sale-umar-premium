@@ -260,14 +260,14 @@ export async function onRequestPost(context: {
   const currentUser = await getAuthenticatedUser(request, env);
   if (!currentUser) return json({ success: false, error: "Требуется вход в систему." }, 401);
   if (currentUser.role !== "super_admin" && currentUser.role !== "admin" && currentUser.role !== "sales_manager") {
-    return json({ success: false, error: "Недостаточно прав для AI-автозаполнения." }, 403);
+    return json({ success: false, error: "Недостаточно прав для умного автозаполнения." }, 403);
   }
 
   if (!env.GEMINI_API_KEY) {
     return json({
       success: false,
-      error: "Gemini не подключён. Добавьте секрет GEMINI_API_KEY в Cloudflare Variables and Secrets.",
-      code: "GEMINI_NOT_CONFIGURED",
+      error: "Сервис автозаполнения не подключён. Проверьте серверную конфигурацию.",
+      code: "AUTOFILL_PROVIDER_NOT_CONFIGURED",
     }, 503);
   }
 
@@ -322,8 +322,7 @@ ${source}
         store: false,
         input: prompt,
         generation_config: {
-          thinking_level: "low",
-          temperature: 0.1,
+          thinking_level: "medium",
         },
         response_format: {
           type: "text",
@@ -338,8 +337,8 @@ ${source}
       console.error("Gemini autofill failed", response.status, gemini);
       return json({
         success: false,
-        error: gemini?.error?.message || `Gemini API вернул ошибку ${response.status}.`,
-        code: `GEMINI_HTTP_${response.status}`,
+        error: `Сервис автозаполнения вернул ошибку ${response.status}.`,
+        code: `AUTOFILL_HTTP_${response.status}`,
       }, 502);
     }
 
@@ -348,8 +347,8 @@ ${source}
       console.error("Gemini returned no model text", gemini);
       return json({
         success: false,
-        error: "Gemini завершил запрос без текстового результата. Повторите попытку.",
-        code: "GEMINI_EMPTY_OUTPUT",
+        error: "Сервис автозаполнения завершил запрос без результата. Повторите попытку.",
+        code: "AUTOFILL_EMPTY_OUTPUT",
       }, 502);
     }
 
@@ -360,8 +359,8 @@ ${source}
       console.error("Gemini output JSON parse failed", error, outputText.slice(0, 1000));
       return json({
         success: false,
-        error: "Gemini вернул ответ, который не удалось разобрать как данные автомобиля.",
-        code: "GEMINI_INVALID_JSON",
+        error: "Сервис автозаполнения вернул ответ, который не удалось разобрать как данные автомобиля.",
+        code: "AUTOFILL_INVALID_JSON",
       }, 502);
     }
 
@@ -369,7 +368,7 @@ ${source}
     return json({ success: true, model: MODEL, car });
   } catch (error) {
     console.error("AI autofill request failed", error);
-    return json({ success: false, error: "Не удалось связаться с Gemini API." }, 502);
+    return json({ success: false, error: "Не удалось связаться с сервисом автозаполнения." }, 502);
   }
 }
 

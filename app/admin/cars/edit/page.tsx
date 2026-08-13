@@ -309,17 +309,17 @@ const UZ_COPY: Record<string, string> = {
   "CONTROL SYSTEM · АВТОМОБИЛИ": "CONTROL SYSTEM · AVTOMOBILLAR",
   "Новый автомобиль": "Yangi avtomobil",
   "Быстрая форма: основные данные один раз, цвета и фотографии — отдельными вариантами.": "Tezkor shakl: asosiy ma’lumotlar bir marta, ranglar va suratlar esa alohida variantlarda.",
-  "AI автозаполнение": "AI avtomatik to‘ldirish",
-  "Вставьте характеристики, дилерский лист, invoice или большой текст — Gemini разложит найденные данные по полям формы.": "Xususiyatlar, diler varaqasi, invoice yoki katta matnni kiriting — Gemini topilgan ma’lumotlarni forma maydonlariga ajratadi.",
+  "Умное автозаполнение": "Aqlli avtomatik to‘ldirish",
+  "Вставьте характеристики, дилерский лист, invoice или большой текст — система разложит найденные данные по полям формы.": "Xususiyatlar, diler varaqasi, invoice yoki katta matnni kiriting — tizim topilgan ma’lumotlarni forma maydonlariga ajratadi.",
   "Вставить текст автомобиля": "Avtomobil matnini kiriting",
-  "Можно вставить 10–15 страниц текста. AI не сохраняет автомобиль сам — поля останутся редактируемыми.": "10–15 sahifagacha matn kiritish mumkin. AI avtomobilni o‘zi saqlamaydi — maydonlar tahrirlanadigan bo‘lib qoladi.",
+  "Можно вставить 10–15 страниц текста. Система не сохраняет автомобиль сама — поля останутся редактируемыми.": "10–15 sahifagacha matn kiritish mumkin. Tizim avtomobilni o‘zi saqlamaydi — maydonlar tahrirlanadigan bo‘lib qoladi.",
   "Проанализировать и заполнить": "Tahlil qilish va to‘ldirish",
   "Анализируем…": "Tahlil qilinmoqda…",
   "Очистить": "Tozalash",
-  "AI заполнил форму": "AI formani to‘ldirdi",
+  "Автозаполнение завершено": "Avtomatik to‘ldirish yakunlandi",
   "Проверьте значения перед сохранением.": "Saqlashdan oldin qiymatlarni tekshiring.",
-  "AI-предупреждения": "AI ogohlantirishlari",
-  "Не удалось выполнить AI-автозаполнение.": "AI avtomatik to‘ldirishni bajarib bo‘lmadi.",
+  "Предупреждения автозаполнения": "Avtomatik to‘ldirish ogohlantirishlari",
+  "Не удалось выполнить автозаполнение.": "Avtomatik to‘ldirishni bajarib bo‘lmadi.",
   "Вставьте текст с данными автомобиля.": "Avtomobil ma’lumotlari yozilgan matnni kiriting.",
   "Автомобиль": "Avtomobil",
   "Сначала выберите марку, затем укажите модель.": "Avval brendni tanlang, keyin modelni kiriting.",
@@ -884,11 +884,11 @@ export default function EditCarPage() {
         return;
       }
       if (!response.ok || !data?.success || !data.car) {
-        throw new Error(data?.error || t("Не удалось выполнить AI-автозаполнение."));
+        throw new Error(data?.error || t("Не удалось выполнить автозаполнение."));
       }
       applyAiResult(data.car);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t("Не удалось выполнить AI-автозаполнение."));
+      setError(requestError instanceof Error ? requestError.message : t("Не удалось выполнить автозаполнение."));
     } finally {
       setAiLoading(false);
     }
@@ -1070,8 +1070,8 @@ export default function EditCarPage() {
           >
             <span className={styles.aiMark} aria-hidden="true">✦</span>
             <span className={styles.aiCardTitle}>
-              <strong>{t("AI автозаполнение")}</strong>
-              <small>{t("Вставьте характеристики, дилерский лист, invoice или большой текст — Gemini разложит найденные данные по полям формы.")}</small>
+              <strong>{t("Умное автозаполнение")}</strong>
+              <small>{t("Вставьте характеристики, дилерский лист, invoice или большой текст — система разложит найденные данные по полям формы.")}</small>
             </span>
             <span className={styles.aiChevron} aria-hidden="true">⌄</span>
           </button>
@@ -1086,7 +1086,7 @@ export default function EditCarPage() {
                   placeholder="2026 Toyota Grand Highlander Hybrid MAX Platinum AWD…"
                   spellCheck={false}
                 />
-                <small>{t("Можно вставить 10–15 страниц текста. AI не сохраняет автомобиль сам — поля останутся редактируемыми.")} · {aiText.length.toLocaleString(language === "uz" ? "uz-UZ" : "ru-RU")} / 180 000</small>
+                <small>{t("Можно вставить 10–15 страниц текста. Система не сохраняет автомобиль сама — поля останутся редактируемыми.")} · {aiText.length.toLocaleString(language === "uz" ? "uz-UZ" : "ru-RU")} / 180 000</small>
               </label>
 
               <div className={styles.aiActions}>
@@ -1113,14 +1113,14 @@ export default function EditCarPage() {
 
               {aiApplied ? (
                 <div className={styles.aiSuccess} role="status">
-                  <strong>{t("AI заполнил форму")}</strong>
+                  <strong>{t("Автозаполнение завершено")}</strong>
                   <span>{t("Проверьте значения перед сохранением.")}</span>
                 </div>
               ) : null}
 
               {aiWarnings.length > 0 ? (
                 <div className={styles.aiWarnings}>
-                  <strong>{t("AI-предупреждения")}</strong>
+                  <strong>{t("Предупреждения автозаполнения")}</strong>
                   <ul>{aiWarnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul>
                 </div>
               ) : null}
