@@ -69,7 +69,18 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   padding: clamp(26px, 3.2vh, 58px) clamp(42px, 3.05vw, 92px) clamp(24px, 2.5vh, 56px);
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
+}
+
+.scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: #070807;
+  opacity: 0;
+  animation: sceneReveal 1.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .topBar {
@@ -361,7 +372,7 @@
   pointer-events: none;
   background: linear-gradient(106deg, transparent 17%, rgba(255, 255, 255, 0.22) 35%, transparent 54%);
   transform: translateX(-115%);
-  animation: softSweep 5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: softSweep 11s cubic-bezier(0.22, 1, 0.36, 1) both;
   mix-blend-mode: screen;
   opacity: 0.55;
 }
@@ -447,7 +458,7 @@
   width: 100%;
   background: linear-gradient(90deg, var(--accent), #ff985c);
   transform-origin: left center;
-  animation: displayProgress 5s linear both;
+  animation: displayProgress 11s linear both;
   box-shadow: 0 0 18px rgba(244, 119, 45, 0.32);
 }
 
@@ -550,6 +561,12 @@
   object-fit: contain;
 }
 
+@keyframes sceneReveal {
+  0% { opacity: 0.3; }
+  44% { opacity: 0.08; }
+  100% { opacity: 0; }
+}
+
 @keyframes displayProgress {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
@@ -622,7 +639,8 @@
   .softSweep,
   .progressRail span,
   .loadingLogo,
-  .introBrand {
+  .introBrand,
+  .scene::after {
     animation: none !important;
   }
 }

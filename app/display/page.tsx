@@ -52,7 +52,7 @@ interface CatalogResponse {
   cars?: DisplayCar[];
 }
 
-const ROTATION_MS = 5000;
+const ROTATION_MS = 11_000;
 const CATALOG_REFRESH_MS = 60_000;
 const INTRO_FALLBACK_MS = 9_000;
 
@@ -176,6 +176,7 @@ export default function DisplayPage() {
 
   const currentSlugRef = useRef<string | null>(null);
   const pendingIndexRef = useRef<number | null>(0);
+  const warmedAssetsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     currentSlugRef.current = cars[index]?.slug ?? null;
@@ -236,6 +237,30 @@ export default function DisplayPage() {
   }, [loadCars]);
 
   useEffect(() => {
+    if (cars.length === 0) return;
+
+    const warm = (src: string) => {
+      if (!src || warmedAssetsRef.current.has(src)) return;
+      warmedAssetsRef.current.add(src);
+
+      const preload = new window.Image();
+      preload.decoding = "async";
+      preload.src = src;
+      if (typeof preload.decode === "function") {
+        void preload.decode().catch(() => undefined);
+      }
+    };
+
+    const preloadCount = Math.min(3, cars.length);
+    for (let offset = 0; offset < preloadCount; offset += 1) {
+      const displayCar = cars[(index + offset) % cars.length];
+      if (!displayCar) continue;
+      warm(carImage(displayCar));
+      warm(qrUrl(displayCar.slug));
+    }
+  }, [cars, index]);
+
+  useEffect(() => {
     const clock = window.setInterval(() => setTime(new Date()), 15_000);
     return () => window.clearInterval(clock);
   }, []);
@@ -281,15 +306,15 @@ export default function DisplayPage() {
       <div className={styles.texture} aria-hidden="true" />
       <div className={styles.ambientGlow} aria-hidden="true" />
 
-      <AnimatePresence initial={false} mode="wait">
+      <AnimatePresence initial={false} mode="sync">
         {phase === "intro" ? (
           <motion.section
             key={`intro-${introCycle}`}
             className={styles.introScene}
-            initial={{ opacity: 0, scale: 1.01, filter: "blur(8px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.995, filter: "blur(10px)" }}
-            transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 1.004 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.998 }}
+            transition={{ duration: 1.45, ease: [0.22, 1, 0.36, 1] }}
           >
             <video
               key={`intro-video-${introCycle}`}
@@ -317,7 +342,7 @@ export default function DisplayPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.45 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           >
             <img className={styles.loadingLogo} src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
             <div className={styles.loadingCopy}>
@@ -329,10 +354,10 @@ export default function DisplayPage() {
           <motion.section
             className={styles.scene}
             key={`${car.id}-${car.slug}`}
-            initial={{ opacity: 0, y: 18, scale: 0.997, filter: "blur(7px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -12, scale: 1.003, filter: "blur(8px)" }}
-            transition={{ duration: 0.92, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 1.004 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.999 }}
+            transition={{ duration: 1.55, ease: [0.22, 1, 0.36, 1] }}
           >
             <header className={styles.topBar}>
               <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
@@ -370,14 +395,13 @@ export default function DisplayPage() {
 
               <div className={styles.visualCard}>
                 <div className={styles.imageStage}>
-                  <motion.img
+                  <img
                     key={image}
                     className={styles.carImage}
                     src={image}
                     alt={`${car.brand} ${car.model}`}
-                    initial={{ opacity: 0, scale: 1.03, filter: "blur(6px)" }}
-                    animate={{ opacity: 1, scale: 1.002, filter: "blur(0px)" }}
-                    transition={{ duration: 1.18, ease: [0.22, 1, 0.36, 1] }}
+                    loading="eager"
+                    decoding="async"
                     onError={(event: SyntheticEvent<HTMLImageElement>) => {
                       const target = event.currentTarget;
                       if (!target.src.endsWith("/intro-poster.jpg")) target.src = "/intro-poster.jpg";
