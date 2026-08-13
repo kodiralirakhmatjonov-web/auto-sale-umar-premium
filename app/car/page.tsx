@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeftRight,
   ArrowUpRight,
   CalendarDays,
   ChevronRight,
@@ -124,6 +125,7 @@ const COPY = {
     book: "Забронировать визит",
     manager: "Связаться с менеджером",
     instagram: "Смотреть обзор в Instagram",
+    compare: "Сравнить автомобиль",
     favoriteAdd: "Добавить в избранное",
     favoriteRemove: "Убрать из избранного",
     priceRequest: "Цена по запросу",
@@ -174,6 +176,7 @@ const COPY = {
     book: "Tashrifni band qilish",
     manager: "Menejer bilan bog‘lanish",
     instagram: "Instagram sharhini ko‘rish",
+    compare: "Avtomobilni solishtirish",
     favoriteAdd: "Sevimlilarga qo‘shish",
     favoriteRemove: "Sevimlilardan olib tashlash",
     priceRequest: "Narx so‘rov bo‘yicha",
@@ -408,6 +411,7 @@ export default function CarPage() {
   const selectedExterior = activeVariant?.exteriorColorName || car.exteriorColor || "";
   const selectedInterior = activeVariant?.interiorColorName || car.interiorColor || "";
   const bookingHref = `/booking/?brand=${encodeURIComponent(car.brand)}&car=${encodeURIComponent(`${car.brand} ${car.model}`)}`;
+  const compareHref = `/compare/?cars=${encodeURIComponent(car.slug)}`;
 
   const specs = [
     car.horsepowerHp != null ? { label: c.power, value: `${car.horsepowerHp} ${language === "ru" ? "л.с." : "o.k."}` } : null,
@@ -585,6 +589,7 @@ export default function CarPage() {
               <a href={bookingHref}><CalendarDays />{c.book}<ChevronRight /></a>
               <a href="https://wa.me/998771155553" target="_blank" rel="noreferrer"><MessageCircle />{c.manager}<ArrowUpRight /></a>
               {car.instagramUrl ? <a href={car.instagramUrl} target="_blank" rel="noreferrer"><Instagram />{c.instagram}<ArrowUpRight /></a> : null}
+              <a href={compareHref}><ArrowLeftRight />{c.compare}<ChevronRight /></a>
             </div>
           </div>
         </Reveal>

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeftRight,
   ArrowUpRight,
   CalendarDays,
   CarFront,
@@ -187,6 +188,11 @@ const COPY = {
     requestTitle: "Не нашли нужный автомобиль?",
     requestText: "Укажите марку, модель, бюджет и срок покупки. Команда Auto Sale Umar начнёт поиск под ваш запрос.",
     requestAction: "Найти автомобиль",
+    compareKicker: "СРАВНИТЕ ПЕРЕД ВЫБОРОМ",
+    compareTitle: "Два автомобиля. Один понятный выбор.",
+    compareText: "Сопоставьте цену, характеристики и комплектации реальных автомобилей Auto Sale Umar. Gemini поможет разобраться в деталях только по вашему запросу.",
+    compareAction: "Сравнить автомобили",
+    compareAI: "AI-проверка комплектаций и официальных данных",
     seeAll: "Посмотреть все",
     trustKicker: "ПОЧЕМУ AUTO SALE UMAR",
     trustTitle: "Спокойствие строится на деталях.",
@@ -269,6 +275,11 @@ const COPY = {
     requestTitle: "Kerakli avtomobilni topmadingizmi?",
     requestText: "Marka, model, budjet va xarid muddatini kiriting. Auto Sale Umar jamoasi siz uchun qidiruvni boshlaydi.",
     requestAction: "Avtomobil topish",
+    compareKicker: "TANLOVDAN OLDIN SOLISHTIRING",
+    compareTitle: "Ikki avtomobil. Bitta tushunarli tanlov.",
+    compareText: "Auto Sale Umar’dagi aniq avtomobillarning narxi, xususiyatlari va komplektatsiyasini solishtiring. Gemini faqat siz so‘raganingizda tafsilotlarni tekshiradi.",
+    compareAction: "Avtomobillarni solishtirish",
+    compareAI: "Komplektatsiya va rasmiy ma’lumotlarni AI orqali tekshirish",
     seeAll: "Barchasini ko‘rish",
     trustKicker: "NEGA AUTO SALE UMAR",
     trustTitle: "Xotirjamlik tafsilotlardan boshlanadi.",
@@ -586,6 +597,31 @@ export default function HomeClient() {
       <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} requestBrand={brand} />
       <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} requestBrand={brand} />
       <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} />
+
+      <section className={`${styles.section} ${styles.comparePromoSection}`} id="compare">
+        <div className={styles.comparePromoCard}>
+          <div className={styles.comparePromoCopy}>
+            <span><ArrowLeftRight />{c.compareKicker}</span>
+            <h2>{c.compareTitle}</h2>
+            <p>{c.compareText}</p>
+            <a href="/compare/">{c.compareAction}<ChevronRight /></a>
+          </div>
+          <div className={styles.comparePromoVisual} aria-hidden="true">
+            <div className={styles.compareSlot}>
+              <small>01</small>
+              <strong>AUTO</strong>
+              <span>{language === "ru" ? "Ваш выбор" : "Sizning tanlovingiz"}</span>
+            </div>
+            <div className={styles.compareSwap}><ArrowLeftRight /></div>
+            <div className={styles.compareSlot}>
+              <small>02</small>
+              <strong>AUTO</strong>
+              <span>{language === "ru" ? "Альтернатива" : "Alternativa"}</span>
+            </div>
+            <div className={styles.compareAiBadge}><Sparkles /><span>{c.compareAI}</span></div>
+          </div>
+        </div>
+      </section>
 
       <section className={`${styles.section} ${styles.showroomSection}`} id="showroom">
         <SectionHeading kicker={c.showroomKicker} title={c.showroomTitle} text={c.showroomText} />
