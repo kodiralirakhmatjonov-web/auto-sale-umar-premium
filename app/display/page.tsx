@@ -52,9 +52,29 @@ interface CatalogResponse {
   cars?: DisplayCar[];
 }
 
+type FullscreenHost = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void;
+};
+
+type FullscreenDocument = Document & {
+  webkitExitFullscreen?: () => Promise<void> | void;
+  webkitFullscreenElement?: Element | null;
+};
+
+interface DisplayCachePayload {
+  timestamp: number;
+  cars: DisplayCar[];
+}
+
+function getFullscreenElement(doc: FullscreenDocument): Element | null {
+  return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+}
+
 const ROTATION_MS = 11_000;
-const CATALOG_REFRESH_MS = 60_000;
+const CATALOG_REFRESH_MS = 5 * 60_000;
+const DISPLAY_CACHE_TTL_MS = 30 * 60_000;
 const INTRO_FALLBACK_MS = 9_000;
+const DISPLAY_CACHE_KEY = "asu:display:catalog:v2";
 
 const STATUS_LABELS: Record<CarStatus, string> = {
   in_stock: "В НАЛИЧИИ",
@@ -149,6 +169,36 @@ function clampIndex(value: number, length: number): number {
   return Math.min(Math.max(value, 0), length - 1);
 }
 
+function catalogSignature(cars: DisplayCar[]): string {
+  return cars
+    .map((car) => [car.id, car.slug, car.status, car.price ?? "", car.currency, car.priceOnRequest ? 1 : 0, car.coverUrl ?? carImage(car)].join("|"))
+    .join("||");
+}
+
+function readCatalogCache(): DisplayCachePayload | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DISPLAY_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DisplayCachePayload;
+    if (!parsed || !Array.isArray(parsed.cars) || typeof parsed.timestamp !== "number") return null;
+    if (Date.now() - parsed.timestamp > DISPLAY_CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCatalogCache(cars: DisplayCar[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: DisplayCachePayload = { timestamp: Date.now(), cars };
+    window.localStorage.setItem(DISPLAY_CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore quota and serialization failures for showroom display
+  }
+}
+
 function StatusPill({ status }: { status: CarStatus }) {
   return (
     <span className={styles.statusPill} data-status={status}>
@@ -173,14 +223,84 @@ export default function DisplayPage() {
   const [error, setError] = useState(false);
   const [phase, setPhase] = useState<DisplayPhase>("loading");
   const [introCycle, setIntroCycle] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenSupported, setFullscreenSupported] = useState(false);
+  const [fullscreenHint, setFullscreenHint] = useState<string | null>(null);
 
+  const rootRef = useRef<HTMLElement | null>(null);
   const currentSlugRef = useRef<string | null>(null);
   const pendingIndexRef = useRef<number | null>(0);
   const warmedAssetsRef = useRef<Set<string>>(new Set());
+  const catalogSignatureRef = useRef<string>("");
 
   useEffect(() => {
     currentSlugRef.current = cars[index]?.slug ?? null;
+    catalogSignatureRef.current = catalogSignature(cars);
   }, [cars, index]);
+
+  useEffect(() => {
+    const doc = document as FullscreenDocument;
+    const root = rootRef.current as FullscreenHost | null;
+
+    setFullscreenSupported(Boolean(root && (root.requestFullscreen || root.webkitRequestFullscreen || doc.exitFullscreen || doc.webkitExitFullscreen)));
+
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(getFullscreenElement(doc)));
+    };
+
+    handleFullscreenChange();
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange as EventListener);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const cached = readCatalogCache();
+    if (!cached || cached.cars.length === 0) return;
+    setCars(cached.cars);
+    setError(false);
+  }, []);
+
+  useEffect(() => {
+    if (!fullscreenHint) return;
+    const timeout = window.setTimeout(() => setFullscreenHint(null), 5200);
+    return () => window.clearTimeout(timeout);
+  }, [fullscreenHint]);
+
+  const toggleFullscreen = useCallback(async () => {
+    const doc = document as FullscreenDocument;
+    const root = rootRef.current as FullscreenHost | null;
+    if (!root) return;
+
+    if (!fullscreenSupported) {
+      setFullscreenHint("Если рамка браузера остаётся видимой, откройте меню Samsung Browser вверху справа и включите полноэкранный режим.");
+      return;
+    }
+
+    try {
+      if (getFullscreenElement(doc)) {
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        }
+        return;
+      }
+
+      if (root.requestFullscreen) {
+        await root.requestFullscreen();
+      } else if (root.webkitRequestFullscreen) {
+        await root.webkitRequestFullscreen();
+      }
+    } catch (fullscreenError) {
+      console.error("Showroom display fullscreen toggle failed", fullscreenError);
+      setFullscreenHint("Этот браузер не дал сайту переключить полноэкранный режим. Используйте меню браузера Samsung TV → Full screen.");
+    }
+  }, [fullscreenSupported]);
 
   const startIntro = useCallback(
     (targetIndex: number) => {
@@ -200,6 +320,28 @@ export default function DisplayPage() {
     });
   }, [cars.length]);
 
+  const applyCars = useCallback((nextCars: DisplayCar[]) => {
+    const currentSlug = currentSlugRef.current;
+    const nextSignature = catalogSignature(nextCars);
+    writeCatalogCache(nextCars);
+
+    if (nextSignature === catalogSignatureRef.current) {
+      return;
+    }
+
+    setCars(nextCars);
+    if (nextCars.length > 0) {
+      const preservedIndex = currentSlug ? nextCars.findIndex((car) => car.slug === currentSlug) : -1;
+      setIndex((current) => {
+        if (preservedIndex >= 0) return preservedIndex;
+        return Math.min(current, nextCars.length - 1);
+      });
+    } else {
+      setIndex(0);
+      setPhase("loading");
+    }
+  }, []);
+
   const loadCars = useCallback(async () => {
     try {
       const response = await fetch("/api/catalog?pageSize=100", { cache: "no-store" });
@@ -210,23 +352,25 @@ export default function DisplayPage() {
 
       const active = payload.cars.filter((car) => car.status !== "hidden" && car.status !== "sold");
       const nextCars = active.length > 0 ? active : payload.cars.filter((car) => car.status !== "hidden");
-      const currentSlug = currentSlugRef.current;
 
-      setCars(nextCars);
-      if (nextCars.length > 0) {
-        const preservedIndex = currentSlug ? nextCars.findIndex((car) => car.slug === currentSlug) : -1;
-        setIndex((current) => {
-          if (preservedIndex >= 0) return preservedIndex;
-          return Math.min(current, nextCars.length - 1);
-        });
-      } else {
-        setIndex(0);
-        setPhase("loading");
-      }
+      applyCars(nextCars);
       setError(false);
     } catch (catalogError) {
       console.error("Showroom display catalog failed", catalogError);
       setError(true);
+    }
+  }, [applyCars]);
+
+  const warmAsset = useCallback((src: string) => {
+    if (!src || warmedAssetsRef.current.has(src)) return;
+    warmedAssetsRef.current.add(src);
+
+    const preload = new window.Image();
+    preload.decoding = "async";
+    preload.loading = "eager";
+    preload.src = src;
+    if (typeof preload.decode === "function") {
+      void preload.decode().catch(() => undefined);
     }
   }, []);
 
@@ -239,26 +383,48 @@ export default function DisplayPage() {
   useEffect(() => {
     if (cars.length === 0) return;
 
-    const warm = (src: string) => {
-      if (!src || warmedAssetsRef.current.has(src)) return;
-      warmedAssetsRef.current.add(src);
+    const priorityUrls: string[] = [];
+    const priorityCount = Math.min(3, cars.length);
+    for (let offset = 0; offset < priorityCount; offset += 1) {
+      const displayCar = cars[(index + offset) % cars.length];
+      if (!displayCar) continue;
+      priorityUrls.push(carImage(displayCar), qrUrl(displayCar.slug));
+    }
+    priorityUrls.forEach(warmAsset);
 
-      const preload = new window.Image();
-      preload.decoding = "async";
-      preload.src = src;
-      if (typeof preload.decode === "function") {
-        void preload.decode().catch(() => undefined);
+    const queue: string[] = [];
+    for (const displayCar of cars) {
+      const imageSrc = carImage(displayCar);
+      const qrSrc = qrUrl(displayCar.slug);
+      if (!warmedAssetsRef.current.has(imageSrc)) queue.push(imageSrc);
+      if (!warmedAssetsRef.current.has(qrSrc)) queue.push(qrSrc);
+    }
+
+    if (queue.length === 0) return;
+
+    let cancelled = false;
+    let pointer = 0;
+    let timeoutId: number | null = null;
+
+    const pump = () => {
+      if (cancelled) return;
+      const chunkSize = 4;
+      const end = Math.min(pointer + chunkSize, queue.length);
+      for (; pointer < end; pointer += 1) {
+        warmAsset(queue[pointer] ?? "");
+      }
+      if (pointer < queue.length) {
+        timeoutId = window.setTimeout(pump, 120);
       }
     };
 
-    const preloadCount = Math.min(3, cars.length);
-    for (let offset = 0; offset < preloadCount; offset += 1) {
-      const displayCar = cars[(index + offset) % cars.length];
-      if (!displayCar) continue;
-      warm(carImage(displayCar));
-      warm(qrUrl(displayCar.slug));
-    }
-  }, [cars, index]);
+    timeoutId = window.setTimeout(pump, 260);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId != null) window.clearTimeout(timeoutId);
+    };
+  }, [cars, index, warmAsset]);
 
   useEffect(() => {
     const clock = window.setInterval(() => setTime(new Date()), 15_000);
@@ -295,6 +461,7 @@ export default function DisplayPage() {
     return `${pad(index + 1)} / ${pad(cars.length)}`;
   }, [car, cars.length, index]);
 
+  const fullscreenLabel = isFullscreen ? "ВЫЙТИ ИЗ ПОЛНОГО ЭКРАНА" : "ПОЛНЫЙ ЭКРАН";
   const yearLine = car
     ? [car.year ? String(car.year) : null, car.engineText || normalizeFuel(car.fuelType)].filter(Boolean).join(" · ")
     : "";
@@ -302,9 +469,28 @@ export default function DisplayPage() {
   const image = car ? carImage(car) : "/intro-poster.jpg";
 
   return (
-    <main className={styles.displayRoot}>
+    <main ref={rootRef} className={styles.displayRoot}>
       <div className={styles.texture} aria-hidden="true" />
       <div className={styles.ambientGlow} aria-hidden="true" />
+
+      {phase === "catalog" ? (
+        <button type="button" className={styles.floatingFullscreenButton} onClick={() => void toggleFullscreen()}>
+          <span className={styles.fullscreenIcon} aria-hidden="true">
+            {isFullscreen ? (
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M9 4H4v5M15 4h5v5M4 15v5h5M20 15v5h-5" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" />
+              </svg>
+            )}
+          </span>
+          <span>{fullscreenLabel}</span>
+        </button>
+      ) : null}
+
+      {fullscreenHint ? <div className={styles.fullscreenNotice}>{fullscreenHint}</div> : null}
 
       <AnimatePresence initial={false} mode="sync">
         {phase === "intro" ? (
@@ -361,10 +547,32 @@ export default function DisplayPage() {
           >
             <header className={styles.topBar}>
               <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
-              <div className={styles.displayMeta}>
-                <span>SHOWROOM DISPLAY</span>
-                <i aria-hidden="true" />
-                <time>{formatTime(time)}</time>
+              <div className={styles.topBarRight}>
+                <button
+                  type="button"
+                  className={styles.fullscreenButton}
+                  data-supported={fullscreenSupported ? "true" : "false"}
+                  onClick={() => void toggleFullscreen()}
+                >
+                  <span className={styles.fullscreenIcon} aria-hidden="true">
+                    {isFullscreen ? (
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M9 4H4v5M15 4h5v5M4 15v5h5M20 15v5h-5" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" />
+                      </svg>
+                    )}
+                  </span>
+                  <span>{fullscreenLabel}</span>
+                </button>
+
+                <div className={styles.displayMeta}>
+                  <span>SHOWROOM DISPLAY</span>
+                  <i aria-hidden="true" />
+                  <time>{formatTime(time)}</time>
+                </div>
               </div>
             </header>
 
@@ -412,7 +620,7 @@ export default function DisplayPage() {
 
                 <a className={styles.qrCard} href={publicCarUrl(car.slug)}>
                   <div className={styles.qrWrap}>
-                    <img src={qrUrl(car.slug)} alt={`QR ${car.brand} ${car.model}`} />
+                    <img src={qrUrl(car.slug)} alt={`QR ${car.brand} ${car.model}`} loading="eager" decoding="async" />
                   </div>
                   <div>
                     <strong>

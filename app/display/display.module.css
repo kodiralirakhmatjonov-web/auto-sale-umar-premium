@@ -8,9 +8,10 @@
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 62% 34%, rgba(255, 255, 255, 0.08), transparent 24%),
-    radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.05), transparent 22%),
-    linear-gradient(132deg, #181917 0%, #111210 42%, #0a0b0a 100%);
+    radial-gradient(circle at 72% 22%, rgba(255, 255, 255, 0.075), transparent 22%),
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.05), transparent 18%),
+    linear-gradient(180deg, rgba(7, 7, 7, 0.76), rgba(7, 7, 7, 0.88)),
+    linear-gradient(90deg, #151617 0%, #0f1012 12%, #1d1c1d 16%, #121315 21%, #6e655b 22.4%, #171719 23.2%, #0d0e10 31%, #b7ab98 32.1%, #151517 33.2%, #0f1012 45%, #2d2a2a 47%, #0e0f11 49%, #dad0c0 50.1%, #131416 51.5%, #0b0c0d 63%, #584f46 64.4%, #0f1012 65.2%, #131416 77%, #9b8f7d 78.2%, #111214 79.1%, #0a0b0d 100%);
   color: var(--ink);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   isolation: isolate;
@@ -23,17 +24,16 @@
   position: absolute;
   inset: -4%;
   z-index: -3;
-  opacity: 0.42;
+  opacity: 0.52;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.075), transparent 18%),
-    radial-gradient(circle at 68% 28%, rgba(255, 255, 255, 0.05), transparent 24%),
-    radial-gradient(circle at 60% 72%, rgba(255, 255, 255, 0.035), transparent 18%),
-    repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 9px),
-    linear-gradient(112deg, transparent 0 16%, rgba(255, 255, 255, 0.028) 16.1% 16.18%, transparent 16.3% 44%, rgba(255, 255, 255, 0.017) 44.1% 44.18%, transparent 44.3%),
-    linear-gradient(166deg, transparent 8%, rgba(255, 255, 255, 0.018) 8.1% 8.18%, transparent 8.3% 58%, rgba(255, 255, 255, 0.014) 58.1% 58.18%, transparent 58.3%);
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.05), transparent 16%),
+    radial-gradient(circle at 68% 28%, rgba(255, 255, 255, 0.03), transparent 18%),
+    radial-gradient(circle at 60% 72%, rgba(255, 255, 255, 0.025), transparent 14%),
+    repeating-linear-gradient(90deg, rgba(247, 241, 228, 0.025) 0 1px, transparent 1px 36px, rgba(238, 229, 214, 0.07) 36px 39px, transparent 39px 104px, rgba(255, 255, 255, 0.03) 104px 105px, transparent 105px 178px, rgba(210, 195, 171, 0.06) 178px 182px, transparent 182px 258px),
+    linear-gradient(90deg, transparent 0 12%, rgba(255, 255, 255, 0.016) 13.2%, transparent 14.4% 31%, rgba(245, 236, 223, 0.045) 32%, transparent 33.4% 48%, rgba(255, 255, 255, 0.018) 49.1%, transparent 50% 63%, rgba(222, 206, 182, 0.038) 64.2%, transparent 65.6% 76%, rgba(255, 255, 255, 0.012) 77%, transparent 78.4%);
   mix-blend-mode: screen;
-  filter: blur(0.4px);
+  filter: blur(0.2px);
   animation: marbleDrift 28s ease-in-out infinite alternate;
 }
 
@@ -41,19 +41,19 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 32%, rgba(0, 0, 0, 0.14));
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.34), transparent 26%, rgba(255, 245, 230, 0.03) 51%, rgba(0, 0, 0, 0.2) 100%);
 }
 
 .ambientGlow {
   position: absolute;
   z-index: -2;
-  width: 54vw;
-  height: 54vw;
-  right: 3vw;
-  top: 2vh;
+  width: 52vw;
+  height: 52vw;
+  right: 1vw;
+  top: 5vh;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.085), transparent 68%);
-  filter: blur(54px);
+  background: radial-gradient(circle, rgba(255, 252, 245, 0.08), transparent 70%);
+  filter: blur(72px);
   pointer-events: none;
   animation: glowDrift 18s ease-in-out infinite alternate;
 }
@@ -98,6 +98,119 @@
   height: auto;
   object-fit: contain;
   animation: panelFloat 16s ease-in-out infinite alternate;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(14px, 1vw, 24px);
+}
+
+.fullscreenButton {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(10px, 0.72vw, 18px);
+  padding: clamp(10px, 0.85vh, 18px) clamp(16px, 1vw, 26px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(12px, 0.72vw, 21px);
+  line-height: 1;
+  font-weight: 560;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, opacity 180ms ease;
+}
+
+.fullscreenButton:hover,
+.fullscreenButton:focus-visible {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.fullscreenButton:active {
+  transform: translateY(0);
+}
+.fullscreenButton[data-supported="false"] {
+  border-color: rgba(244, 119, 45, 0.34);
+  background: rgba(244, 119, 45, 0.1);
+}
+
+.floatingFullscreenButton {
+  position: absolute;
+  right: clamp(36px, 2.2vw, 72px);
+  bottom: clamp(44px, 4.6vh, 108px);
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(10px, 0.72vw, 18px);
+  padding: clamp(12px, 0.95vh, 20px) clamp(18px, 1.15vw, 28px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(15, 15, 15, 0.64);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: clamp(14px, 0.78vw, 22px);
+  line-height: 1;
+  font-weight: 620;
+  letter-spacing: 0.03em;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px) saturate(1.04);
+  -webkit-backdrop-filter: blur(18px) saturate(1.04);
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.floatingFullscreenButton:hover,
+.floatingFullscreenButton:focus-visible {
+  background: rgba(22, 22, 22, 0.78);
+  border-color: rgba(255, 255, 255, 0.26);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.fullscreenNotice {
+  position: absolute;
+  top: clamp(86px, 11vh, 180px);
+  right: clamp(42px, 3vw, 92px);
+  z-index: 82;
+  max-width: min(40vw, 560px);
+  padding: clamp(16px, 1.2vh, 24px) clamp(18px, 1.4vw, 28px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: clamp(20px, 1.5vw, 32px);
+  background: rgba(16, 17, 17, 0.84);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(14px, 0.9vw, 24px);
+  line-height: 1.34;
+  font-weight: 500;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(22px) saturate(1.05);
+  -webkit-backdrop-filter: blur(22px) saturate(1.05);
+}
+
+
+.fullscreenIcon {
+  display: grid;
+  place-items: center;
+  width: clamp(18px, 0.96vw, 26px);
+  height: clamp(18px, 0.96vw, 26px);
+}
+
+.fullscreenIcon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .displayMeta {
@@ -611,6 +724,29 @@
   .contentGrid {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .topBar {
+    align-items: flex-start;
+  }
+
+  .topBarRight {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .floatingFullscreenButton {
+    right: 4vw;
+    bottom: 3vh;
+    font-size: clamp(13px, 1.2vw, 18px);
+  }
+
+  .fullscreenNotice {
+    max-width: min(56vw, 520px);
+  }
+
+  .fullscreenButton {
+    font-size: clamp(12px, 1.2vw, 18px);
   }
 
   .infoPanel {
