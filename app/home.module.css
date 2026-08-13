@@ -1782,3 +1782,29 @@
   object-position: center center !important;
   transform: none !important;
 }
+
+
+/* p023: public home top chrome uses the same mobile geometry as Control System. */
+@media(max-width:700px){
+  .header{
+    top:5px!important;
+    width:calc(100% - 12px)!important;
+    min-height:64px!important;
+    padding:6px 7px!important;
+    display:grid!important;
+    grid-template-columns:48px minmax(0,1fr) 48px!important;
+    align-items:center!important;
+    gap:6px!important;
+  }
+  .headerSpacer{display:block!important;width:48px!important;height:48px!important}
+  .headerBrand{
+    position:static!important;
+    justify-self:center!important;
+    width:min(182px,46vw)!important;
+    height:45px!important;
+    transform:none!important;
+  }
+  .circleButton{width:48px!important;height:48px!important}
+  .circleButton svg{width:22px!important;height:22px!important}
+  .menuPanel{top:74px!important;right:6px!important;width:calc(100% - 12px)!important;max-height:calc(100dvh - 80px)!important}
+}

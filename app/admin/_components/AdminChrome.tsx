@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ExternalLink, Menu, Moon, Sun, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./admin-chrome.module.css";
 
 export type AdminLanguage = "ru" | "uz";
@@ -73,9 +73,19 @@ export default function AdminChrome({
   onThemeChange,
 }: AdminChromeProps) {
   const [open, setOpen] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
   const copy = LABELS[language];
   const manager = role === "sales_manager";
   const visibleNav = NAV.filter((item) => !manager || item.id === "cars" || item.id === "visits" || item.id === "requests");
+
+  useEffect(() => {
+    const active = navRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!active) return;
+    const frame = window.requestAnimationFrame(() => {
+      active.scrollIntoView({ block: "nearest", inline: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [current, visibleNav.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -115,7 +125,7 @@ export default function AdminChrome({
           </button>
         </header>
 
-        <nav className={styles.nav} data-count={visibleNav.length} aria-label="Control System">
+        <nav ref={navRef} className={styles.nav} data-count={visibleNav.length} aria-label="Control System">
           {visibleNav.map((item) => (
             <a key={item.id} href={item.href} data-active={current === item.id} aria-current={current === item.id ? "page" : undefined}>
               {copy[item.id]}

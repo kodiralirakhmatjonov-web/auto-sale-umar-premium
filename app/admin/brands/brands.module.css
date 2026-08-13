@@ -25,3 +25,29 @@
 .emptyState,.loadingState{min-height:260px;margin-top:24px;display:grid;place-items:center;align-content:center;gap:13px;border:1px dashed var(--line);border-radius:28px;color:var(--muted);text-align:center}.emptyState svg{width:34px;height:34px}.emptyState strong{color:var(--ink);font-size:22px}.emptyState span{max-width:420px;font-size:14px;line-height:1.4}.loadingState i{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}.loadingState span{font-size:13px}.fileInput{display:none}.uploadButton{width:100%;min-height:62px;margin-top:18px;padding:0 20px;display:flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:780}.uploadButton:disabled{opacity:.35}.uploadButton svg{width:19px;height:19px}.uploadButton small{margin-left:auto;opacity:.6;font-size:11px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:760px){.hero,.content{width:calc(100% - 20px)}.hero{padding-top:28px}.hero h1{font-size:clamp(46px,13vw,68px)}.hero>span{font-size:16px}.brandPicker,.editor{border-radius:30px}.brandPicker{padding:18px}.brandRail button{flex-basis:132px;min-height:108px;border-radius:22px}.editor{padding:22px 18px}.brandIdentity>span{width:62px;height:62px;border-radius:20px}.coverGrid{grid-template-columns:1fr}.coverCard{border-radius:24px}.coverCard>img{aspect-ratio:16/9}.emptyState,.loadingState{min-height:220px;border-radius:24px}.uploadButton{min-height:58px}}
+
+
+/* p023: keep brand-cover editor strictly inside the mobile viewport. */
+.content,.brandPicker,.editor{min-width:0;max-width:100%}
+.editor{width:100%;overflow:hidden}
+.editor>header{min-width:0;max-width:100%}
+.brandIdentity{max-width:calc(100% - 72px)}
+.hint{max-width:100%;overflow-wrap:anywhere;word-break:normal}
+.emptyState,.loadingState{width:100%;min-width:0;max-width:100%;padding-inline:20px;overflow:hidden}
+.emptyState strong,.emptyState span,.loadingState span{max-width:100%;overflow-wrap:anywhere}
+.uploadButton{min-width:0;max-width:100%;overflow:hidden}
+.uploadButton>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+@media(max-width:760px){
+  .content{width:calc(100% - 20px);max-width:calc(100% - 20px);margin-inline:auto}
+  .brandPicker,.editor{width:100%;max-width:100%}
+  .editor{padding:22px 18px}
+  .editor>header{gap:12px}
+  .editor>header>b{flex:0 0 auto;min-width:44px}
+  .brandIdentity{max-width:calc(100% - 56px);gap:12px}
+  .brandIdentity>span{width:58px;height:58px}
+  .brandIdentity h2{font-size:clamp(30px,9.8vw,44px);overflow-wrap:anywhere}
+  .hint{font-size:13px;line-height:1.45}
+  .emptyState,.loadingState{min-height:220px;padding:24px 16px}
+  .emptyState strong{font-size:20px}
+}
