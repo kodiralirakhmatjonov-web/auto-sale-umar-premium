@@ -367,6 +367,8 @@ export default function HomeClient() {
   const [brand, setBrand] = useState<string>("all");
   const [heroIndex, setHeroIndex] = useState(0);
   const heroRailRef = useRef<HTMLDivElement | null>(null);
+  const marketRailRef = useRef<HTMLDivElement | null>(null);
+  const marketPauseUntilRef = useRef(0);
 
   useEffect(() => {
     try {
@@ -469,6 +471,42 @@ export default function HomeClient() {
     const timer = window.setTimeout(closeIntro, 5200);
     return () => window.clearTimeout(timer);
   }, [introVisible, closeIntro]);
+
+  useEffect(() => {
+    const rail = marketRailRef.current;
+    if (!rail) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let lastTime = performance.now();
+
+    const tick = (now: number) => {
+      const elapsed = Math.min(now - lastTime, 64);
+      lastTime = now;
+
+      if (Date.now() >= marketPauseUntilRef.current) {
+        const firstGroup = rail.firstElementChild as HTMLElement | null;
+        const loopWidth = firstGroup?.offsetWidth ?? 0;
+        if (loopWidth > 0) {
+          rail.scrollLeft += elapsed * 0.022;
+          if (rail.scrollLeft >= loopWidth) rail.scrollLeft -= loopWidth;
+        }
+      }
+
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [language]);
+
+  const pauseMarketAutoScroll = useCallback(() => {
+    marketPauseUntilRef.current = Number.POSITIVE_INFINITY;
+  }, []);
+
+  const resumeMarketAutoScroll = useCallback(() => {
+    marketPauseUntilRef.current = Date.now() + 3200;
+  }, []);
 
   function changeLanguage(next: Language) {
     setLanguage(next);
@@ -666,8 +704,20 @@ export default function HomeClient() {
             <div><span>02</span><strong>{c.exportStep2}</strong><p>{c.exportStep2d}</p></div>
             <div><span>03</span><strong>{c.exportStep3}</strong><p>{c.exportStep3d}</p></div>
           </div>
-          <div className={styles.marketRail}>
-            {MARKETS.map((market) => <div className={styles.marketPill} key={market.ru}><span>{market.flag}</span><b>{market[language]}</b></div>)}
+          <div
+            className={styles.marketRail}
+            ref={marketRailRef}
+            onPointerDown={pauseMarketAutoScroll}
+            onPointerUp={resumeMarketAutoScroll}
+            onPointerCancel={resumeMarketAutoScroll}
+            onPointerLeave={resumeMarketAutoScroll}
+          >
+            <div className={styles.marketLoopGroup}>
+              {MARKETS.map((market) => <div className={styles.marketPill} key={`primary-${market.ru}`}><span>{market.flag}</span><b>{market[language]}</b></div>)}
+            </div>
+            <div className={styles.marketLoopGroup} aria-hidden="true">
+              {MARKETS.map((market) => <div className={styles.marketPill} key={`loop-${market.ru}`}><span>{market.flag}</span><b>{market[language]}</b></div>)}
+            </div>
           </div>
           <p className={styles.exportNote}><Ship />{c.exportNote}</p>
         </div>

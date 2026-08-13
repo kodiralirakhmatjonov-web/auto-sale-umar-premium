@@ -1724,3 +1724,51 @@
   .compareSwap { width: 42px; height: 42px; }
   .compareAiBadge { bottom: -2px; min-height: 42px; font-size: 10px; }
 }
+
+/* ===== p020 requested-only mobile rail + header alignment + market auto-scroll ===== */
+.headerBrand{
+  top:calc(50% + 2px)!important;
+}
+.headerBrand img{
+  object-position:center center!important;
+  transform:translateY(1px);
+}
+
+.marketRail{
+  gap:0!important;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+}
+.marketRail::-webkit-scrollbar{display:none}
+.marketLoopGroup{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding-right:9px;
+}
+
+@media(max-width:760px){
+  .carGrid{
+    width:100vw!important;
+    margin-left:calc(50% - 50vw)!important;
+    margin-right:calc(50% - 50vw)!important;
+    padding-left:0!important;
+    padding-right:0!important;
+    scroll-padding-left:0!important;
+    scroll-padding-right:0!important;
+  }
+  .carGrid>.carCard:first-child{margin-left:0!important}
+  .carGrid>.carCard:last-child{margin-right:0!important}
+
+  .marketRail{
+    width:calc(100% + 40px)!important;
+    margin-left:-20px!important;
+    margin-right:-20px!important;
+    padding-left:0!important;
+    padding-right:0!important;
+    scroll-padding-left:0!important;
+    scroll-padding-right:0!important;
+  }
+}
