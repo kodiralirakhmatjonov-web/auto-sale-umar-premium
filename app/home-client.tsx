@@ -157,6 +157,7 @@ const COPY = {
     cars: "Автомобили",
     employees: "Сотрудники",
     showroomMenu: "Шоурум",
+    locationMenu: "Локация",
     contacts: "Контакты",
     language: "Язык",
     theme: "Тема",
@@ -244,6 +245,7 @@ const COPY = {
     cars: "Avtomobillar",
     employees: "Xodimlar",
     showroomMenu: "Shourum",
+    locationMenu: "Manzil",
     contacts: "Kontaktlar",
     language: "Til",
     theme: "Mavzu",
@@ -561,6 +563,7 @@ export default function HomeClient() {
         <nav className={styles.menuNav}>
           <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
           <a href="#showroom" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.showroomMenu}</span><ChevronRight /></a>
+          <a href="/location/" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.locationMenu}</span><ChevronRight /></a>
           <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
           <a href="/admin/login/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
         </nav>
@@ -735,6 +738,11 @@ export default function HomeClient() {
 
       <footer className={styles.footer}>
         <img src={wordmark} alt="Auto Sale Umar" />
+        <nav className={styles.footerNav} aria-label={language === "ru" ? "Основные разделы" : "Asosiy bo‘limlar"}>
+          <a href="#stock">{c.cars}</a>
+          <a href="#showroom">{c.showroomMenu}</a>
+          <a href="/location/">{c.locationMenu}</a>
+        </nav>
         <p>{c.footer}<br />© 2026</p>
       </footer>
     </main>
