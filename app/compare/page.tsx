@@ -620,12 +620,19 @@ export default function ComparePage() {
           language,
         }),
       });
-      const body = await response.json() as AiResponse;
-      if (body.quota) setQuota(body.quota);
-      if (!response.ok || !body.success || !body.result) throw new Error(body.error || c.consultantUnavailable);
+      const raw = await response.text();
+      let body: AiResponse | null = null;
+      try {
+        body = JSON.parse(raw) as AiResponse;
+      } catch {
+        body = null;
+      }
+      if (body?.quota) setQuota(body.quota);
+      if (!response.ok || !body?.success || !body.result) throw new Error(body?.error || c.consultantUnavailable);
       setAiResult(body.result);
     } catch (error) {
-      setAiError(error instanceof Error ? error.message : c.error);
+      const message = error instanceof Error ? error.message.trim() : "";
+      setAiError(message && message !== "Load failed" && message !== "Failed to fetch" ? message : c.consultantUnavailable);
     } finally {
       setAiAction(null);
     }

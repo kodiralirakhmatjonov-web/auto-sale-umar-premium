@@ -553,15 +553,6 @@ export default function DisplayPage() {
               <strong>В ШОУРУМ</strong>
             </motion.div>
 
-            <motion.div
-              className={styles.welcomeUz}
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.65, duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <span>SHOWROOMGA</span>
-              <strong>XUSH KELIBSIZ</strong>
-            </motion.div>
 
             <motion.img
               className={styles.welcomeLogo}

@@ -87,12 +87,27 @@ interface GeminiInteractionResponse {
   error?: { message?: string };
 }
 
+interface GeminiGenerateContentResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+  }>;
+  error?: { message?: string };
+}
+
+interface ProviderResult {
+  text: string;
+  model: string;
+}
+
 interface QuotaRow {
   advice_used: number;
   deep_used: number;
 }
 
 const MODEL = "gemini-3.6-flash";
+const FALLBACK_MODEL = "gemini-2.5-flash";
 const LIMIT_PER_ACTION = 4;
 const MAX_NOTE_LENGTH = 700;
 
@@ -490,6 +505,226 @@ function extractSources(payload: GeminiInteractionResponse | null, privateIdenti
   return result;
 }
 
+
+function extractGenerateContentText(payload: GeminiGenerateContentResponse | null): string | null {
+  const chunks: string[] = [];
+  for (const candidate of payload?.candidates ?? []) {
+    for (const part of candidate.content?.parts ?? []) {
+      if (typeof part.text === "string" && part.text.trim()) chunks.push(part.text.trim());
+    }
+  }
+  return chunks.length ? chunks.join("\n") : null;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(url: string, init: RequestInit, label: string): Promise<Response> {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetch(url, init);
+      if (response.status !== 429 && response.status < 500) return response;
+      lastError = new Error(`${label} HTTP ${response.status}`);
+      if (attempt === 2) return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 2) throw error;
+    }
+    await sleep(350 * (attempt + 1));
+  }
+  throw lastError instanceof Error ? lastError : new Error(`${label} failed`);
+}
+
+function buildResearchPrompt(
+  action: CompareAction,
+  cars: Awaited<ReturnType<typeof loadCars>> extends infer T ? Exclude<T, null> : never,
+  criteria: AdviceCriterion[],
+  note: string,
+  budget: number | null,
+  budgetCurrency: "USD" | "UZS" | "EUR",
+  language: "ru" | "uz",
+): string {
+  const targetLanguage = language === "uz" ? "узбекском (латиница)" : "русском";
+  const criteriaText = criteria.length
+    ? criteria.map((criterion) => `- ${CRITERIA_LABELS[criterion]}`).join("\n")
+    : "- общий сбалансированный выбор";
+
+  return `
+Проведи серверное исследование для Auto Sale Umar перед сравнением конкретных автомобилей.
+Язык заметок: ${targetLanguage}.
+
+Приоритет источников: официальный сайт производителя, официальный конфигуратор, официальный национальный дистрибьютор, официальный дилерский материал. Используй Google Search.
+VIN разрешено использовать ТОЛЬКО как поисковый ключ. Если публичной официальной build-sheet по VIN нет, так и укажи. Не придумывай VIN-specific опции.
+Не заменяй дилерскую цену Auto Sale Umar MSRP или сторонней ценой.
+
+Цель: ${action === "deep" ? "найти дополнительные технические и комплектационные различия" : "проверить факты, которые реально влияют на выбор покупателя"}.
+Критерии пользователя:\n${criteriaText}
+${budget != null ? `Максимальный бюджет: ${budget} ${budgetCurrency}.` : ""}
+${note ? `Комментарий: ${note}` : ""}
+
+Автомобили из D1:\n${JSON.stringify(cars, null, 2)}
+
+Верни краткие фактические исследовательские заметки. Финальный пользовательский ответ будет сформирован отдельным шагом.
+`;
+}
+
+async function runResearch(
+  env: CompareEnv,
+  action: CompareAction,
+  cars: Awaited<ReturnType<typeof loadCars>> extends infer T ? Exclude<T, null> : never,
+  criteria: AdviceCriterion[],
+  note: string,
+  budget: number | null,
+  budgetCurrency: "USD" | "UZS" | "EUR",
+  language: "ru" | "uz",
+): Promise<{ text: string; sources: ReturnType<typeof extractSources> } | null> {
+  const body = JSON.stringify({
+    model: MODEL,
+    store: false,
+    input: buildResearchPrompt(action, cars, criteria, note, budget, budgetCurrency, language),
+    system_instruction: "Ты серверный автомобильный исследователь Auto Sale Umar. Ищи официальные подтверждения, отделяй факты от предположений и никогда не выдумывай комплектацию по VIN.",
+    tools: [{ type: "google_search" }],
+    generation_config: {
+      thinking_level: "medium",
+    },
+  });
+
+  try {
+    const response = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/interactions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-goog-api-key": env.GEMINI_API_KEY!,
+        "Api-Revision": "2026-05-20",
+      },
+      body,
+    }, "Gemini research");
+    const payload = await response.json().catch(() => null) as GeminiInteractionResponse | null;
+    if (!response.ok) {
+      console.error("Compare consultant research failed", response.status, payload?.error?.message || payload);
+      return null;
+    }
+    const text = extractModelText(payload);
+    if (!text) {
+      console.error("Compare consultant research returned no model text", payload);
+      return null;
+    }
+    const privateIdentifiers = Array.from(new Set(cars.flatMap((car) => [...car.vins, ...car.stockNumbers]))).filter((identifier) => identifier.trim().length >= 6);
+    return { text, sources: extractSources(payload, privateIdentifiers) };
+  } catch (error) {
+    console.error("Compare consultant research request failed", error);
+    return null;
+  }
+}
+
+function buildFinalPrompt(
+  action: CompareAction,
+  cars: Awaited<ReturnType<typeof loadCars>> extends infer T ? Exclude<T, null> : never,
+  criteria: AdviceCriterion[],
+  note: string,
+  budget: number | null,
+  budgetCurrency: "USD" | "UZS" | "EUR",
+  language: "ru" | "uz",
+  researchText: string | null,
+): string {
+  const base = buildPrompt(action, cars, criteria, note, budget, budgetCurrency, language)
+    .replace("2. Используй Google Search для уточнения технических характеристик, комплектаций и официальных данных по конкретному модельному году.", "2. Внешняя проверка выполнялась отдельным серверным этапом. Используй исследовательские заметки ниже только как дополнительный источник, а D1 — как первичный источник цены, статуса и конкретного автомобиля.");
+  return `${base}\n\nИССЛЕДОВАТЕЛЬСКИЕ ЗАМЕТКИ ИЗ ОФИЦИАЛЬНОГО WEB-ПОИСКА:\n${researchText || "Внешний поиск в этой попытке не завершился. Сформируй полезный ответ по D1 и явно укажи, что внешняя проверка временно недоступна."}`;
+}
+
+async function runStructuredInteraction(env: CompareEnv, prompt: string, action: CompareAction): Promise<ProviderResult | null> {
+  const response = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/interactions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-goog-api-key": env.GEMINI_API_KEY!,
+      "Api-Revision": "2026-05-20",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      store: false,
+      input: prompt,
+      system_instruction: "Ты автомобильный аналитик Auto Sale Umar. Сравнивай конкретные дилерские автомобили строго по фактам, отделяй данные D1 от внешней проверки и не выдумывай комплектации по VIN.",
+      generation_config: {
+        thinking_level: "medium",
+      },
+      response_format: {
+        type: "text",
+        mime_type: "application/json",
+        schema: resultSchema,
+      },
+    }),
+  }, "Gemini structured interaction");
+
+  const payload = await response.json().catch(() => null) as GeminiInteractionResponse | null;
+  if (!response.ok) {
+    console.error("Compare consultant structured interaction failed", response.status, payload?.error?.message || payload);
+    return null;
+  }
+  const text = extractModelText(payload);
+  if (!text) {
+    console.error("Compare consultant structured interaction returned no text", payload);
+    return null;
+  }
+  return { text, model: MODEL };
+}
+
+async function runStructuredGenerateContent(env: CompareEnv, prompt: string, model: string): Promise<ProviderResult | null> {
+  const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-goog-api-key": env.GEMINI_API_KEY!,
+    },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      systemInstruction: {
+        parts: [{ text: "Ты автомобильный аналитик Auto Sale Umar. Сравнивай конкретные дилерские автомобили строго по фактам. Верни только JSON по заданной схеме." }],
+      },
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseJsonSchema: resultSchema,
+      },
+    }),
+  }, `Gemini generateContent ${model}`);
+
+  const payload = await response.json().catch(() => null) as GeminiGenerateContentResponse | null;
+  if (!response.ok) {
+    console.error("Compare consultant generateContent failed", model, response.status, payload?.error?.message || payload);
+    return null;
+  }
+  const text = extractGenerateContentText(payload);
+  if (!text) {
+    console.error("Compare consultant generateContent returned no text", model, payload);
+    return null;
+  }
+  return { text, model };
+}
+
+async function runFinalProvider(env: CompareEnv, prompt: string, action: CompareAction): Promise<ProviderResult> {
+  const interaction = await runStructuredInteraction(env, prompt, action).catch((error) => {
+    console.error("Structured interaction transport failed", error);
+    return null;
+  });
+  if (interaction) return interaction;
+
+  const generate36 = await runStructuredGenerateContent(env, prompt, MODEL).catch((error) => {
+    console.error("GenerateContent 3.6 transport failed", error);
+    return null;
+  });
+  if (generate36) return generate36;
+
+  const fallback = await runStructuredGenerateContent(env, prompt, FALLBACK_MODEL).catch((error) => {
+    console.error("GenerateContent fallback transport failed", error);
+    return null;
+  });
+  if (fallback) return fallback;
+
+  throw new Error("All consultant provider paths failed");
+}
+
 function sanitizeResult(raw: Record<string, unknown>, slugs: string[]) {
   const recommendedRaw = cleanText(raw.recommendedSlug, 140);
   const recommendedSlug = slugs.includes(recommendedRaw) ? recommendedRaw : null;
@@ -667,54 +902,30 @@ export async function onRequestPost(context: { request: Request; env: CompareEnv
       return json({ success: false, error: "Один из автомобилей больше недоступен в публичном каталоге.", quota: quotaPayload(current) }, 404, { "set-cookie": identity.setCookie });
     }
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-goog-api-key": env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        store: false,
-        input: buildPrompt(action, cars, criteria, note, budget, budgetCurrency, language),
-        system_instruction: "Ты автомобильный аналитик Auto Sale Umar. Сравнивай конкретные дилерские автомобили строго по фактам, отделяй данные D1 от внешней проверки и не выдумывай комплектации по VIN.",
-        tools: [{ type: "google_search" }],
-        generation_config: {
-          thinking_level: action === "deep" ? "high" : "medium",
-        },
-        response_format: {
-          type: "text",
-          mime_type: "application/json",
-          schema: resultSchema,
-        },
-      }),
-    });
-
-    const payload = await response.json().catch(() => null) as GeminiInteractionResponse | null;
-    if (!response.ok) {
-      throw new Error(payload?.error?.message || `Gemini HTTP ${response.status}`);
-    }
-
-    const outputText = extractModelText(payload);
-    if (!outputText) throw new Error("Gemini returned empty output");
+    const research = action === "deep"
+      ? await runResearch(env, action, cars, criteria, note, budget, budgetCurrency, language)
+      : null;
+    const finalPrompt = buildFinalPrompt(action, cars, criteria, note, budget, budgetCurrency, language, research?.text ?? null);
+    const provider = await runFinalProvider(env, finalPrompt, action);
 
     let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(outputText) as Record<string, unknown>;
-    } catch {
-      throw new Error("Gemini returned invalid JSON");
+      parsed = JSON.parse(provider.text) as Record<string, unknown>;
+    } catch (parseError) {
+      console.error("Compare consultant output JSON parse failed", provider.model, parseError, provider.text.slice(0, 1200));
+      throw new Error("Consultant returned invalid JSON");
     }
 
     const privateIdentifiers = Array.from(new Set(cars.flatMap((car) => [...car.vins, ...car.stockNumbers]))).filter((identifier) => identifier.trim().length >= 6);
     const result = redactPrivateIdentifiers(sanitizeResult(parsed, slugs), privateIdentifiers);
-    const sources = extractSources(payload, privateIdentifiers);
+    const sources = research?.sources ?? [];
     await logUsage(env, identity.browserKey, action, slugs, true);
     const currentQuota = await ensureProfile(env, identity.browserKey);
 
     return json({
       success: true,
       action,
-      model: MODEL,
+      model: provider.model,
       result: { ...result, sources },
       quota: quotaPayload(currentQuota),
     }, 200, { "set-cookie": identity.setCookie });
