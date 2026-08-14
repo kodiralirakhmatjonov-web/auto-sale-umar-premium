@@ -148,6 +148,13 @@ const SHOWROOM_STORIES = [
     uzTitle: "Ishonch detallardan quriladi.",
     uzText: "Avtomobilning aniq statusi, jiddiy kuzatuv va mijozga to‘g‘ri munosabat.",
   },
+  {
+    image: "/showroom/showroom-06.webp",
+    ruTitle: "Цифровая витрина. Живой шоурум.",
+    ruText: "Каталог, актуальные статусы и автомобили работают как единая система прямо в пространстве Auto Sale Umar.",
+    uzTitle: "Raqamli vitrina. Jonli shourum.",
+    uzText: "Katalog, dolzarb statuslar va avtomobillar Auto Sale Umar makonida yagona tizim sifatida ishlaydi.",
+  },
 ] as const;
 
 const COPY = {
@@ -157,7 +164,6 @@ const COPY = {
     cars: "Автомобили",
     employees: "Сотрудники",
     showroomMenu: "Шоурум",
-    locationMenu: "Локация",
     contacts: "Контакты",
     language: "Язык",
     theme: "Тема",
@@ -245,7 +251,6 @@ const COPY = {
     cars: "Avtomobillar",
     employees: "Xodimlar",
     showroomMenu: "Shourum",
-    locationMenu: "Manzil",
     contacts: "Kontaktlar",
     language: "Til",
     theme: "Mavzu",
@@ -563,7 +568,6 @@ export default function HomeClient() {
         <nav className={styles.menuNav}>
           <a href="#stock" onClick={() => setMenuOpen(false)}><CarFront /><span>{c.cars}</span><ChevronRight /></a>
           <a href="#showroom" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.showroomMenu}</span><ChevronRight /></a>
-          <a href="/location/" onClick={() => setMenuOpen(false)}><MapPin /><span>{c.locationMenu}</span><ChevronRight /></a>
           <a href="#contacts" onClick={() => setMenuOpen(false)}><MessageCircle /><span>{c.contacts}</span><ChevronRight /></a>
           <a href="/admin/login/" onClick={() => setMenuOpen(false)}><Users /><span>{c.employees}</span><ChevronRight /></a>
         </nav>
@@ -640,27 +644,47 @@ export default function HomeClient() {
       <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} />
 
       <section className={`${styles.section} ${styles.comparePromoSection}`} id="compare">
-        <div className={styles.comparePromoCard}>
-          <div className={styles.comparePromoCopy}>
-            <span><ArrowLeftRight />{c.compareKicker}</span>
-            <h2>{c.compareTitle}</h2>
-            <p>{c.compareText}</p>
-            <a href="/compare/">{c.compareAction}<ChevronRight /></a>
-          </div>
-          <div className={styles.comparePromoVisual} aria-hidden="true">
-            <div className={styles.compareSlot}>
-              <small>01</small>
-              <strong>AUTO</strong>
-              <span>{language === "ru" ? "Ваш выбор" : "Sizning tanlovingiz"}</span>
+        <div className={styles.comparePromoRail}>
+          <article className={`${styles.comparePromoCard} ${styles.comparePromoSlide}`}>
+            <div className={styles.comparePromoCopy}>
+              <span><ArrowLeftRight />{c.compareKicker}</span>
+              <h2>{c.compareTitle}</h2>
+              <p>{c.compareText}</p>
+              <a href="/compare/">{c.compareAction}<ChevronRight /></a>
             </div>
-            <div className={styles.compareSwap}><ArrowLeftRight /></div>
-            <div className={styles.compareSlot}>
-              <small>02</small>
-              <strong>AUTO</strong>
-              <span>{language === "ru" ? "Альтернатива" : "Alternativa"}</span>
+            <div className={styles.comparePromoVisual} aria-hidden="true">
+              <div className={styles.compareSlot}>
+                <small>01</small>
+                <strong>AUTO</strong>
+                <span>{language === "ru" ? "Ваш выбор" : "Sizning tanlovingiz"}</span>
+              </div>
+              <div className={styles.compareSwap}><ArrowLeftRight /></div>
+              <div className={styles.compareSlot}>
+                <small>02</small>
+                <strong>AUTO</strong>
+                <span>{language === "ru" ? "Альтернатива" : "Alternativa"}</span>
+              </div>
+              <div className={styles.compareAiBadge}><Sparkles /><span>{c.compareAI}</span></div>
             </div>
-            <div className={styles.compareAiBadge}><Sparkles /><span>{c.compareAI}</span></div>
-          </div>
+          </article>
+
+          <article className={`${styles.smartConsultantCard} ${styles.comparePromoSlide}`}>
+            <div className={styles.smartConsultantGlow} aria-hidden="true" />
+            <div className={styles.smartConsultantCopy}>
+              <span><Sparkles />{language === "ru" ? "ПЕРСОНАЛЬНАЯ КОНСУЛЬТАЦИЯ" : "SHAXSIY MASLAHAT"}</span>
+              <h2>AUTO SALE UMAR<br />SMART-КОНСУЛЬТАНТ</h2>
+              <p>{language === "ru"
+                ? "Совет перед выбором автомобиля. Укажите модели и то, что для вас важно — консультант сопоставит характеристики и комплектации."
+                : "Avtomobil tanlashdan oldin maslahat. Modellarni va muhim mezonlarni tanlang — maslahatchi xususiyatlar va komplektatsiyalarni solishtiradi."}</p>
+              <a href="/compare/">{language === "ru" ? "Получить совет" : "Maslahat olish"}<ChevronRight /></a>
+            </div>
+            <div className={styles.smartConsultantVisual} aria-hidden="true">
+              <div className={styles.smartOrb}><Sparkles /></div>
+              <span>01</span>
+              <span>02</span>
+              <i />
+            </div>
+          </article>
         </div>
       </section>
 
@@ -738,11 +762,6 @@ export default function HomeClient() {
 
       <footer className={styles.footer}>
         <img src={wordmark} alt="Auto Sale Umar" />
-        <nav className={styles.footerNav} aria-label={language === "ru" ? "Основные разделы" : "Asosiy bo‘limlar"}>
-          <a href="#stock">{c.cars}</a>
-          <a href="#showroom">{c.showroomMenu}</a>
-          <a href="/location/">{c.locationMenu}</a>
-        </nav>
         <p>{c.footer}<br />© 2026</p>
       </footer>
     </main>
