@@ -61,7 +61,7 @@ const responseSchema = {
     year: nullableInteger("Model year."),
     trim: nullableString("Trim / grade / package name."),
     status: nullableString("Only when explicitly present. Allowed internal values: in_stock, in_showroom, in_transit, made_to_order, reserved."),
-    countryCode: nullableString("Source/import country only if explicit. Use KR, US, CA, or AE."),
+    countryCode: nullableString("Source/import market only if explicit. Use one of: KR, US, CA, AE, AU, EU, DE, GB, JP, CN, SA, QA, CH."),
     arrivalDate: nullableString("Expected arrival date as YYYY-MM-DD only when explicit."),
     isNew: nullableBoolean("Whether the vehicle is new. Null if unclear."),
     mileageKm: nullableInteger("Mileage in kilometers, converting miles to km only when source clearly uses miles."),
@@ -180,7 +180,7 @@ function sanitizeAiResult(raw: Record<string, unknown>) {
     : null;
 
   const countryRaw = cleanText(raw.countryCode, 10)?.toUpperCase() ?? null;
-  const countryCode = countryRaw && ["KR", "US", "CA", "AE"].includes(countryRaw) ? countryRaw : null;
+  const countryCode = countryRaw && ["KR", "US", "CA", "AE", "AU", "EU", "DE", "GB", "JP", "CN", "SA", "QA", "CH"].includes(countryRaw) ? countryRaw : null;
 
   const fuelRaw = cleanText(raw.fuelType, 30);
   const fuelType = fuelRaw && ["gasoline", "diesel", "hybrid", "phev", "electric"].includes(fuelRaw)

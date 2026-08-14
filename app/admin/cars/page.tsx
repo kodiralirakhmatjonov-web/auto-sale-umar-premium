@@ -15,7 +15,7 @@ type CarStatus =
   | "sold"
   | "hidden";
 type StatusFilter = "all" | CarStatus;
-type CountryFilter = "all" | "KR" | "US" | "CA" | "AE";
+type CountryFilter = "all" | "KR" | "US" | "CA" | "AE" | "AU" | "EU" | "DE" | "GB" | "JP" | "CN" | "SA" | "QA" | "CH";
 
 interface CarCardPhoto {
   id: number;
@@ -95,7 +95,7 @@ const STATUS_FILTERS: StatusFilter[] = [
   "hidden",
 ];
 
-const COUNTRY_FILTERS: CountryFilter[] = ["all", "KR", "US", "CA", "AE"];
+const COUNTRY_FILTERS: CountryFilter[] = ["all", "KR", "US", "CA", "AE", "AU", "EU", "DE", "GB", "JP", "CN", "SA", "QA", "CH"];
 
 const STATUS_FILTER_LABELS: Record<Language, Record<StatusFilter, string>> = {
   ru: {
@@ -121,8 +121,8 @@ const STATUS_FILTER_LABELS: Record<Language, Record<StatusFilter, string>> = {
 };
 
 const COUNTRY_FILTER_LABELS: Record<Language, Record<CountryFilter, string>> = {
-  ru: { all: "Все страны", KR: "Корея", US: "США", CA: "Канада", AE: "ОАЭ" },
-  uz: { all: "Barcha davlatlar", KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA" },
+  ru: { all: "Все страны", KR: "Корея", US: "США", CA: "Канада", AE: "ОАЭ", AU: "Австралия", EU: "Европа", DE: "Германия", GB: "Великобритания", JP: "Япония", CN: "Китай", SA: "Саудовская Аравия", QA: "Катар", CH: "Швейцария" },
+  uz: { all: "Barcha davlatlar", KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA", AU: "Avstraliya", EU: "Yevropa", DE: "Germaniya", GB: "Buyuk Britaniya", JP: "Yaponiya", CN: "Xitoy", SA: "Saudiya Arabistoni", QA: "Qatar", CH: "Shveytsariya" },
 };
 
 const STATUS_LABELS: Record<Language, Record<CarStatus, string>> = {
@@ -147,8 +147,8 @@ const STATUS_LABELS: Record<Language, Record<CarStatus, string>> = {
 };
 
 const COUNTRY_LABELS: Record<Language, Record<string, string>> = {
-  ru: { KR: "Корея", US: "США", CA: "Канада", AE: "ОАЭ" },
-  uz: { KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA" },
+  ru: { KR: "Корея", US: "США", CA: "Канада", AE: "ОАЭ", AU: "Австралия", EU: "Европа", DE: "Германия", GB: "Великобритания", JP: "Япония", CN: "Китай", SA: "Саудовская Аравия", QA: "Катар", CH: "Швейцария" },
+  uz: { KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA", AU: "Avstraliya", EU: "Yevropa", DE: "Germaniya", GB: "Buyuk Britaniya", JP: "Yaponiya", CN: "Xitoy", SA: "Saudiya Arabistoni", QA: "Qatar", CH: "Shveytsariya" },
 };
 
 const UZ_COPY: Record<string, string> = {

@@ -152,7 +152,7 @@ function validStatus(value: string): value is CarStatus {
 }
 
 function validCountry(value: string): boolean {
-  return !value || ["KR", "US", "CA", "AE"].includes(value);
+  return !value || ["KR", "US", "CA", "AE", "AU", "EU", "DE", "GB", "JP", "CN", "SA", "QA", "CH"].includes(value);
 }
 
 function validCurrency(value: string): value is Currency {

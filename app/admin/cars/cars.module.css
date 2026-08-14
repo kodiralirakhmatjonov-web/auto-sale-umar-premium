@@ -2561,3 +2561,47 @@
   .carBottom { grid-template-columns: 1fr; }
   .cardActions { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* v7 mobile card actions — keep controls inside inventory cards */
+@media (max-width: 620px) {
+  .carBottom {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .priceBlock {
+    min-width: 0;
+  }
+
+  .cardActions {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .editAction,
+  .statusAction {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding-inline: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .editAction span,
+  .statusAction span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .cardActions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

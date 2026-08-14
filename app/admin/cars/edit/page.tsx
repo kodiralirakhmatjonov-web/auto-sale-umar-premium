@@ -258,6 +258,15 @@ const COUNTRY_OPTIONS = [
   { value: "US", label: { ru: "США", uz: "AQSh" } },
   { value: "CA", label: { ru: "Канада", uz: "Kanada" } },
   { value: "AE", label: { ru: "ОАЭ", uz: "BAA" } },
+  { value: "AU", label: { ru: "Австралия", uz: "Avstraliya" } },
+  { value: "EU", label: { ru: "Европа", uz: "Yevropa" } },
+  { value: "DE", label: { ru: "Германия", uz: "Germaniya" } },
+  { value: "GB", label: { ru: "Великобритания", uz: "Buyuk Britaniya" } },
+  { value: "JP", label: { ru: "Япония", uz: "Yaponiya" } },
+  { value: "CN", label: { ru: "Китай", uz: "Xitoy" } },
+  { value: "SA", label: { ru: "Саудовская Аравия", uz: "Saudiya Arabistoni" } },
+  { value: "QA", label: { ru: "Катар", uz: "Qatar" } },
+  { value: "CH", label: { ru: "Швейцария", uz: "Shveytsariya" } },
 ] as const;
 
 const EXTERIOR_SWATCHES = [
