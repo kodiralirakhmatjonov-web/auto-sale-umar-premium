@@ -16,7 +16,7 @@ type Theme = "light" | "dark";
 type Language = "ru" | "uz";
 type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved" | "sold" | "hidden";
 type Currency = "USD" | "UZS" | "EUR";
-type PhotoGroup = "exterior" | "interior";
+type PhotoGroup = "exterior" | "interior" | "detail";
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (updateCallback: () => void) => {
@@ -44,6 +44,7 @@ interface VariantDraft {
   dbId: number | null;
   existingExteriorPhotos: ExistingPhoto[];
   existingInteriorPhotos: ExistingPhoto[];
+  existingDetailPhotos: ExistingPhoto[];
   exteriorSwatch: string;
   exteriorColorName: string;
   interiorSwatch: string;
@@ -53,6 +54,7 @@ interface VariantDraft {
   quantity: string;
   exteriorPhotos: PhotoDraft[];
   interiorPhotos: PhotoDraft[];
+  detailPhotos: PhotoDraft[];
 }
 
 interface FormState {
@@ -165,6 +167,7 @@ interface CarDetailResponse {
       quantity: number;
       exteriorPhotos: ExistingPhoto[];
       interiorPhotos: ExistingPhoto[];
+      detailPhotos: ExistingPhoto[];
     }>;
   };
 }
@@ -373,6 +376,8 @@ const UZ_COPY: Record<string, string> = {
   "Количество": "Miqdor",
   "Кузов · фотографии": "Kuzov · suratlar",
   "Салон · фотографии": "Salon · suratlar",
+  "Детали · фотографии": "Detallar · suratlar",
+  "Фары, диски, решётка, материалы и уникальные элементы конкретного автомобиля.": "Faralar, disklar, panjara, materiallar va aynan shu avtomobilning noyob detallari.",
   "Добавить фото": "Surat qo‘shish",
   "Удалить вариант": "Variantni o‘chirish",
   "Добавить цвет": "Rang qo‘shish",
@@ -408,6 +413,7 @@ function createVariant(index = 0): VariantDraft {
     dbId: null,
     existingExteriorPhotos: [],
     existingInteriorPhotos: [],
+    existingDetailPhotos: [],
     exteriorSwatch: index === 0 ? "#111214" : "#f4f4f0",
     exteriorColorName: "",
     interiorSwatch: "#111214",
@@ -417,6 +423,7 @@ function createVariant(index = 0): VariantDraft {
     quantity: "1",
     exteriorPhotos: [],
     interiorPhotos: [],
+    detailPhotos: [],
   };
 }
 
@@ -516,7 +523,7 @@ export default function EditCarPage() {
 
   const totalPhotos = useMemo(
     () => variants.reduce(
-      (total, variant) => total + variant.exteriorPhotos.length + variant.interiorPhotos.length,
+      (total, variant) => total + variant.exteriorPhotos.length + variant.interiorPhotos.length + variant.detailPhotos.length,
       0,
     ),
     [variants],
@@ -638,11 +645,11 @@ export default function EditCarPage() {
           isPublic: car.isPublic, isFeatured: car.isFeatured,
         });
         setVariants(car.variants.length ? car.variants.map((variant) => ({
-          localId: `db-${variant.id}`, dbId: variant.id, existingExteriorPhotos: variant.exteriorPhotos || [], existingInteriorPhotos: variant.interiorPhotos || [],
+          localId: `db-${variant.id}`, dbId: variant.id, existingExteriorPhotos: variant.exteriorPhotos || [], existingInteriorPhotos: variant.interiorPhotos || [], existingDetailPhotos: variant.detailPhotos || [],
           exteriorSwatch: variant.exteriorSwatch || "#111214", exteriorColorName: variant.exteriorColorName || "",
           interiorSwatch: variant.interiorSwatch || "#111214", interiorColorName: variant.interiorColorName || "",
           vin: variant.vin || "", stockNumber: variant.stockNumber || "", quantity: String(variant.quantity || 1),
-          exteriorPhotos: [], interiorPhotos: [],
+          exteriorPhotos: [], interiorPhotos: [], detailPhotos: [],
         })) : [createVariant()]);
       } catch (loadError) {
         if (!controller.signal.aborted) setError(loadError instanceof Error ? loadError.message : "Не удалось загрузить автомобиль.");
@@ -670,7 +677,7 @@ export default function EditCarPage() {
   useEffect(() => {
     return () => {
       for (const variant of variants) {
-        for (const photo of [...variant.exteriorPhotos, ...variant.interiorPhotos]) {
+        for (const photo of [...variant.exteriorPhotos, ...variant.interiorPhotos, ...variant.detailPhotos]) {
           URL.revokeObjectURL(photo.previewUrl);
         }
       }
@@ -722,7 +729,7 @@ export default function EditCarPage() {
       if (current.length <= 1) return current;
       const target = current.find((variant) => variant.localId === localId);
       if (target) {
-        for (const photo of [...target.exteriorPhotos, ...target.interiorPhotos]) {
+        for (const photo of [...target.exteriorPhotos, ...target.interiorPhotos, ...target.detailPhotos]) {
           URL.revokeObjectURL(photo.previewUrl);
         }
       }
@@ -748,7 +755,7 @@ export default function EditCarPage() {
 
     setVariants((current) => current.map((variant) => {
       if (variant.localId !== localId) return variant;
-      const key = group === "exterior" ? "exteriorPhotos" : "interiorPhotos";
+      const key: "exteriorPhotos" | "interiorPhotos" | "detailPhotos" = group === "exterior" ? "exteriorPhotos" : group === "interior" ? "interiorPhotos" : "detailPhotos";
       const next = [...variant[key], ...accepted].slice(0, 16);
       const keptIds = new Set(next.map((photo) => photo.id));
       for (const photo of accepted) {
@@ -762,7 +769,7 @@ export default function EditCarPage() {
   function removePhoto(localId: string, group: PhotoGroup, photoId: string) {
     setVariants((current) => current.map((variant) => {
       if (variant.localId !== localId) return variant;
-      const key = group === "exterior" ? "exteriorPhotos" : "interiorPhotos";
+      const key: "exteriorPhotos" | "interiorPhotos" | "detailPhotos" = group === "exterior" ? "exteriorPhotos" : group === "interior" ? "interiorPhotos" : "detailPhotos";
       const target = variant[key].find((photo) => photo.id === photoId);
       if (target) URL.revokeObjectURL(target.previewUrl);
       return { ...variant, [key]: variant[key].filter((photo) => photo.id !== photoId) };
@@ -779,7 +786,7 @@ export default function EditCarPage() {
       if (!response.ok || !data?.success) throw new Error(data?.error || "Не удалось удалить фотографию.");
       setVariants((current) => current.map((variant) => {
         if (variant.localId !== localId) return variant;
-        const key = group === "exterior" ? "existingExteriorPhotos" : "existingInteriorPhotos";
+        const key: "existingExteriorPhotos" | "existingInteriorPhotos" | "existingDetailPhotos" = group === "exterior" ? "existingExteriorPhotos" : group === "interior" ? "existingInteriorPhotos" : "existingDetailPhotos";
         return { ...variant, [key]: variant[key].filter((photo) => photo.id !== photoId) };
       }));
     } catch (deleteError) {
@@ -1022,6 +1029,11 @@ export default function EditCarPage() {
         for (let photoIndex = 0; photoIndex < draft.interiorPhotos.length; photoIndex += 1) {
           setSavingText(`${t("Загружаем фото")} ${uploaded + 1}/${total}`);
           await uploadPhoto({ carId, variantId: dbVariant.id, group: "interior", photo: draft.interiorPhotos[photoIndex], sortOrder: draft.existingInteriorPhotos.length + photoIndex, isCover: false });
+          uploaded += 1;
+        }
+        for (let photoIndex = 0; photoIndex < draft.detailPhotos.length; photoIndex += 1) {
+          setSavingText(`${t("Загружаем фото")} ${uploaded + 1}/${total}`);
+          await uploadPhoto({ carId, variantId: dbVariant.id, group: "detail", photo: draft.detailPhotos[photoIndex], sortOrder: draft.existingDetailPhotos.length + photoIndex, isCover: false });
           uploaded += 1;
         }
       }
@@ -1307,6 +1319,9 @@ export default function EditCarPage() {
                   <PhotoRail label={variant.existingExteriorPhotos.length ? (language === "uz" ? "Yangi kuzov suratlari" : "Новые фото кузова") : t("Кузов · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.exteriorPhotos} onFiles={(files) => addPhotos(variant.localId, "exterior", files)} onRemove={(photoId) => removePhoto(variant.localId, "exterior", photoId)} />
                   <ExistingPhotoRail label={t("Салон · фотографии")} photos={variant.existingInteriorPhotos} onRemove={(photoId) => deleteExistingPhoto(variant.localId, "interior", photoId)} />
                   <PhotoRail label={variant.existingInteriorPhotos.length ? (language === "uz" ? "Yangi salon suratlari" : "Новые фото салона") : t("Салон · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.interiorPhotos} onFiles={(files) => addPhotos(variant.localId, "interior", files)} onRemove={(photoId) => removePhoto(variant.localId, "interior", photoId)} />
+                  <ExistingPhotoRail label={t("Детали · фотографии")} photos={variant.existingDetailPhotos} onRemove={(photoId) => deleteExistingPhoto(variant.localId, "detail", photoId)} />
+                  <PhotoRail label={variant.existingDetailPhotos.length ? (language === "uz" ? "Yangi detal suratlari" : "Новые фото деталей") : t("Детали · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.detailPhotos} onFiles={(files) => addPhotos(variant.localId, "detail", files)} onRemove={(photoId) => removePhoto(variant.localId, "detail", photoId)} />
+                  <p className={styles.photoHint}>{t("Фары, диски, решётка, материалы и уникальные элементы конкретного автомобиля.")}</p>
                 </article>
               ))}
             </div>

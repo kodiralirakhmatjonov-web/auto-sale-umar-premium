@@ -25,7 +25,7 @@ interface R2BucketLike {
 
 type MediaEnv = Env & { MEDIA: R2BucketLike };
 
-type PhotoGroup = "exterior" | "interior";
+type PhotoGroup = "exterior" | "interior" | "detail";
 
 function cleanKey(value: string): string | null {
   const key = value.trim();
@@ -104,7 +104,7 @@ export async function onRequestPost(context: {
   const variantId = integerField(form, "variantId", 1, 2_000_000_000);
   const sortOrder = integerField(form, "sortOrder", 0, 1000) ?? 0;
   const groupRaw = form.get("group");
-  const group: PhotoGroup | null = groupRaw === "exterior" || groupRaw === "interior" ? groupRaw : null;
+  const group: PhotoGroup | null = groupRaw === "exterior" || groupRaw === "interior" || groupRaw === "detail" ? groupRaw : null;
   const isCover = form.get("isCover") === "1";
   const fileValue = form.get("file");
 
@@ -126,6 +126,9 @@ export async function onRequestPost(context: {
   const extension = extensionFor(file);
   const objectKey = `cars/${carId}/${variantId}/${group}/${crypto.randomUUID()}.${extension}`;
   const publicUrl = `/api/car-media?key=${encodeURIComponent(objectKey)}`;
+  // Keep D1 compatible with older schemas that only allow exterior/interior.
+  // Detail media is distinguished by the immutable R2 object path `/detail/`.
+  const dbPhotoGroup = group === "detail" ? "interior" : group;
 
   try {
     await env.MEDIA.put(objectKey, file.stream() as ReadableStream<Uint8Array>, {
@@ -155,7 +158,7 @@ export async function onRequestPost(context: {
       variantId,
       objectKey,
       publicUrl,
-      group,
+      dbPhotoGroup,
       sortOrder,
       isCover ? 1 : 0,
       file.type || null,

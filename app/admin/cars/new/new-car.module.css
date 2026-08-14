@@ -2024,3 +2024,12 @@
 .brandName,.page[data-theme="dark"] .brandName{color:#66676d!important}
 .brandTileActive,.page[data-theme="dark"] .brandTileActive{background:#fff!important;border-color:#0a0a0b!important;box-shadow:0 0 0 1px #0a0a0b,0 12px 28px rgba(18,18,20,.08)!important}
 .brandTileActive .brandName{color:#0a0a0b!important}
+
+/* Detail-photo guidance */
+.photoHint {
+  margin: -4px 0 6px;
+  padding: 0 4px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.45;
+}

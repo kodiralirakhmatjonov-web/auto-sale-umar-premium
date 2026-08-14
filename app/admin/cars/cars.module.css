@@ -2461,3 +2461,103 @@
 /* ===== v6 final unified admin bar ===== */
 .header{top:4px!important;width:calc(100% - 8px)!important;max-width:1280px!important}.headerInner{position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:86px!important;padding:10px 11px!important;border-radius:43px!important}.wordmarkWrap{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(274px,58vw)!important;height:60px!important;z-index:1!important}.roundButton{position:relative!important;z-index:2!important;width:64px!important;height:64px!important}.settingsMenu{top:96px!important;right:0!important;width:min(760px,calc(100vw - 8px))!important;max-height:calc(100dvh - 100px)!important}.sectionNav{width:calc(100% - 8px)!important;max-width:980px!important;min-height:64px!important;margin:102px auto 0!important;padding:4px!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;border-radius:999px!important}.sectionNav[data-manager="true"]{max-width:620px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.sectionNavItem{min-height:56px!important;font-size:12.5px!important;padding:0 5px!important}
 @media(max-width:760px){.header{top:4px!important;width:calc(100% - 8px)!important}.headerInner{min-height:82px!important}.wordmarkWrap{width:min(266px,62vw)!important;height:56px!important}.roundButton{width:62px!important;height:62px!important}.settingsMenu{top:90px!important;width:calc(100vw - 8px)!important;max-height:calc(100dvh - 94px)!important}.sectionNav{margin-top:96px!important;width:calc(100% - 8px)!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;border-radius:999px!important}.sectionNav[data-manager="true"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}.sectionNavItem{min-height:52px!important;font-size:10.5px!important;padding:0 2px!important}}
+
+/* v6 compact admin inventory cards */
+.skeletonGrid,
+.carsGrid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 13px;
+}
+
+.carCard {
+  border-radius: 29px;
+}
+
+.carMedia {
+  aspect-ratio: 16 / 8.8;
+}
+
+.carContent {
+  padding: 15px 16px 16px;
+}
+
+.carTitleRow h3 {
+  font-size: clamp(21px, 1.8vw, 27px);
+}
+
+.carTrim {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.carFacts {
+  min-height: 34px;
+  gap: 5px;
+  margin-top: 11px;
+}
+
+.carFacts span {
+  min-height: 25px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.variantChooser {
+  margin-top: 9px;
+  gap: 8px;
+}
+
+.variantSwatch {
+  flex-basis: 29px;
+  width: 29px;
+  height: 29px;
+  padding: 3px;
+}
+
+.identityRow {
+  gap: 12px;
+  margin-top: 12px;
+  padding: 11px 0;
+}
+
+.vinBlock strong {
+  font-size: clamp(14px, 1.55vw, 17px);
+}
+
+.idBlock strong {
+  font-size: 20px;
+}
+
+.carBottom {
+  grid-template-columns: minmax(0, .72fr) minmax(210px, 1.28fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.priceBlock strong {
+  font-size: 18px;
+}
+
+.editAction,
+.statusAction {
+  min-height: 46px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+@media (max-width: 620px) {
+  .skeletonGrid,
+  .carsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .carMedia { aspect-ratio: 16 / 8.2; }
+  .carContent { padding: 14px 15px 15px; }
+  .carBottom { grid-template-columns: minmax(0, .72fr) minmax(190px, 1.28fr); }
+  .editAction, .statusAction { min-height: 48px; }
+}
+
+@media (max-width: 390px) {
+  .carBottom { grid-template-columns: 1fr; }
+  .cardActions { grid-template-columns: 1fr 1fr; }
+}

@@ -70,7 +70,7 @@ interface MediaRow {
   variant_id: number;
   object_key: string;
   public_url: string;
-  photo_group: "exterior" | "interior";
+  photo_group: "exterior" | "interior" | "detail";
   sort_order: number;
   is_cover: number;
 }
@@ -300,7 +300,9 @@ async function loadDetail(env: DetailEnv, id: number) {
   `) as unknown as D1ListStatementLike).bind(id).all<VariantRow>();
 
   const mediaResult = await (env.DB.prepare(`
-    SELECT id, variant_id, object_key, public_url, photo_group, sort_order, is_cover
+    SELECT id, variant_id, object_key, public_url,
+      CASE WHEN object_key LIKE '%/detail/%' THEN 'detail' ELSE photo_group END AS photo_group,
+      sort_order, is_cover
     FROM car_variant_media
     WHERE car_id = ?1
     ORDER BY variant_id ASC, photo_group ASC, sort_order ASC, id ASC
@@ -320,6 +322,9 @@ async function loadDetail(env: DetailEnv, id: number) {
       id: item.id, publicUrl: item.public_url, objectKey: item.object_key, isCover: item.is_cover === 1, sortOrder: item.sort_order,
     })),
     interiorPhotos: media.filter((item) => item.variant_id === variant.id && item.photo_group === "interior").map((item) => ({
+      id: item.id, publicUrl: item.public_url, objectKey: item.object_key, isCover: item.is_cover === 1, sortOrder: item.sort_order,
+    })),
+    detailPhotos: media.filter((item) => item.variant_id === variant.id && item.photo_group === "detail").map((item) => ({
       id: item.id, publicUrl: item.public_url, objectKey: item.object_key, isCover: item.is_cover === 1, sortOrder: item.sort_order,
     })),
   }));

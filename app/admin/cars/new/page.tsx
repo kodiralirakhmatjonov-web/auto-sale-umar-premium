@@ -16,7 +16,7 @@ type Theme = "light" | "dark";
 type Language = "ru" | "uz";
 type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved";
 type Currency = "USD" | "UZS" | "EUR";
-type PhotoGroup = "exterior" | "interior";
+type PhotoGroup = "exterior" | "interior" | "detail";
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (updateCallback: () => void) => {
@@ -42,6 +42,7 @@ interface VariantDraft {
   quantity: string;
   exteriorPhotos: PhotoDraft[];
   interiorPhotos: PhotoDraft[];
+  detailPhotos: PhotoDraft[];
 }
 
 interface FormState {
@@ -302,6 +303,8 @@ const UZ_COPY: Record<string, string> = {
   "Количество": "Miqdor",
   "Кузов · фотографии": "Kuzov · suratlar",
   "Салон · фотографии": "Salon · suratlar",
+  "Детали · фотографии": "Detallar · suratlar",
+  "Фары, диски, решётка, материалы и уникальные элементы конкретного автомобиля.": "Faralar, disklar, panjara, materiallar va aynan shu avtomobilning noyob detallari.",
   "Добавить фото": "Surat qo‘shish",
   "Удалить вариант": "Variantni o‘chirish",
   "Добавить цвет": "Rang qo‘shish",
@@ -343,6 +346,7 @@ function createVariant(index = 0): VariantDraft {
     quantity: "1",
     exteriorPhotos: [],
     interiorPhotos: [],
+    detailPhotos: [],
   };
 }
 
@@ -440,7 +444,7 @@ export default function NewCarPage() {
 
   const totalPhotos = useMemo(
     () => variants.reduce(
-      (total, variant) => total + variant.exteriorPhotos.length + variant.interiorPhotos.length,
+      (total, variant) => total + variant.exteriorPhotos.length + variant.interiorPhotos.length + variant.detailPhotos.length,
       0,
     ),
     [variants],
@@ -545,7 +549,7 @@ export default function NewCarPage() {
   useEffect(() => {
     return () => {
       for (const variant of variants) {
-        for (const photo of [...variant.exteriorPhotos, ...variant.interiorPhotos]) {
+        for (const photo of [...variant.exteriorPhotos, ...variant.interiorPhotos, ...variant.detailPhotos]) {
           URL.revokeObjectURL(photo.previewUrl);
         }
       }
@@ -597,7 +601,7 @@ export default function NewCarPage() {
       if (current.length <= 1) return current;
       const target = current.find((variant) => variant.localId === localId);
       if (target) {
-        for (const photo of [...target.exteriorPhotos, ...target.interiorPhotos]) {
+        for (const photo of [...target.exteriorPhotos, ...target.interiorPhotos, ...target.detailPhotos]) {
           URL.revokeObjectURL(photo.previewUrl);
         }
       }
@@ -623,7 +627,7 @@ export default function NewCarPage() {
 
     setVariants((current) => current.map((variant) => {
       if (variant.localId !== localId) return variant;
-      const key = group === "exterior" ? "exteriorPhotos" : "interiorPhotos";
+      const key: "exteriorPhotos" | "interiorPhotos" | "detailPhotos" = group === "exterior" ? "exteriorPhotos" : group === "interior" ? "interiorPhotos" : "detailPhotos";
       const next = [...variant[key], ...accepted].slice(0, 16);
       const keptIds = new Set(next.map((photo) => photo.id));
       for (const photo of accepted) {
@@ -637,7 +641,7 @@ export default function NewCarPage() {
   function removePhoto(localId: string, group: PhotoGroup, photoId: string) {
     setVariants((current) => current.map((variant) => {
       if (variant.localId !== localId) return variant;
-      const key = group === "exterior" ? "exteriorPhotos" : "interiorPhotos";
+      const key: "exteriorPhotos" | "interiorPhotos" | "detailPhotos" = group === "exterior" ? "exteriorPhotos" : group === "interior" ? "interiorPhotos" : "detailPhotos";
       const target = variant[key].find((photo) => photo.id === photoId);
       if (target) URL.revokeObjectURL(target.previewUrl);
       return { ...variant, [key]: variant[key].filter((photo) => photo.id !== photoId) };
@@ -954,6 +958,19 @@ export default function NewCarPage() {
           });
           uploaded += 1;
         }
+
+        for (let photoIndex = 0; photoIndex < draft.detailPhotos.length; photoIndex += 1) {
+          setSavingText(`${t("Загружаем фото")} ${uploaded + 1}/${total}`);
+          await uploadPhoto({
+            carId: createdId,
+            variantId: dbVariant.id,
+            group: "detail",
+            photo: draft.detailPhotos[photoIndex],
+            sortOrder: photoIndex,
+            isCover: false,
+          });
+          uploaded += 1;
+        }
       }
 
       if (form.isPublic) await publishCar(createdId);
@@ -1240,6 +1257,8 @@ export default function NewCarPage() {
 
                   <PhotoRail label={t("Кузов · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.exteriorPhotos} onFiles={(files) => addPhotos(variant.localId, "exterior", files)} onRemove={(photoId) => removePhoto(variant.localId, "exterior", photoId)} />
                   <PhotoRail label={t("Салон · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.interiorPhotos} onFiles={(files) => addPhotos(variant.localId, "interior", files)} onRemove={(photoId) => removePhoto(variant.localId, "interior", photoId)} />
+                  <PhotoRail label={t("Детали · фотографии")} buttonLabel={t("Добавить фото")} photos={variant.detailPhotos} onFiles={(files) => addPhotos(variant.localId, "detail", files)} onRemove={(photoId) => removePhoto(variant.localId, "detail", photoId)} />
+                  <p className={styles.photoHint}>{t("Фары, диски, решётка, материалы и уникальные элементы конкретного автомобиля.")}</p>
                 </article>
               ))}
             </div>

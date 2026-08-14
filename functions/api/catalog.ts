@@ -32,7 +32,8 @@ interface PublicMediaRow {
   car_id: number;
   variant_id: number;
   public_url: string;
-  photo_group: "exterior" | "interior";
+  object_key: string;
+  photo_group: "exterior" | "interior" | "detail";
   is_cover: number;
   sort_order: number;
 }
@@ -69,6 +70,12 @@ interface PublicVariant {
     isCover: boolean;
     sortOrder: number;
   }>;
+  detailPhotos: Array<{
+    id: number;
+    url: string;
+    isCover: boolean;
+    sortOrder: number;
+  }>;
 }
 
 function positiveInteger(value: string | null, fallback: number, maximum: number): number {
@@ -78,7 +85,7 @@ function positiveInteger(value: string | null, fallback: number, maximum: number
   return Math.min(parsed, maximum);
 }
 
-async function loadPublicVariants(env: Env, carIds: number[]): Promise<Map<number, PublicVariant[]>> {
+async function loadPublicVariants(env: Env, carIds: number[], includeDetails = false): Promise<Map<number, PublicVariant[]>> {
   const byCar = new Map<number, PublicVariant[]>();
   if (carIds.length === 0) return byCar;
 
@@ -98,11 +105,14 @@ async function loadPublicVariants(env: Env, carIds: number[]): Promise<Map<numbe
     ORDER BY v.car_id ASC, v.is_default DESC, v.sort_order ASC, v.id ASC
   `) as unknown as D1ListStatementLike).bind(...carIds);
 
+  const detailClause = includeDetails ? " OR object_key LIKE '%/detail/%'" : "";
   const mediaStatement = (env.DB.prepare(`
-    SELECT id, car_id, variant_id, public_url, photo_group, is_cover, sort_order
+    SELECT id, car_id, variant_id, public_url, object_key,
+      CASE WHEN object_key LIKE '%/detail/%' THEN 'detail' ELSE photo_group END AS photo_group,
+      is_cover, sort_order
     FROM car_variant_media
     WHERE car_id IN (${placeholders})
-      AND photo_group IN ('exterior', 'interior')
+      AND (photo_group = 'exterior' OR (photo_group = 'interior' AND object_key NOT LIKE '%/detail/%')${detailClause})
     ORDER BY car_id ASC, variant_id ASC, photo_group ASC, is_cover DESC, sort_order ASC, id ASC
   `) as unknown as D1ListStatementLike).bind(...carIds);
 
@@ -142,6 +152,14 @@ async function loadPublicVariants(env: Env, carIds: number[]): Promise<Map<numbe
           isCover: media.is_cover === 1,
           sortOrder: media.sort_order,
         })),
+      detailPhotos: (mediaByVariant.get(variant.variant_id) ?? [])
+        .filter((media) => media.photo_group === "detail")
+        .map((media) => ({
+          id: media.id,
+          url: media.public_url,
+          isCover: media.is_cover === 1,
+          sortOrder: media.sort_order,
+        })),
     });
     byCar.set(variant.car_id, current);
   }
@@ -170,7 +188,7 @@ async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
     }
 
     const [variants, performance, links] = await Promise.all([
-      loadPublicVariants(env, [car.id]),
+      loadPublicVariants(env, [car.id], true),
       env.DB.prepare(`
         SELECT
           engine_displacement_l, horsepower_hp, torque_nm, acceleration_0_100_s,
