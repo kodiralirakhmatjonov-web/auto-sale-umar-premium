@@ -32,6 +32,7 @@ interface DisplayDetailCar {
   trim: string | null;
   status: CarStatus;
   countryCode: string | null;
+  arrivalDate?: string | null;
   price: number | null;
   currency: Currency;
   priceOnRequest: boolean;
@@ -60,6 +61,18 @@ interface DetailResponse {
   success?: boolean;
   error?: string;
   car?: DisplayDetailCar;
+}
+
+interface BrandCoverItem {
+  key: string;
+  url: string;
+  size: number;
+  uploadedAt: string | null;
+}
+
+interface BrandMediaResponse {
+  success?: boolean;
+  images?: BrandCoverItem[];
 }
 
 type FullscreenHost = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
@@ -101,10 +114,6 @@ function formatPrice(car: DisplayDetailCar): string {
   return `${value} СУМ`;
 }
 
-function fallbackPhoto(car: DisplayDetailCar): Photo[] {
-  return car.coverUrl ? [{ id: -1, url: car.coverUrl, isCover: true, sortOrder: 0 }] : [];
-}
-
 function qrUrl(slug: string): string {
   const target = `https://autosaleumar.com/car/?slug=${encodeURIComponent(slug)}`;
   return `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&format=png&data=${encodeURIComponent(target)}`;
@@ -113,6 +122,15 @@ function qrUrl(slug: string): string {
 function displayValue(value: string | number | null | undefined, suffix = ""): string {
   if (value == null || value === "") return "—";
   return `${value}${suffix}`;
+}
+
+function uniquePhotos(items: Photo[]): Photo[] {
+  const seen = new Set<string>();
+  return items.filter((photo) => {
+    if (!photo.url || seen.has(photo.url)) return false;
+    seen.add(photo.url);
+    return true;
+  });
 }
 
 function Metric({ value, label }: { value: string; label: string }) {
@@ -131,6 +149,8 @@ export default function DisplayCarPage() {
   const [error, setError] = useState("");
   const [photoIndex, setPhotoIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [brandCovers, setBrandCovers] = useState<BrandCoverItem[]>([]);
+  const [brandCoverIndex, setBrandCoverIndex] = useState(0);
 
   useEffect(() => {
     const slug = new URLSearchParams(window.location.search).get("slug")?.trim() ?? "";
@@ -159,38 +179,58 @@ export default function DisplayCarPage() {
         setLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  const photos = useMemo(() => {
+  useEffect(() => {
+    if (!car?.brand) return;
+    let cancelled = false;
+    fetch(`/api/brand-media?brand=${encodeURIComponent(car.brand)}`, { cache: "no-store", headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        const body = (await response.json().catch(() => null)) as BrandMediaResponse | null;
+        if (!response.ok || !body?.success || !Array.isArray(body.images)) return [] as BrandCoverItem[];
+        return body.images.slice(0, 3);
+      })
+      .then((images) => { if (!cancelled) setBrandCovers(images); })
+      .catch(() => { if (!cancelled) setBrandCovers([]); });
+    return () => { cancelled = true; };
+  }, [car?.brand]);
+
+  const exteriorPhotos = useMemo(() => {
     if (!car) return [] as Photo[];
     const variant = car.variants?.[0];
-    const combined = [...(variant?.photos ?? []), ...(variant?.interiorPhotos ?? [])];
-    const seen = new Set<string>();
-    const unique = combined.filter((photo) => {
-      if (!photo.url || seen.has(photo.url)) return false;
-      seen.add(photo.url);
-      return true;
-    });
-    return unique.length ? unique : fallbackPhoto(car);
+    const photos = uniquePhotos(variant?.photos ?? []);
+    if (photos.length) return photos;
+    return car.coverUrl ? [{ id: -1, url: car.coverUrl, isCover: true, sortOrder: 0 }] : [];
   }, [car]);
 
-  useEffect(() => {
-    if (photos.length < 2) return;
-    const timer = window.setInterval(() => setPhotoIndex((current) => (current + 1) % photos.length), 7_500);
-    return () => window.clearInterval(timer);
-  }, [photos.length]);
+  const interiorPhotos = useMemo(() => {
+    if (!car) return [] as Photo[];
+    return uniquePhotos(car.variants?.[0]?.interiorPhotos ?? []);
+  }, [car]);
+
+  const gallery = useMemo(() => uniquePhotos([...exteriorPhotos, ...interiorPhotos]), [exteriorPhotos, interiorPhotos]);
 
   useEffect(() => {
-    for (const photo of photos) {
+    if (exteriorPhotos.length < 2) return;
+    const timer = window.setInterval(() => setPhotoIndex((current) => (current + 1) % exteriorPhotos.length), 7_500);
+    return () => window.clearInterval(timer);
+  }, [exteriorPhotos.length]);
+
+  useEffect(() => {
+    if (brandCovers.length < 2) return;
+    const timer = window.setInterval(() => setBrandCoverIndex((current) => (current + 1) % brandCovers.length), 5_600);
+    return () => window.clearInterval(timer);
+  }, [brandCovers.length]);
+
+  useEffect(() => {
+    for (const photo of [...gallery, ...brandCovers.map((cover, index) => ({ id: index, url: cover.url, isCover: false, sortOrder: index }))]) {
       const image = new window.Image();
       image.decoding = "async";
       image.src = photo.url;
       if (typeof image.decode === "function") void image.decode().catch(() => undefined);
     }
-  }, [photos]);
+  }, [gallery, brandCovers]);
 
   useEffect(() => {
     const doc = document as FullscreenDocument;
@@ -224,7 +264,6 @@ export default function DisplayCarPage() {
   if (loading || !car) {
     return (
       <main ref={rootRef} className={styles.root}>
-        <div className={styles.marbleVeil} aria-hidden="true" />
         <div className={styles.centerState}>
           <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
           <span>{error || "ЗАГРУЖАЕМ АВТОМОБИЛЬ"}</span>
@@ -234,16 +273,34 @@ export default function DisplayCarPage() {
     );
   }
 
-  const activePhoto = photos[Math.min(photoIndex, Math.max(photos.length - 1, 0))]?.url ?? "/intro-poster.jpg";
+  const activePhoto = exteriorPhotos[Math.min(photoIndex, Math.max(exteriorPhotos.length - 1, 0))]?.url ?? "/intro-poster.jpg";
+  const brandCover = brandCovers[Math.min(brandCoverIndex, Math.max(brandCovers.length - 1, 0))]?.url ?? null;
   const country = car.countryCode ? COUNTRY_LABELS[car.countryCode] ?? car.countryCode : "—";
-  const description = car.shortDescriptionRu?.trim() || car.descriptionRu?.trim() || "Автомобиль из коллекции Auto Sale Umar.";
+  const description = car.descriptionRu?.trim() || car.shortDescriptionRu?.trim() || "Автомобиль из коллекции Auto Sale Umar.";
+  const shortDescription = car.shortDescriptionRu?.trim() || description;
   const engine = car.engineText || (car.engineDisplacementL ? `${car.engineDisplacementL} л` : "—");
   const drive = car.driveType?.toUpperCase() || "—";
+  const variant = car.variants?.[0] ?? null;
+  const exteriorColor = variant?.exteriorColorName || car.exteriorColor || "—";
+  const interiorColor = variant?.interiorColorName || car.interiorColor || "—";
+
+  const specificationRows = [
+    ["Двигатель", engine],
+    ["Объём двигателя", displayValue(car.engineDisplacementL, " л")],
+    ["Топливо", car.fuelType || "—"],
+    ["Привод", drive],
+    ["Коробка", car.transmission || "—"],
+    ["Мест", displayValue(car.seats)],
+    ["Пробег", `${new Intl.NumberFormat("ru-RU").format(car.mileageKm || 0)} км`],
+    ["Рынок поставки", country],
+    ["Расход", displayValue(car.fuelConsumptionL100, " л/100 км")],
+    ["Запас хода", displayValue(car.electricRangeKm, " км")],
+    ["Цвет кузова", exteriorColor],
+    ["Цвет салона", interiorColor],
+  ];
 
   return (
     <main ref={rootRef} className={styles.root}>
-      <div className={styles.marbleVeil} aria-hidden="true" />
-
       <header className={styles.header}>
         <a className={styles.backButton} href="/display/" aria-label="Вернуться к коллекции">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7M9 12h10" /></svg>
@@ -256,24 +313,21 @@ export default function DisplayCarPage() {
         </button>
       </header>
 
-      <section className={styles.hero}>
-        <aside className={styles.info}>
-          <div className={styles.eyebrow}>AUTO SALE UMAR · SHOWROOM</div>
+      <section className={styles.heroSection}>
+        <div className={styles.heroMarble} aria-hidden="true" />
+        <aside className={styles.heroCopy}>
+          <p className={styles.kicker}>AUTO SALE UMAR · SELECTED</p>
           <div className={styles.identity}>
             <span>{car.brand.toLocaleUpperCase("ru-RU")}</span>
             <h1>{car.model.toLocaleUpperCase("ru-RU")}</h1>
             <p>{[car.year, car.trim].filter(Boolean).join(" · ")}</p>
           </div>
-
-          <div className={styles.status} data-status={car.status}>
-            <i aria-hidden="true" />
-            {STATUS_LABELS[car.status]}
+          <div className={styles.heroMetaRow}>
+            <span className={styles.status} data-status={car.status}><i aria-hidden="true" />{STATUS_LABELS[car.status]}</span>
+            <strong className={styles.price}>{formatPrice(car)}</strong>
           </div>
-
-          <div className={styles.price}>{formatPrice(car)}</div>
-          <p className={styles.description}>{description}</p>
-
-          <div className={styles.quickFacts}>
+          <p className={styles.heroDescription}>{shortDescription}</p>
+          <div className={styles.heroFacts}>
             <div><span>ДВИГАТЕЛЬ</span><strong>{engine}</strong></div>
             <div><span>ПРИВОД</span><strong>{drive}</strong></div>
             <div><span>ПРОБЕГ</span><strong>{new Intl.NumberFormat("ru-RU").format(car.mileageKm || 0)} КМ</strong></div>
@@ -281,54 +335,130 @@ export default function DisplayCarPage() {
           </div>
         </aside>
 
-        <section className={styles.visualCard}>
-          <div className={styles.photoStage}>
-            <img
-              key={activePhoto}
-              className={styles.photo}
-              src={activePhoto}
-              alt={`${car.brand} ${car.model}`}
-              loading="eager"
-              decoding="async"
-              onError={(event: SyntheticEvent<HTMLImageElement>) => {
-                if (!event.currentTarget.src.endsWith("/intro-poster.jpg")) event.currentTarget.src = "/intro-poster.jpg";
-              }}
-            />
-            <div className={styles.photoFade} aria-hidden="true" />
-            {photos.length > 1 ? (
-              <div className={styles.dots} aria-label={`Фото ${photoIndex + 1} из ${photos.length}`}>
-                {photos.slice(0, 8).map((photo, index) => (
-                  <button
-                    key={photo.id}
-                    type="button"
-                    className={index === photoIndex ? styles.dotActive : undefined}
-                    onClick={() => setPhotoIndex(index)}
-                    aria-label={`Показать фото ${index + 1}`}
-                  />
-                ))}
-              </div>
-            ) : null}
+        <div className={styles.heroVisual}>
+          <img
+            key={activePhoto}
+            src={activePhoto}
+            alt={`${car.brand} ${car.model}`}
+            loading="eager"
+            decoding="async"
+            onError={(event: SyntheticEvent<HTMLImageElement>) => {
+              if (!event.currentTarget.src.endsWith("/intro-poster.jpg")) event.currentTarget.src = "/intro-poster.jpg";
+            }}
+          />
+          {exteriorPhotos.length > 1 ? (
+            <div className={styles.photoDots} aria-label={`Фото ${photoIndex + 1} из ${exteriorPhotos.length}`}>
+              {exteriorPhotos.slice(0, 8).map((photo, index) => (
+                <button key={photo.id} type="button" data-active={index === photoIndex} onClick={() => setPhotoIndex(index)} aria-label={`Показать фото ${index + 1}`} />
+              ))}
+            </div>
+          ) : null}
+          <div className={styles.phoneQr}>
+            <div className={styles.qrImage}><img src={qrUrl(car.slug)} alt="QR автомобиля" /></div>
+            <div><strong>ОТКРЫТЬ НА ТЕЛЕФОНЕ</strong><span>Наведите камеру телефона</span></div>
+          </div>
+        </div>
+      </section>
 
-            <div className={styles.phoneQr}>
-              <div className={styles.qrImage}><img src={qrUrl(car.slug)} alt="QR автомобиля" /></div>
-              <div><strong>ОТКРЫТЬ НА ТЕЛЕФОНЕ</strong><span>Наведите камеру телефона</span></div>
+      <section className={styles.metricStrip}>
+        <Metric value={displayValue(car.horsepowerHp, " л.с.")} label="Мощность" />
+        <Metric value={displayValue(car.torqueNm, " Н·м")} label="Крутящий момент" />
+        <Metric value={displayValue(car.acceleration0100, " с")} label="0–100 км/ч" />
+        <Metric value={displayValue(car.topSpeedKmh, " км/ч")} label="Макс. скорость" />
+      </section>
+
+      <section className={styles.brandScene}>
+        {brandCover ? <img key={brandCover} className={styles.brandSceneImage} src={brandCover} alt="" /> : <div className={styles.brandSceneFallback} aria-hidden="true" />}
+        <div className={styles.brandSceneShade} aria-hidden="true" />
+        <div className={styles.brandSceneCopy}>
+          <p className={styles.kicker}>ХАРАКТЕР В ДЕТАЛЯХ</p>
+          <h2>Автомобиль,<br />который раскрывается ближе.</h2>
+          <p>{description}</p>
+        </div>
+        <div className={styles.brandSceneName}>{car.brand}</div>
+      </section>
+
+      <section className={styles.editorialSection}>
+        <div className={styles.editorialCopy}>
+          <p className={styles.kickerDark}>ЭКСТЕРЬЕР</p>
+          <h2>Пропорции,<br />которые читаются сразу.</h2>
+          <p>{exteriorColor !== "—" ? `Выбранный цвет — ${exteriorColor}. ` : ""}Каждая линия автомобиля показана крупно, без мобильного масштаба и без лишних рамок.</p>
+        </div>
+        <div className={styles.editorialPhoto}>
+          <img src={exteriorPhotos[1]?.url ?? activePhoto} alt={`${car.brand} ${car.model}`} />
+        </div>
+      </section>
+
+      <section className={styles.performanceSection}>
+        <div className={styles.performanceHeading}>
+          <p className={styles.kicker}>ДИНАМИКА</p>
+          <h2>Уверенность<br />в каждом движении.</h2>
+        </div>
+        <div className={styles.performanceBig}>{car.horsepowerHp ?? car.torqueNm ?? car.topSpeedKmh ?? "—"}</div>
+        <div className={styles.performanceGrid}>
+          <Metric value={displayValue(car.horsepowerHp, " л.с.")} label="Мощность" />
+          <Metric value={displayValue(car.torqueNm, " Н·м")} label="Крутящий момент" />
+          <Metric value={displayValue(car.acceleration0100, " с")} label="0–100 км/ч" />
+          <Metric value={displayValue(car.topSpeedKmh, " км/ч")} label="Макс. скорость" />
+        </div>
+      </section>
+
+      {interiorPhotos.length ? (
+        <section className={styles.interiorSection}>
+          <div className={styles.interiorCopy}>
+            <p className={styles.kickerDark}>ИНТЕРЬЕР</p>
+            <h2>Тишина становится<br />частью автомобиля.</h2>
+            <div className={styles.colorSummary}>
+              <div><i style={{ backgroundColor: variant?.exteriorSwatch || "#151515" }} /><span><small>Цвет кузова</small><b>{exteriorColor}</b></span></div>
+              <div><i style={{ backgroundColor: variant?.interiorSwatch || "#151515" }} /><span><small>Цвет салона</small><b>{interiorColor}</b></span></div>
             </div>
           </div>
+          <div className={styles.interiorPhoto}><img src={interiorPhotos[0].url} alt={`${car.brand} ${car.model} интерьер`} /></div>
+        </section>
+      ) : null}
 
-          <div className={styles.metrics}>
-            <Metric value={displayValue(car.horsepowerHp, " л.с.")} label="Мощность" />
-            <Metric value={displayValue(car.torqueNm, " Н·м")} label="Крутящий момент" />
-            <Metric value={displayValue(car.acceleration0100, " с")} label="0–100 км/ч" />
-            <Metric value={displayValue(car.topSpeedKmh, " км/ч")} label="Макс. скорость" />
+      {gallery.length > 1 ? (
+        <section className={styles.gallerySection}>
+          <div className={styles.galleryHeading}>
+            <p className={styles.kicker}>ГАЛЕРЕЯ</p>
+            <h2>Посмотрите автомобиль<br />со всех сторон.</h2>
+          </div>
+          <div className={styles.galleryRail}>
+            {gallery.map((photo, index) => <div className={styles.galleryCard} key={`${photo.id}-${index}`}><img src={photo.url} alt={`${car.brand} ${car.model}`} loading="lazy" /></div>)}
           </div>
         </section>
+      ) : null}
+
+      <section className={styles.specSection}>
+        <div className={styles.specHeading}>
+          <p className={styles.kickerDark}>ХАРАКТЕРИСТИКИ</p>
+          <h2>Всё важное —<br />в одном месте.</h2>
+        </div>
+        <div className={styles.specGrid}>
+          {specificationRows.map(([label, value]) => (
+            <div key={label}><span>{label}</span><strong>{value}</strong></div>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.finalSection}>
+        <div className={styles.finalCopy}>
+          <p className={styles.kicker}>AUTO SALE UMAR · SHOWROOM</p>
+          <h2>{car.brand}<br />{car.model}</h2>
+          <strong>{formatPrice(car)}</strong>
+          <p>Откройте эту же страницу на телефоне или вернитесь к коллекции на телевизоре.</p>
+          <a href="/display/">ВЕРНУТЬСЯ К КОЛЛЕКЦИИ</a>
+        </div>
+        <div className={styles.finalQr}>
+          <img src={qrUrl(car.slug)} alt="QR автомобиля" />
+          <strong>ОТКРЫТЬ НА ТЕЛЕФОНЕ</strong>
+          <span>autosaleumar.com</span>
+        </div>
       </section>
 
       <footer className={styles.footer}>
-        <span>{car.exteriorColor || "AUTO SALE UMAR"}</span>
-        <i aria-hidden="true" />
-        <span>{car.interiorColor || car.fuelType || "PREMIUM COLLECTION"}</span>
-        <span className={styles.footerRight}>DISPLAY CAR PROFILE</span>
+        <img src="/brand/asu-wordmark-white.png" alt="Auto Sale Umar" />
+        <span>DISPLAY CAR PROFILE · SELECTED WITH PRECISION</span>
       </footer>
     </main>
   );
