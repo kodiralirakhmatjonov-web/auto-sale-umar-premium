@@ -2205,3 +2205,34 @@
 
   .legacyMark img { object-position: left center; }
 }
+
+/* Car sharing — native iOS/Android share sheet without changing card navigation. */
+.cardShareButton {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: 50%;
+  color: #111214;
+  background: rgba(255,255,255,.84);
+  box-shadow: 0 8px 22px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.72);
+  backdrop-filter: blur(16px) saturate(145%);
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+.cardShareButton svg { width: 17px; height: 17px; }
+.cardShareButton:active { transform: scale(.92); }
+@media (hover:hover) and (pointer:fine) {
+  .cardShareButton:hover { background: rgba(255,255,255,.96); transform: translateY(-1px); }
+}
+@media (max-width:760px) {
+  .cardShareButton { top: 11px; right: 11px; width: 36px; height: 36px; }
+  .cardShareButton svg { width: 16px; height: 16px; }
+}

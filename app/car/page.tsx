@@ -9,9 +9,11 @@ import {
   Heart,
   Instagram,
   MessageCircle,
+  Share2,
   ShieldCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { shareCar, warmShareImage } from "../_lib/share-car";
 import PublicChrome, {
   type PublicLanguage,
   type PublicResolvedTheme,
@@ -138,6 +140,7 @@ const COPY = {
     manager: "Связаться с менеджером",
     instagram: "Смотреть обзор в Instagram",
     compare: "Сравнить автомобиль",
+    share: "Поделиться автомобилем",
     favoriteAdd: "Добавить в избранное",
     favoriteRemove: "Убрать из избранного",
     priceRequest: "Цена по запросу",
@@ -189,6 +192,7 @@ const COPY = {
     manager: "Menejer bilan bog‘lanish",
     instagram: "Instagram sharhini ko‘rish",
     compare: "Avtomobilni solishtirish",
+    share: "Avtomobilni ulashish",
     favoriteAdd: "Sevimlilarga qo‘shish",
     favoriteRemove: "Sevimlilardan olib tashlash",
     priceRequest: "Narx so‘rov bo‘yicha",
@@ -397,6 +401,12 @@ export default function CarPage() {
   }, [car, activeVariant]);
   const interiorPhotos = activeVariant?.interiorPhotos ?? [];
   const allGallery = useMemo(() => [...exteriorPhotos, ...interiorPhotos], [exteriorPhotos, interiorPhotos]);
+  const sharePhotoUrl = exteriorPhotos[Math.min(photoIndex, Math.max(exteriorPhotos.length - 1, 0))]?.url ?? car?.coverUrl ?? null;
+
+  useEffect(() => {
+    if (!car) return;
+    warmShareImage(sharePhotoUrl, `${car.brand} ${car.model}`);
+  }, [car, sharePhotoUrl]);
 
   function toggleFavorite() {
     if (!car) return;
@@ -408,6 +418,17 @@ export default function CarPage() {
       const result = next ? Array.from(new Set([...values, car.slug])) : values.filter((item) => item !== car.slug);
       localStorage.setItem("asu-public-favorites", JSON.stringify(result));
     } catch {}
+  }
+
+  async function shareCurrentCar() {
+    if (!car) return;
+    const safePhotoIndex = Math.min(photoIndex, Math.max(exteriorPhotos.length - 1, 0));
+    await shareCar({
+      slug: car.slug,
+      brand: car.brand,
+      model: car.model,
+      imageUrl: exteriorPhotos[safePhotoIndex]?.url ?? car.coverUrl,
+    });
   }
 
   function selectVariant(index: number) {
@@ -527,6 +548,10 @@ export default function CarPage() {
             <button className={styles.favoriteButton} type="button" onClick={toggleFavorite} data-active={favorite} aria-label={favorite ? c.favoriteRemove : c.favoriteAdd}>
               <Heart fill={favorite ? "currentColor" : "none"} />
               <span>{favorite ? c.favoriteRemove : c.favoriteAdd}</span>
+            </button>
+            <button className={styles.shareButton} type="button" onClick={() => void shareCurrentCar()} aria-label={c.share}>
+              <Share2 />
+              <span>{c.share}</span>
             </button>
           </div>
         </Reveal>

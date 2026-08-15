@@ -14,6 +14,7 @@ import {
   Moon,
   Phone,
   Search,
+  Share2,
   Ship,
   Sparkles,
   Sun,
@@ -23,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { shareCar, warmShareImage } from "./_lib/share-car";
 import styles from "./home.module.css";
 
 type Language = "ru" | "uz";
@@ -850,6 +852,11 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
     : car.coverUrl
       ? [{ id: -1, url: car.coverUrl, isCover: true, sortOrder: 0 }]
       : [];
+  const sharePhotoUrl = photos[Math.min(photoIndex, Math.max(photos.length - 1, 0))]?.url ?? car.coverUrl;
+
+  useEffect(() => {
+    warmShareImage(sharePhotoUrl, `${car.brand} ${car.model}`);
+  }, [car.brand, car.model, sharePhotoUrl]);
 
   function selectVariant(index: number) {
     setVariantIndex(index);
@@ -866,6 +873,16 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
 
   function openCar() {
     window.location.href = `/car/?slug=${encodeURIComponent(car.slug)}`;
+  }
+
+  async function shareCurrentCar() {
+    const safePhotoIndex = Math.min(photoIndex, Math.max(photos.length - 1, 0));
+    await shareCar({
+      slug: car.slug,
+      brand: car.brand,
+      model: car.model,
+      imageUrl: photos[safePhotoIndex]?.url ?? car.coverUrl,
+    });
   }
 
   return (
@@ -902,6 +919,17 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
           )) : <div className={styles.carPlaceholder}><CarFront /></div>}
         </div>
         <span className={styles.statusPill} data-status={car.status}>{statusLabel(car.status, language)}</span>
+        <button
+          className={styles.cardShareButton}
+          type="button"
+          aria-label={language === "ru" ? `Поделиться ${car.brand} ${car.model}` : `${car.brand} ${car.model} ulashish`}
+          onClick={(event) => {
+            event.stopPropagation();
+            void shareCurrentCar();
+          }}
+        >
+          <Share2 aria-hidden="true" />
+        </button>
         {photos.length > 1 ? (
           <div className={styles.photoDots}>{photos.map((photo, index) => <i key={photo.id} data-active={index === photoIndex} />)}</div>
         ) : null}

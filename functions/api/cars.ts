@@ -543,11 +543,17 @@ export async function onRequestGet(context: {
 
   const url = new URL(request.url);
   const q = normalizeText(url.searchParams.get("q"), 120);
+  const rawBrand = normalizeText(url.searchParams.get("brand"), 80);
   const rawStatus = normalizeText(url.searchParams.get("status"), 30);
   const rawCountry = normalizeText(url.searchParams.get("country"), 10).toUpperCase();
 
   const where: string[] = [];
   const bindings: unknown[] = [];
+
+  if (rawBrand && rawBrand.toLowerCase() !== "all") {
+    bindings.push(rawBrand);
+    where.push(`b.name = ?${bindings.length} COLLATE NOCASE`);
+  }
 
   if (rawStatus && rawStatus !== "all") {
     if (!isCarStatus(rawStatus)) {
@@ -613,6 +619,13 @@ export async function onRequestGet(context: {
     FROM cars c
     INNER JOIN brands b ON b.id = c.brand_id
     ${whereSql}
+  `;
+
+  const brandsSql = `
+    SELECT DISTINCT b.name AS name
+    FROM cars c
+    INNER JOIN brands b ON b.id = c.brand_id
+    ORDER BY b.name COLLATE NOCASE ASC
   `;
 
   try {
@@ -701,9 +714,16 @@ export async function onRequestGet(context: {
     }
 
     const countPrepared = env.DB.prepare(countSql);
-    const countRow = bindings.length > 0
-      ? await countPrepared.bind(...bindings).first<{ count: number }>()
-      : await countPrepared.first<{ count: number }>();
+    const [countRow, brandResult] = await Promise.all([
+      bindings.length > 0
+        ? countPrepared.bind(...bindings).first<{ count: number }>()
+        : countPrepared.first<{ count: number }>(),
+      (env.DB.prepare(brandsSql) as unknown as D1ListStatementLike).all<{ name: string }>(),
+    ]);
+
+    const brandNames = (Array.isArray(brandResult.results) ? brandResult.results : [])
+      .map((row) => row.name?.trim())
+      .filter((name): name is string => Boolean(name));
 
     return json({
       success: true,
@@ -712,6 +732,7 @@ export async function onRequestGet(context: {
         role: currentUser.role,
       },
       total: countRow?.count ?? rows.length,
+      brands: brandNames,
       cars: rows.map((row) => ({
         ...toStaffCar(row),
         variants: variantsByCar.get(row.id) ?? [],

@@ -2605,3 +2605,140 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* v8 brand quick-filter + denser inventory cards */
+.brandFilterRail {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 9px;
+  margin-top: 20px;
+  padding: 2px 1px 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.brandFilterRail::-webkit-scrollbar { display: none; }
+.brandFilterChip {
+  flex: 0 0 auto;
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 15px 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-2);
+  background: var(--surface-soft);
+  scroll-snap-align: start;
+  cursor: pointer;
+  transition: transform 180ms var(--spring), color 180ms var(--ease), background-color 180ms var(--ease), border-color 180ms var(--ease);
+}
+.brandFilterChip:active { transform: scale(.97); }
+.brandFilterChip[data-active="true"] {
+  color: #fff;
+  border-color: #0a0a0b;
+  background: #0a0a0b;
+}
+.page[data-theme="dark"] .brandFilterChip[data-active="true"] {
+  color: #0a0a0b;
+  border-color: #f5f5f3;
+  background: #f5f5f3;
+}
+.brandFilterChip > strong {
+  max-width: 150px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.brandFilterLogo,
+.brandFilterAll {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+  border-radius: 50%;
+  color: var(--text);
+  background: #fff;
+}
+.brandFilterLogo img {
+  width: 74%;
+  height: 74%;
+  display: block;
+  object-fit: contain;
+}
+.brandFilterLogo b,
+.brandFilterAll {
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: .05em;
+}
+.brandFilterChip[data-active="true"] .brandFilterLogo,
+.brandFilterChip[data-active="true"] .brandFilterAll {
+  border-color: rgba(255,255,255,.22);
+  color: #0a0a0b;
+  background: #fff;
+}
+.toolbar { margin-top: 14px; }
+
+/* Slightly denser than v6 while keeping comfortable iPhone touch targets. */
+.skeletonGrid,
+.carsGrid {
+  grid-template-columns: repeat(auto-fit, minmax(244px, 1fr));
+  gap: 11px;
+}
+.carCard { border-radius: 26px; }
+.carMedia { aspect-ratio: 16 / 7.5; }
+.statusBadge { top: 9px; left: 9px; min-height: 29px; padding-inline: 9px; font-size: 10px; }
+.mediaDots { bottom: 8px; min-height: 21px; }
+.carContent { padding: 12px 14px 13px; }
+.carBrand,
+.priceLabel { font-size: 9px; }
+.carTitleRow h3 { margin-top: 4px; font-size: clamp(19px, 1.65vw, 24px); }
+.carYear { min-height: 27px; padding-inline: 9px; font-size: 11px; }
+.carTrim { min-height: 17px; margin-top: 5px; font-size: 11px; line-height: 1.35; }
+.carFacts { min-height: 29px; gap: 4px; margin-top: 8px; }
+.carFacts span { min-height: 23px; padding-inline: 7px; font-size: 9.5px; }
+.variantChooser { margin-top: 7px; gap: 7px; }
+.variantSwatch { flex-basis: 27px; width: 27px; height: 27px; }
+.variantName { font-size: 11px; }
+.identityRow { gap: 10px; margin-top: 9px; padding: 9px 0; }
+.vinBlock > span,
+.idBlock > span { margin-bottom: 4px; font-size: 9px; }
+.vinBlock strong { font-size: clamp(15px, 1.7vw, 18px); line-height: 1.15; }
+.vinBlock small { margin-top: 4px; font-size: 10px; }
+.idBlock { min-width: 52px; }
+.idBlock strong { font-size: 18px; }
+.carBottom { gap: 9px; margin-top: 9px; }
+.priceBlock strong { margin-top: 3px; font-size: 16px; }
+.editAction,
+.statusAction { min-height: 42px; padding-inline: 9px; font-size: 10.5px; }
+.editAction svg,
+.statusAction svg { width: 15px; height: 15px; }
+
+@media (max-width: 620px) {
+  .brandFilterRail {
+    width: calc(100% + 28px);
+    margin-left: -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    scroll-padding-inline: 14px;
+  }
+  .brandFilterChip { min-height: 54px; padding: 6px 13px 6px 7px; gap: 8px; }
+  .brandFilterLogo,
+  .brandFilterAll { width: 39px; height: 39px; flex-basis: 39px; }
+  .carMedia { aspect-ratio: 16 / 7.1; }
+  .carContent { padding: 11px 13px 12px; }
+  .vinBlock strong { font-size: 16px; }
+  .priceBlock strong { font-size: 16px; }
+  .editAction,
+  .statusAction { min-height: 44px; font-size: 10.5px; }
+}

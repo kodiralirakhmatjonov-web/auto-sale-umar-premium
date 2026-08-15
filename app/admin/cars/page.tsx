@@ -67,6 +67,7 @@ interface CarsApiResponse {
   success?: boolean;
   error?: string;
   total?: number;
+  brands?: string[];
   cars?: CarRecord[];
   viewer?: { id?: number; role?: "super_admin" | "admin" | "sales_manager" };
 }
@@ -151,6 +152,23 @@ const COUNTRY_LABELS: Record<Language, Record<string, string>> = {
   uz: { KR: "Koreya", US: "AQSh", CA: "Kanada", AE: "BAA", AU: "Avstraliya", EU: "Yevropa", DE: "Germaniya", GB: "Buyuk Britaniya", JP: "Yaponiya", CN: "Xitoy", SA: "Saudiya Arabistoni", QA: "Qatar", CH: "Shveytsariya" },
 };
 
+const BRAND_LOGOS: Record<string, string> = {
+  "mercedes-benz": "/brands/mercedes-benz.jpg",
+  "range rover": "/brands/range-rover.png",
+  "rolls-royce": "/brands/rolls-royce.png",
+  cadillac: "/brands/cadillac.png",
+  lexus: "/brands/lexus.png",
+  toyota: "/brands/toyota.png",
+  genesis: "/brands/genesis.png",
+  bmw: "/brands/bmw.png",
+  lamborghini: "/brands/lamborghini.png",
+  porsche: "/brands/porsche.png",
+};
+
+function brandLogoPath(brand: string): string | null {
+  return BRAND_LOGOS[brand.trim().toLowerCase()] ?? null;
+}
+
 const UZ_COPY: Record<string, string> = {
   "Раздел автомобилей недоступен": "Avtomobillar bo‘limiga kirish yopiq",
   "Повторить": "Qayta urinish",
@@ -179,6 +197,8 @@ const UZ_COPY: Record<string, string> = {
   "Проверка доступа…": "Kirish tekshirilmoqda…",
   "Марка, модель, VIN": "Brend, model, VIN",
   "Поиск автомобилей": "Avtomobillarni qidirish",
+  "Все марки": "Barcha markalar",
+  "Фильтр по марке": "Marka bo‘yicha filtr",
   "Очистить поиск": "Qidiruvni tozalash",
   "Открыть фильтры": "Filtrlarni ochish",
   "Фильтры": "Filtrlar",
@@ -247,6 +267,8 @@ export default function CarsPage() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   const [query, setQuery] = useState("");
+  const [brand, setBrand] = useState("all");
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [status, setStatus] = useState<StatusFilter>("all");
   const [country, setCountry] = useState<CountryFilter>("all");
   const [cars, setCars] = useState<CarRecord[]>([]);
@@ -272,10 +294,11 @@ export default function CarsPage() {
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
+    if (brand !== "all") count += 1;
     if (status !== "all") count += 1;
     if (country !== "all") count += 1;
     return count;
-  }, [country, status]);
+  }, [brand, country, status]);
 
   const applyTheme = useCallback((nextTheme: Theme) => {
     setTheme(nextTheme);
@@ -364,6 +387,7 @@ export default function CarsPage() {
 
       const params = new URLSearchParams();
       if (query.trim()) params.set("q", query.trim());
+      if (brand !== "all") params.set("brand", brand);
       if (status !== "all") params.set("status", status);
       if (country !== "all") params.set("country", country);
       const endpoint = `/api/cars${params.size ? `?${params.toString()}` : ""}`;
@@ -402,6 +426,7 @@ export default function CarsPage() {
 
         setViewerRole(data.viewer?.role ?? null);
         setCars(data.cars);
+        if (Array.isArray(data.brands)) setAvailableBrands(data.brands);
         setTotal(typeof data.total === "number" ? data.total : data.cars.length);
         setAuthReady(true);
         setAuthError(null);
@@ -424,7 +449,7 @@ export default function CarsPage() {
       window.clearTimeout(delay);
       controller.abort();
     };
-  }, [country, query, reloadToken, status]);
+  }, [brand, country, query, reloadToken, status]);
 
   useEffect(() => {
     if (!settingsOpen && !filtersOpen && !quickCar) return;
@@ -465,6 +490,7 @@ export default function CarsPage() {
   }
 
   function resetFilters() {
+    setBrand("all");
     setStatus("all");
     setCountry("all");
   }
@@ -618,6 +644,35 @@ export default function CarsPage() {
             <span className={styles.catalogCount}>
               {authReady ? formatCarCount(total, language) : t("Проверка доступа…")}
             </span>
+          </div>
+
+          <div className={styles.brandFilterRail} role="group" aria-label={t("Фильтр по марке")}>
+            <button
+              className={styles.brandFilterChip}
+              type="button"
+              data-active={brand === "all"}
+              onClick={() => setBrand("all")}
+            >
+              <span className={styles.brandFilterAll}>ALL</span>
+              <strong>{t("Все марки")}</strong>
+            </button>
+            {availableBrands.map((brandName) => {
+              const logo = brandLogoPath(brandName);
+              return (
+                <button
+                  key={brandName}
+                  className={styles.brandFilterChip}
+                  type="button"
+                  data-active={brand === brandName}
+                  onClick={() => setBrand(brandName)}
+                >
+                  <span className={styles.brandFilterLogo}>
+                    {logo ? <img src={logo} alt="" /> : <b>{brandName.slice(0, 1).toUpperCase()}</b>}
+                  </span>
+                  <strong>{brandName}</strong>
+                </button>
+              );
+            })}
           </div>
 
           <div className={styles.toolbar}>
