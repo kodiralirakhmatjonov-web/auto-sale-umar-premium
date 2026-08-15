@@ -651,7 +651,7 @@ export default function HomeClient() {
 
       <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} requestBrand={brand} catalogStatus="in_showroom" />
       <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} requestBrand={brand} catalogStatus="available" />
-      <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} catalogStatus="transit" />
+      <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} catalogStatus="in_transit" />
 
       <section className={`${styles.section} ${styles.comparePromoSection}`} id="compare">
         <div className={styles.comparePromoRail}>

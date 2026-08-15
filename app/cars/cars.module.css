@@ -84,17 +84,17 @@
 
 .brandChip {
   flex: 0 0 auto;
-  min-width: 116px;
-  min-height: 102px;
-  padding: 11px 13px 12px;
+  min-width: 132px;
+  min-height: 118px;
+  padding: 12px 14px 13px;
   display: grid;
-  grid-template-rows: 58px auto;
+  grid-template-rows: 72px auto;
   place-items: center;
   gap: 7px;
   border: 1px solid var(--line);
   border-radius: 28px;
-  background: var(--surface);
-  color: var(--text);
+  background: #fff;
+  color: #08090a;
   scroll-snap-align: start;
   box-shadow: 0 12px 34px rgba(16, 18, 20, .035);
   cursor: pointer;
@@ -103,18 +103,18 @@
 .brandChip:active { transform: scale(.97); }
 .brandChip[data-active="true"] { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
 .brandChip > span {
-  width: 58px;
-  height: 58px;
+  width: 72px;
+  height: 72px;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: 19px;
-  background: #f6f6f4;
+  border-radius: 20px;
+  background: #fff;
 }
-.brandChip > span img { width: 80%; height: 80%; object-fit: contain; mix-blend-mode: multiply; }
-.brandChip > span svg { width: 24px; height: 24px; }
-.brandChip > span b { font-size: 20px; }
-.brandChip > b { max-width: 120px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; white-space: nowrap; }
+.brandChip > span img { width: 94%; height: 94%; object-fit: contain; mix-blend-mode: multiply; }
+.brandChip > span svg { width: 30px; height: 30px; }
+.brandChip > span b { font-size: 24px; }
+.brandChip > b { max-width: 128px; overflow: hidden; text-overflow: ellipsis; font-size: 13px; white-space: nowrap; }
 
 .toolbar {
   margin-top: 16px;
@@ -199,9 +199,12 @@
 .catalogGrid {
   display: grid;
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 .catalogGrid[data-layout="two"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.catalogGrid[data-layout="two"] .carCard { height: 100%; display: flex; flex-direction: column; }
+.catalogGrid[data-layout="two"] .cardBody { flex: 1; display: flex; flex-direction: column; }
+.catalogGrid[data-layout="two"] .priceLine { margin-top: auto; }
 .catalogGrid[data-layout="one"] { grid-template-columns: minmax(0, 1fr); }
 
 .carCard {
@@ -321,9 +324,10 @@
     gap: 9px;
     scroll-padding-inline: 18px;
   }
-  .brandChip { min-width: 104px; min-height: 92px; grid-template-rows: 51px auto; padding: 9px 11px 10px; border-radius: 25px; }
-  .brandChip > span { width: 51px; height: 51px; border-radius: 17px; }
-  .brandChip > b { font-size: 11px; }
+  .brandChip { min-width: 122px; min-height: 108px; grid-template-rows: 68px auto; padding: 10px 12px 11px; border-radius: 25px; }
+  .brandChip > span { width: 68px; height: 68px; border-radius: 19px; background: #fff; }
+  .brandChip > span img { width: 96%; height: 96%; }
+  .brandChip > b { font-size: 12px; }
 
   .toolbar {
     margin-top: 10px;

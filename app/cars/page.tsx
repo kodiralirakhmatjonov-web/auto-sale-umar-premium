@@ -11,7 +11,7 @@ import { shareCar, warmShareImage } from "../_lib/share-car";
 import styles from "./cars.module.css";
 
 type CarStatus = "in_stock" | "in_showroom" | "in_transit" | "made_to_order" | "reserved" | "sold" | "hidden";
-type CatalogFilterStatus = CarStatus | "all" | "available" | "transit";
+type CatalogFilterStatus = CarStatus | "all" | "available";
 type CatalogLayout = "two" | "one";
 
 interface CatalogPhoto {
@@ -72,7 +72,6 @@ const STATUS_VALUES: CatalogFilterStatus[] = [
   "available",
   "in_showroom",
   "in_stock",
-  "transit",
   "in_transit",
   "made_to_order",
   "reserved",
@@ -100,7 +99,6 @@ const COPY = {
       available: "Доступны",
       in_showroom: "В шоуруме",
       in_stock: "В наличии",
-      transit: "В пути / под заказ",
       in_transit: "В пути",
       made_to_order: "Под заказ",
       reserved: "Резерв",
@@ -128,7 +126,6 @@ const COPY = {
       available: "Mavjud",
       in_showroom: "Shourumda",
       in_stock: "Omborda",
-      transit: "Yo‘lda / buyurtma",
       in_transit: "Yo‘lda",
       made_to_order: "Buyurtma",
       reserved: "Rezerv",
@@ -207,7 +204,6 @@ function formatPrice(car: CatalogCar, language: PublicLanguage): string {
 function matchesStatus(car: CatalogCar, filter: CatalogFilterStatus): boolean {
   if (filter === "all") return car.status !== "hidden";
   if (filter === "available") return car.status === "in_showroom" || car.status === "in_stock";
-  if (filter === "transit") return car.status === "in_transit" || car.status === "made_to_order";
   return car.status === filter;
 }
 
