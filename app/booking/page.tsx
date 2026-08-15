@@ -58,7 +58,7 @@ const BRANDS = [
   { name: "Porsche", logo: "/brands/porsche.png" },
 ];
 
-const TIME_SLOTS = ["09:00–11:00", "11:00–13:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"];
+const TIME_SLOTS = ["10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"];
 const YANDEX_MAPS_URL = "https://yandex.ru/maps/org/auto_sale_umar/98317002086?si=y1pjpr56py0hyc8ar2j2cw1t40";
 
 const COPY = {
@@ -143,7 +143,7 @@ export default function BookingPage() {
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
   const [cars, setCars] = useState<CatalogCar[]>([]);
   const [date, setDate] = useState(() => { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); return localIso(tomorrow); });
-  const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[1]);
+  const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[0]);
   const [brand, setBrand] = useState("");
   const [carId, setCarId] = useState<number | null>(null);
   const [name, setName] = useState("");

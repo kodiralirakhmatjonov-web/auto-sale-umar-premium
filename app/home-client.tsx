@@ -787,9 +787,18 @@ export default function HomeClient() {
         </a>
       </section>
 
+      <section className={styles.closingImageSection} aria-label="Auto Sale Umar">
+        <img src="/homepage/bentley-closing.jpeg" alt="Auto Sale Umar · Bentley" loading="lazy" />
+      </section>
+
       <footer className={styles.footer}>
-        <img src={wordmark} alt="Auto Sale Umar" />
-        <p>{c.footer}<br />© 2026</p>
+        <div className={styles.footerBrand}>
+          <img src={wordmark} alt="Auto Sale Umar" />
+          <p className={styles.footerPremium}>{language === "ru"
+            ? "Премиальные автомобили. Точный выбор. Персональное сопровождение."
+            : "Premium avtomobillar. Aniq tanlov. Shaxsiy kuzatuv."}</p>
+        </div>
+        <small>Auto Sale Umar 2026 · All rights reserved.</small>
       </footer>
     </main>
   );

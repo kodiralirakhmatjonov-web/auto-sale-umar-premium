@@ -233,7 +233,7 @@ export default function TrustPage() {
           <p>{c.finalText}</p>
         </div>
         <div className={styles.finalActions}>
-          <a className={styles.primaryAction} href="/#stock">{c.cars}<ArrowRight /></a>
+          <a className={styles.primaryAction} href="/cars/">{c.cars}<ArrowRight /></a>
           <a className={styles.secondaryAction} href="/booking/">{c.visit}</a>
         </div>
       </section>
