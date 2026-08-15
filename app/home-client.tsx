@@ -209,6 +209,10 @@ const COPY = {
     trust2d: "Фотографии, цвета и данные относятся к реальной карточке автомобиля.",
     trust3: "Персональное сопровождение",
     trust3d: "От первого вопроса до передачи автомобиля — один понятный контакт с шоурумом.",
+    trust25Kicker: "25 ЛЕТ В АВТОМОБИЛЬНОЙ СФЕРЕ",
+    trust25Title: "Доверие, которое выдерживает время.",
+    trust25Text: "Опыт Auto Sale Umar — это не цифра ради цифры. Это привычка отвечать за выбор, детали и результат.",
+    trust25Action: "Наша история",
     showroomKicker: "О ШОУРУМЕ",
     showroomTitle: "Пространство для спокойного выбора.",
     showroomText: "Автомобиль остаётся в центре внимания, а атмосфера даёт время рассмотреть детали и принять решение без спешки.",
@@ -296,6 +300,10 @@ const COPY = {
     trust2d: "Suratlar, ranglar va ma’lumotlar haqiqiy avtomobil kartasiga tegishli.",
     trust3: "Shaxsiy kuzatuv",
     trust3d: "Birinchi savoldan kalit topshirilguncha — shourum bilan bitta tushunarli aloqa.",
+    trust25Kicker: "AVTOMOBIL SOHASIDA 25 YIL",
+    trust25Title: "Vaqt sinovidan o‘tgan ishonch.",
+    trust25Text: "Auto Sale Umar tajribasi shunchaki raqam emas. Bu tanlov, tafsilot va natija uchun javob berish odati.",
+    trust25Action: "Bizning tarix",
     showroomKicker: "SHOURUM HAQIDA",
     showroomTitle: "Xotirjam tanlov uchun makon.",
     showroomText: "Avtomobil markazda qoladi, muhit esa detallarni ko‘rish va shoshilmasdan qaror qilish uchun vaqt beradi.",
@@ -758,6 +766,23 @@ export default function HomeClient() {
           <ContactCard href="https://wa.me/998771155553" icon={<MessageCircle />} label={c.whatsapp} detail="+998 77 115 55 53" />
           <ContactCard href="tel:+998771155553" icon={<Phone />} label={c.call} detail="+998 77 115 55 53" />
         </div>
+      </section>
+
+      <section className={`${styles.section} ${styles.legacySection}`} aria-label={c.trust25Title}>
+        <a className={styles.legacyCard} href="/trust/">
+          <div className={styles.legacyGlow} aria-hidden="true" />
+          <div className={styles.legacyNumber} aria-hidden="true">25</div>
+          <div className={styles.legacyCopy}>
+            <span>{c.trust25Kicker}</span>
+            <h2>{c.trust25Title}</h2>
+            <p>{c.trust25Text}</p>
+            <strong>{c.trust25Action}<ChevronRight /></strong>
+          </div>
+          <div className={styles.legacyMark}>
+            <img src="/brand/asu-wordmark-white.png" alt="" aria-hidden="true" />
+            <small>25 YEARS · EXPERIENCE</small>
+          </div>
+        </a>
       </section>
 
       <footer className={styles.footer}>

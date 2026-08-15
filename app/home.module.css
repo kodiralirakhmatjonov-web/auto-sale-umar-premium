@@ -2014,3 +2014,194 @@
   .smartOrb { width: 90px; height: 90px; }
   .smartOrb svg { width: 31px; height: 31px; }
 }
+
+/* ===== p030 trust story card ===== */
+.legacySection {
+  padding-top: 30px;
+  padding-bottom: 54px;
+}
+
+.legacyCard {
+  position: relative;
+  min-height: clamp(430px, 43vw, 610px);
+  overflow: hidden;
+  padding: clamp(32px, 5vw, 68px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 32px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 46px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(244,119,46,.23), transparent 25%),
+    radial-gradient(circle at 18% 92%, rgba(255,255,255,.07), transparent 28%),
+    linear-gradient(145deg, #171819 0%, #090a0b 48%, #030304 100%);
+  box-shadow: 0 34px 100px rgba(0,0,0,.22);
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.legacyCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(118deg, transparent 0 48%, rgba(255,255,255,.035) 48.2% 48.4%, transparent 48.6% 100%),
+    linear-gradient(172deg, transparent 0 68%, rgba(244,119,46,.13) 68.15% 68.32%, transparent 68.5% 100%);
+}
+
+.legacyGlow {
+  position: absolute;
+  top: -26%;
+  right: -8%;
+  width: 54%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244,119,46,.2), rgba(244,119,46,.035) 42%, transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.legacyNumber {
+  position: absolute;
+  top: -0.16em;
+  right: .02em;
+  z-index: -1;
+  color: rgba(255,255,255,.055);
+  font-size: clamp(220px, 34vw, 520px);
+  line-height: .78;
+  font-weight: 900;
+  letter-spacing: -.105em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.legacyCopy {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+}
+
+.legacyCopy > span {
+  display: block;
+  margin-bottom: clamp(18px, 2.4vw, 32px);
+  color: rgba(255,255,255,.52);
+  font-size: clamp(11px, .95vw, 14px);
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .15em;
+}
+
+.legacyCopy h2 {
+  margin: 0;
+  max-width: 720px;
+  color: #fff;
+  font-size: clamp(3.2rem, 7.2vw, 7.8rem);
+  line-height: .88;
+  font-weight: 850;
+  letter-spacing: -.07em;
+  text-wrap: balance;
+}
+
+.legacyCopy p {
+  max-width: 610px;
+  margin: clamp(24px, 3vw, 38px) 0 0;
+  color: rgba(255,255,255,.63);
+  font-size: clamp(15px, 1.35vw, 20px);
+  line-height: 1.5;
+  letter-spacing: -.018em;
+}
+
+.legacyCopy strong {
+  width: fit-content;
+  min-height: 54px;
+  margin-top: clamp(28px, 3.4vw, 46px);
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 999px;
+  color: #0a0a0b;
+  background: #f7f7f5;
+  font-size: 14px;
+  font-weight: 760;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  transition: transform .24s var(--spring), background .2s ease;
+}
+
+.legacyCopy strong svg { width: 18px; height: 18px; }
+.legacyCard:active .legacyCopy strong { transform: scale(.97); }
+
+.legacyMark {
+  position: relative;
+  z-index: 2;
+  align-self: end;
+  justify-self: end;
+  width: clamp(150px, 18vw, 240px);
+  display: grid;
+  justify-items: end;
+  gap: 9px;
+}
+
+.legacyMark img {
+  width: 100%;
+  max-height: 58px;
+  object-fit: contain;
+  object-position: right center;
+  opacity: .94;
+}
+
+.legacyMark small {
+  color: rgba(255,255,255,.34);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+
+@media (max-width: 640px) {
+  .legacySection {
+    width: calc(100% - 28px) !important;
+    padding-top: 20px;
+    padding-bottom: 44px;
+  }
+
+  .legacyCard {
+    min-height: 570px;
+    padding: 30px 26px 28px;
+    grid-template-columns: 1fr;
+    align-content: end;
+    border-radius: 36px;
+  }
+
+  .legacyNumber {
+    top: 12px;
+    right: -10px;
+    font-size: clamp(210px, 69vw, 310px);
+  }
+
+  .legacyCopy h2 {
+    font-size: clamp(3.4rem, 16vw, 5.5rem);
+  }
+
+  .legacyCopy p {
+    max-width: 95%;
+    font-size: 16px;
+  }
+
+  .legacyCopy strong {
+    min-height: 52px;
+    padding: 0 20px;
+  }
+
+  .legacyMark {
+    width: 148px;
+    justify-self: start;
+    justify-items: start;
+    margin-top: 34px;
+  }
+
+  .legacyMark img { object-position: left center; }
+}
