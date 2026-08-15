@@ -649,9 +649,9 @@ export default function HomeClient() {
         </div>
       </section>
 
-      <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} requestBrand={brand} />
-      <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} requestBrand={brand} />
-      <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} />
+      <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} requestBrand={brand} catalogStatus="in_showroom" />
+      <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} requestBrand={brand} catalogStatus="available" />
+      <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} catalogStatus="transit" />
 
       <section className={`${styles.section} ${styles.comparePromoSection}`} id="compare">
         <div className={styles.comparePromoRail}>
@@ -811,17 +811,21 @@ function SectionHeading({ kicker, title, text }: { kicker: string; title: string
   return <div className={styles.sectionHeading}><p className={styles.kicker}>{kicker}</p><h2>{title}</h2>{text ? <p>{text}</p> : null}</div>;
 }
 
-function InventorySection({ id, kicker, title, text, empty, cars, language, requestBrand }: { id: string; kicker: string; title: string; text: string; empty: string; cars: CatalogCar[]; language: Language; requestBrand: string }) {
+function InventorySection({ id, kicker, title, text, empty, cars, language, requestBrand, catalogStatus }: { id: string; kicker: string; title: string; text: string; empty: string; cars: CatalogCar[]; language: Language; requestBrand: string; catalogStatus: string }) {
   const visibleCars = cars.slice(0, 6);
   const c = COPY[language];
   const requestHref = requestBrand !== "all" ? `/request-car/?brand=${encodeURIComponent(requestBrand)}` : "/request-car/";
+  const catalogParams = new URLSearchParams();
+  if (requestBrand !== "all") catalogParams.set("brand", requestBrand);
+  if (catalogStatus) catalogParams.set("status", catalogStatus);
+  const catalogHref = `/cars/${catalogParams.toString() ? `?${catalogParams.toString()}` : ""}`;
   return (
     <section className={styles.section} id={id}>
       <SectionHeading kicker={kicker} title={title} text={text} />
       {visibleCars.length ? (
         <>
           <div className={styles.carGrid}>{visibleCars.map((car) => <PublicCarCard key={car.id} car={car} language={language} />)}</div>
-          {cars.length > 6 ? <a className={styles.seeAllPill} href="#cars">{c.seeAll}<ChevronRight /></a> : null}
+          {cars.length > 6 ? <a className={styles.seeAllPill} href={catalogHref}>{c.seeAll}<ChevronRight /></a> : null}
         </>
       ) : (
         <div className={styles.requestCard}>

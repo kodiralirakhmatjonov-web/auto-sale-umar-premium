@@ -2244,3 +2244,10 @@
   .cardShareButton { top: 11px; right: 11px; width: 36px; height: 36px; }
   .cardShareButton svg { width: 16px; height: 16px; }
 }
+
+/* ===== p033 requested-only spacing: air before compare / smart consultant carousel ===== */
+@media (max-width: 760px) {
+  .comparePromoSection {
+    margin-top: 36px;
+  }
+}
