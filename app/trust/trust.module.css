@@ -314,7 +314,7 @@
   align-items: end;
 }
 
-.finalSection > div:first-child { max-width: 790px; }
+.finalSection > div:first-child { min-width: 0; max-width: 790px; }
 .finalSection > div > p:last-child { max-width: 620px; margin-top: 26px; }
 .finalActions { display: grid; gap: 10px; min-width: 260px; }
 .primaryAction, .secondaryAction { min-height: 56px; padding: 0 22px; display: flex; align-items: center; justify-content: center; gap: 9px; border-radius: 999px; font-size: 14px; font-weight: 760; }
@@ -358,7 +358,13 @@
   .storySection { gap: 44px; padding: 10px 10px 90px; }
   .storyImage { min-height: 520px; border-radius: 36px; }
   .storyCopy { padding: 0; }
-  .storyCopy h2, .sectionHeading h2, .todayCopy h2, .finalSection h2 { font-size: clamp(3.25rem, 14.2vw, 5.2rem); }
+  .storyCopy h2, .sectionHeading h2, .todayCopy h2 { font-size: clamp(3.25rem, 14.2vw, 5.2rem); }
+  .finalSection h2 {
+    max-width: 100%;
+    font-size: clamp(3rem, 12.4vw, 4.6rem);
+    line-height: .92;
+    letter-spacing: -.065em;
+  }
   .storyParagraphs { margin-top: 30px; }
 
   .principlesSection { padding: 72px 10px 92px; }

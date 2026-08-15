@@ -65,13 +65,17 @@ export async function shareCar(input: ShareCarInput): Promise<ShareCarResult> {
       const fileShareData: ShareData | null = file ? {
         title,
         text: `${text}\n${url}`,
-        url,
         files: [file],
       } : null;
-      if (fileShareData && typeof navigator.canShare === "function" && navigator.canShare(fileShareData)) {
-        // URL is duplicated in text because some iOS share targets ignore `url` when files are present.
-        const sharePromise = navigator.share(fileShareData);
-        await sharePromise;
+      // iOS share targets are much more reliable when a file payload does not also
+      // include the Web Share `url` field. The direct car URL stays in the caption.
+      const canShareFile = Boolean(
+        file &&
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({ files: [file] }),
+      );
+      if (fileShareData && canShareFile) {
+        await navigator.share(fileShareData);
         return "shared";
       }
 

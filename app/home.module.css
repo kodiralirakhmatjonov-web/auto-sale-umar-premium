@@ -2182,8 +2182,16 @@
     font-size: clamp(210px, 69vw, 310px);
   }
 
+  .legacyCopy {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .legacyCopy h2 {
-    font-size: clamp(3.4rem, 16vw, 5.5rem);
+    max-width: 100%;
+    font-size: clamp(3.05rem, 13.2vw, 4.8rem);
+    line-height: .9;
+    letter-spacing: -.06em;
   }
 
   .legacyCopy p {

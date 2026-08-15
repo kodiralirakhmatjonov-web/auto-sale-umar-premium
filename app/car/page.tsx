@@ -401,7 +401,7 @@ export default function CarPage() {
   }, [car, activeVariant]);
   const interiorPhotos = activeVariant?.interiorPhotos ?? [];
   const allGallery = useMemo(() => [...exteriorPhotos, ...interiorPhotos], [exteriorPhotos, interiorPhotos]);
-  const sharePhotoUrl = exteriorPhotos[Math.min(photoIndex, Math.max(exteriorPhotos.length - 1, 0))]?.url ?? car?.coverUrl ?? null;
+  const sharePhotoUrl = exteriorPhotos[0]?.url ?? car?.coverUrl ?? null;
 
   useEffect(() => {
     if (!car) return;
@@ -422,12 +422,11 @@ export default function CarPage() {
 
   async function shareCurrentCar() {
     if (!car) return;
-    const safePhotoIndex = Math.min(photoIndex, Math.max(exteriorPhotos.length - 1, 0));
     await shareCar({
       slug: car.slug,
       brand: car.brand,
       model: car.model,
-      imageUrl: exteriorPhotos[safePhotoIndex]?.url ?? car.coverUrl,
+      imageUrl: exteriorPhotos[0]?.url ?? car.coverUrl,
     });
   }
 

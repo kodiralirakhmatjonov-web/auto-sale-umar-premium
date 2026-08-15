@@ -852,7 +852,7 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
     : car.coverUrl
       ? [{ id: -1, url: car.coverUrl, isCover: true, sortOrder: 0 }]
       : [];
-  const sharePhotoUrl = photos[Math.min(photoIndex, Math.max(photos.length - 1, 0))]?.url ?? car.coverUrl;
+  const sharePhotoUrl = photos[0]?.url ?? car.coverUrl;
 
   useEffect(() => {
     warmShareImage(sharePhotoUrl, `${car.brand} ${car.model}`);
@@ -876,12 +876,11 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
   }
 
   async function shareCurrentCar() {
-    const safePhotoIndex = Math.min(photoIndex, Math.max(photos.length - 1, 0));
     await shareCar({
       slug: car.slug,
       brand: car.brand,
       model: car.model,
-      imageUrl: photos[safePhotoIndex]?.url ?? car.coverUrl,
+      imageUrl: photos[0]?.url ?? car.coverUrl,
     });
   }
 
