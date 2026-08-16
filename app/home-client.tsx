@@ -244,16 +244,10 @@ const COPY = {
     telegram: "Telegram",
     whatsapp: "WhatsApp",
     call: "Позвонить",
-    poweredBy: "Powered by",
-    poweredByText: "Дизайн и разработка сайта",
-    developerRole: "Разработчик · Дизайн · Цифровые решения",
-    developerDescription: "Создаю премиальные сайты, мобильные приложения и цифровые решения для бизнеса. Проектирую системы, которые упрощают процессы, автоматизируют рутинную работу и помогают предпринимателям управлять бизнесом более понятно и эффективно — от интерфейсов и внутренних платформ до TV Mode и digital-экранов.",
-    developerTelegram: "Telegram",
-    developerProject: "Собственный проект",
-    developerMore: "Показать больше",
-    developerLess: "Свернуть",
-    developerWrite: "Написать в Telegram",
-    developerOpenProject: "Открыть проект",
+    itTeamTitle: "AutoSale Umar IT Team",
+    itTeamFounder: "Основатель — Abdulaziz.developer",
+    itTeamSummary: "Разработка, дизайн и цифровые решения для Auto Sale Umar.",
+    itTeamAction: "Открыть страницу",
     footer: "Auto Sale Umar · Премиальный автомобильный шоурум · Ташкент",
     priceRequest: "Цена по запросу",
     showroomStatus: "В шоуруме",
@@ -345,16 +339,10 @@ const COPY = {
     telegram: "Telegram",
     whatsapp: "WhatsApp",
     call: "Qo‘ng‘iroq",
-    poweredBy: "Powered by",
-    poweredByText: "Sayt dizayni va ishlab chiqilishi",
-    developerRole: "Dasturchi · Dizayn · Raqamli yechimlar",
-    developerDescription: "Biznes uchun premium saytlar, mobil ilovalar va raqamli yechimlar yarataman. Jarayonlarni soddalashtiradigan, kundalik rutinni avtomatlashtiradigan va tadbirkorlarga biznesni aniqroq hamda samaraliroq boshqarishga yordam beradigan tizimlarni loyihalayman — interfeyslar va ichki platformalardan tortib TV Mode va digital ekranlargacha.",
-    developerTelegram: "Telegram",
-    developerProject: "Shaxsiy loyiha",
-    developerMore: "Batafsil",
-    developerLess: "Yig‘ish",
-    developerWrite: "Telegram’da yozish",
-    developerOpenProject: "Loyihani ochish",
+    itTeamTitle: "AutoSale Umar IT Team",
+    itTeamFounder: "Asoschi — Abdulaziz.developer",
+    itTeamSummary: "Auto Sale Umar uchun dasturlash, dizayn va raqamli yechimlar.",
+    itTeamAction: "Sahifani ochish",
     footer: "Auto Sale Umar · Premium avtomobil shourumi · Toshkent",
     priceRequest: "Narx so‘rov bo‘yicha",
     showroomStatus: "Shourumda",
@@ -405,7 +393,6 @@ export default function HomeClient() {
   const [videos, setVideos] = useState<HomeMediaItem[]>([]);
   const [brand, setBrand] = useState<string>("all");
   const [heroIndex, setHeroIndex] = useState(0);
-  const [developerExpanded, setDeveloperExpanded] = useState(false);
   const heroRailRef = useRef<HTMLDivElement | null>(null);
   const marketRailRef = useRef<HTMLDivElement | null>(null);
   const marketPauseUntilRef = useRef(0);
@@ -824,80 +811,21 @@ export default function HomeClient() {
         <small>Auto Sale Umar 2026 · All rights reserved.</small>
       </footer>
 
-      <section className={`${styles.section} ${styles.developerSection}`} aria-label="Powered by Abdulaziz.developer">
-        <div className={styles.developerSectionHeading}>
-          <span>{c.poweredBy}</span>
-          <p>{c.poweredByText}</p>
-        </div>
-
-        <article className={`${styles.developerCard} ${developerExpanded ? styles.developerCardExpanded : ""}`}>
-          <div className={styles.developerAmbient} aria-hidden="true" />
-          <div className={styles.developerBeam} aria-hidden="true" />
-
-          <div className={styles.developerCardTop}>
-            <div className={styles.developerIdentity}>
-              <div className={styles.developerAvatarWrap}>
-                <img src="/homepage/abdulaziz-developer.jpg" alt="Abdulaziz.developer" className={styles.developerAvatar} loading="lazy" />
-              </div>
-              <div className={styles.developerIdentityCopy}>
-                <h3>Abdulaziz.developer</h3>
-                <p>{c.developerRole}</p>
-                <div className={styles.developerTagRow}>
-                  <span>Web</span>
-                  <span>Mobile</span>
-                  <span>TV Mode</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className={styles.developerToggle}
-              aria-expanded={developerExpanded}
-              onClick={() => setDeveloperExpanded((value) => !value)}
-            >
-              <span>{developerExpanded ? c.developerLess : c.developerMore}</span>
-              <ChevronRight />
-            </button>
+      <section className={`${styles.section} ${styles.developerMiniSection}`} aria-label="AutoSale Umar IT Team">
+        <a className={styles.developerMiniCard} href="/it-team/">
+          <div className={styles.developerMiniAvatarWrap}>
+            <img src="/homepage/abdulaziz-developer.jpg" alt="Abdulaziz.developer" className={styles.developerMiniAvatar} loading="lazy" />
           </div>
-
-          <div className={styles.developerQuickGrid}>
-            <a className={styles.developerQuickCard} href="https://t.me/saudiclub966" target="_blank" rel="noreferrer">
-              <div className={styles.developerQuickIcon}><MessageCircle /></div>
-              <div className={styles.developerQuickCopy}>
-                <span>{c.developerTelegram}</span>
-                <strong>@saudiclub966</strong>
-              </div>
-              <ArrowUpRight />
-            </a>
-
-            <a className={styles.developerQuickCard} href="https://ceo.iumrah.app" target="_blank" rel="noreferrer">
-              <div className={styles.developerQuickIcon}><Monitor /></div>
-              <div className={styles.developerQuickCopy}>
-                <span>{c.developerProject}</span>
-                <strong>ceo.iumrah.app</strong>
-              </div>
-              <ArrowUpRight />
-            </a>
+          <div className={styles.developerMiniCopy}>
+            <span>IT TEAM</span>
+            <h3>{c.itTeamTitle}</h3>
+            <p>{c.itTeamFounder}</p>
+            <small>{c.itTeamSummary}</small>
           </div>
-
-          <div className={`${styles.developerExpandedBody} ${developerExpanded ? styles.developerExpandedBodyOpen : ""}`}>
-            <div className={styles.developerExpandedInner}>
-              <p>{c.developerDescription}</p>
-              <div className={styles.developerActionRow}>
-                <a className={styles.developerPrimaryAction} href="https://t.me/saudiclub966" target="_blank" rel="noreferrer">
-                  <MessageCircle />
-                  <span>{c.developerWrite}</span>
-                </a>
-                <a className={styles.developerSecondaryAction} href="https://ceo.iumrah.app" target="_blank" rel="noreferrer">
-                  <Monitor />
-                  <span>{c.developerOpenProject}</span>
-                  <ArrowUpRight />
-                </a>
-              </div>
-            </div>
+          <div className={styles.developerMiniArrow}>
+            <ChevronRight />
           </div>
-        </article>
+        </a>
       </section>
     </main>
   );
