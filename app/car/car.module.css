@@ -568,3 +568,25 @@
   .shareButton { width: 54px; min-width: 54px; padding: 0; }
   .shareButton span { display: none; }
 }
+
+/* Weekly public interest signal for the current vehicle. */
+.heroViews {
+  min-height: 40px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 680;
+  white-space: nowrap;
+}
+.heroViews svg { width: 17px; height: 17px; stroke-width: 1.8; }
+
+@media (max-width: 720px) {
+  .heroViews { min-height: 36px; padding: 0 12px; font-size: 11px; gap: 6px; }
+  .heroViews svg { width: 15px; height: 15px; }
+}

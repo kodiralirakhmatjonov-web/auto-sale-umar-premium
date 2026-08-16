@@ -2347,3 +2347,22 @@
     text-align: left;
   }
 }
+
+/* Weekly public interest signal. */
+.viewCount {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-2);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .02em;
+}
+.viewCount svg { width: 15px; height: 15px; stroke-width: 1.8; }
+
+@media (max-width: 720px) {
+  .viewCount { margin-top: 11px; font-size: 11px; }
+  .viewCount svg { width: 14px; height: 14px; }
+}

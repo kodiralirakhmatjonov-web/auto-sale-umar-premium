@@ -935,3 +935,19 @@
   .consultantThinking strong,
   .typingText::after { animation: none !important; }
 }
+
+/* Consultant is intentionally paused while demand is high. */
+.aiButtonGroup { min-width: 0; display: grid; align-content: start; gap: 10px; }
+.aiButtonGroup:last-child button { background: rgba(255, 255, 255, .09); color: #fff; border: 1px solid rgba(255, 255, 255, .12); }
+.aiButtons .aiButtonGroup button:disabled { width: 100%; opacity: .68; cursor: not-allowed; }
+.aiUnavailableNote {
+  margin: 0;
+  padding: 0 10px;
+  color: rgba(255, 255, 255, .48);
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+@media (max-width: 720px) {
+  .aiUnavailableNote { padding: 0 7px; font-size: 11px; }
+}

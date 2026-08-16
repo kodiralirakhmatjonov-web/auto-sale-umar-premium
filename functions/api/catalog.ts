@@ -1,4 +1,5 @@
 import { json, type Env } from "../_lib/auth";
+import { loadWeeklyCarViews } from "../_lib/car-views";
 import {
   CAR_SELECT,
   isCarStatus,
@@ -187,7 +188,7 @@ async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
       return json({ success: false, error: "Автомобиль не найден." }, 404);
     }
 
-    const [variants, performance, links] = await Promise.all([
+    const [variants, performance, links, weeklyViews] = await Promise.all([
       loadPublicVariants(env, [car.id], true),
       env.DB.prepare(`
         SELECT
@@ -203,6 +204,7 @@ async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
         WHERE car_id = ?1
         LIMIT 1
       `).bind(car.id).first<PublicLinkRow>(),
+      loadWeeklyCarViews(env, [car.id]),
     ]);
 
     return json({
@@ -217,6 +219,7 @@ async function publicCarBySlug(env: Env, slug: string): Promise<Response> {
         fuelConsumptionL100: performance?.fuel_consumption_l_100km ?? null,
         electricRangeKm: performance?.electric_range_km ?? null,
         instagramUrl: links?.instagram_url ?? null,
+        weeklyViews: weeklyViews.get(car.id) ?? 0,
         variants: variants.get(car.id) ?? [],
       },
     });
@@ -313,7 +316,11 @@ export async function onRequestGet(context: {
     const prepared = env.DB.prepare(listSql) as unknown as D1ListStatementLike;
     const result = await prepared.bind(...listBindings).all<CarListRow>();
     const rows = Array.isArray(result.results) ? result.results : [];
-    const variants = await loadPublicVariants(env, rows.map((row) => row.id));
+    const carIds = rows.map((row) => row.id);
+    const [variants, weeklyViews] = await Promise.all([
+      loadPublicVariants(env, carIds),
+      loadWeeklyCarViews(env, carIds),
+    ]);
 
     const countPrepared = env.DB.prepare(countSql);
     const countRow = bindings.length > 0
@@ -329,6 +336,7 @@ export async function onRequestGet(context: {
       hasMore: offset + rows.length < total,
       cars: rows.map((row) => ({
         ...toPublicCatalogCar(row),
+        weeklyViews: weeklyViews.get(row.id) ?? 0,
         variants: variants.get(row.id) ?? [],
       })),
     });

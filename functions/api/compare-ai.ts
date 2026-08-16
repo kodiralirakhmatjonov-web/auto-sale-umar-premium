@@ -826,123 +826,18 @@ ${JSON.stringify(cars, null, 2)}
 `;
 }
 
-export async function onRequestGet(context: { request: Request; env: CompareEnv }): Promise<Response> {
-  const { request, env } = context;
-  if (!env.DB || !env.AUTH_PEPPER) return json({ success: false, error: "Сервис сравнения временно недоступен." }, 500);
-
-  try {
-    await ensureTables(env);
-    const identity = await resolveBrowserProfile(request, env);
-    const row = await ensureProfile(env, identity.browserKey);
-    return json({ success: true, quota: quotaPayload(row) }, 200, { "set-cookie": identity.setCookie });
-  } catch (error) {
-    console.error("Compare quota status failed", error);
-    return json({ success: false, error: "Не удалось проверить лимит консультаций." }, 500);
-  }
+export async function onRequestGet(): Promise<Response> {
+  return json({ success: true, available: false, reason: "HIGH_DEMAND" });
 }
 
 export async function onRequestPost(context: { request: Request; env: CompareEnv }): Promise<Response> {
-  const { request, env } = context;
-  if (!env.DB || !env.AUTH_PEPPER) return json({ success: false, error: "Сервис сравнения временно недоступен." }, 500);
+  const { request } = context;
   if (!isSameOriginBrowserRequest(request)) return json({ success: false, error: "Запрос отклонён." }, 403);
-  if (!env.GEMINI_API_KEY) {
-    console.error("Compare consultant provider key is not configured");
-    return json({ success: false, error: "Консультант временно не подключён. Обратитесь к администратору.", code: "CONSULTANT_NOT_CONFIGURED" }, 503);
-  }
-
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json() as Record<string, unknown>;
-  } catch {
-    return json({ success: false, error: "Некорректный запрос." }, 400);
-  }
-
-  const action = body.action === "advice" || body.action === "deep" ? body.action : null;
-  const slugs = normalizeSlugs(body.slugs);
-  const criteria = normalizeCriteria(body.criteria);
-  const note = cleanText(body.note, MAX_NOTE_LENGTH);
-  const budgetRaw = typeof body.budget === "number" ? body.budget : Number(body.budget);
-  const budget = Number.isFinite(budgetRaw) && budgetRaw > 0 && budgetRaw <= 1_000_000_000_000 ? Math.round(budgetRaw) : null;
-  const budgetCurrency = body.budgetCurrency === "UZS" || body.budgetCurrency === "EUR" ? body.budgetCurrency : "USD";
-  const language = body.language === "uz" ? "uz" : "ru";
-
-  if (!action) return json({ success: false, error: "Выберите действие сравнения." }, 400);
-  if (slugs.length < 2 || slugs.length > 3) return json({ success: false, error: "Для сравнения выберите 2 или 3 автомобиля." }, 400);
-  if (action === "advice" && criteria.length === 0 && !note) {
-    return json({ success: false, error: "Укажите, по каким критериям нужен совет." }, 400);
-  }
-
-  let identity: Awaited<ReturnType<typeof resolveBrowserProfile>> | null = null;
-  let reserved = false;
-
-  try {
-    await ensureTables(env);
-    identity = await resolveBrowserProfile(request, env);
-    await ensureProfile(env, identity.browserKey);
-
-    const quotaAfterReserve = await reserveQuota(env, identity.browserKey, action);
-    if (!quotaAfterReserve) {
-      const current = await ensureProfile(env, identity.browserKey);
-      return json({
-        success: false,
-        error: action === "advice"
-          ? "Лимит бесплатных советов для этого браузера исчерпан."
-          : "Лимит подробных сравнений для этого браузера исчерпан.",
-        code: "AI_LIMIT_REACHED",
-        quota: quotaPayload(current),
-      }, 429, { "set-cookie": identity.setCookie });
-    }
-    reserved = true;
-
-    const cars = await loadCars(env, slugs);
-    if (!cars) {
-      await refundQuota(env, identity.browserKey, action);
-      reserved = false;
-      const current = await ensureProfile(env, identity.browserKey);
-      return json({ success: false, error: "Один из автомобилей больше недоступен в публичном каталоге.", quota: quotaPayload(current) }, 404, { "set-cookie": identity.setCookie });
-    }
-
-    const research = action === "deep"
-      ? await runResearch(env, action, cars, criteria, note, budget, budgetCurrency, language)
-      : null;
-    const finalPrompt = buildFinalPrompt(action, cars, criteria, note, budget, budgetCurrency, language, research?.text ?? null);
-    const provider = await runFinalProvider(env, finalPrompt, action);
-
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(provider.text) as Record<string, unknown>;
-    } catch (parseError) {
-      console.error("Compare consultant output JSON parse failed", provider.model, parseError, provider.text.slice(0, 1200));
-      throw new Error("Consultant returned invalid JSON");
-    }
-
-    const privateIdentifiers = Array.from(new Set(cars.flatMap((car) => [...car.vins, ...car.stockNumbers]))).filter((identifier) => identifier.trim().length >= 6);
-    const result = redactPrivateIdentifiers(sanitizeResult(parsed, slugs), privateIdentifiers);
-    const sources = research?.sources ?? [];
-    await logUsage(env, identity.browserKey, action, slugs, true);
-    const currentQuota = await ensureProfile(env, identity.browserKey);
-
-    return json({
-      success: true,
-      action,
-      model: provider.model,
-      result: { ...result, sources },
-      quota: quotaPayload(currentQuota),
-    }, 200, { "set-cookie": identity.setCookie });
-  } catch (error) {
-    console.error("Compare AI failed", error);
-    if (identity && reserved) {
-      await refundQuota(env, identity.browserKey, action!);
-      await logUsage(env, identity.browserKey, action!, slugs, false);
-    }
-    const currentQuota = identity ? await ensureProfile(env, identity.browserKey).catch(() => null) : null;
-    return json({
-      success: false,
-      error: "Консультант не смог завершить запрос. Попробуйте ещё раз — неудачная попытка не списывает лимит.",
-      code: "CONSULTANT_PROVIDER_ERROR",
-      quota: quotaPayload(currentQuota),
-    }, 502, identity ? { "set-cookie": identity.setCookie } : undefined);
-  }
+  return json({
+    success: false,
+    error: "Консультант временно недоступен из-за высокого спроса.",
+    code: "HIGH_DEMAND_PAUSE",
+  }, 503);
 }
 
 export function onRequest(): Response {

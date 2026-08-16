@@ -198,6 +198,8 @@ const COPY = {
     done: "Готово",
     anonymous: "Бесплатные консультации привязаны к этому браузеру автоматически — аккаунт не нужен.",
     consultantUnavailable: "Консультант временно недоступен. Повторите попытку через несколько секунд.",
+    adviceDemandUnavailable: "Получить совет на данный момент недоступно из-за высокого спроса.",
+    deepDemandUnavailable: "Сравнить подробнее на данный момент недоступно из-за высокого спроса обслуживания клиентов.",
     in_showroom: "В шоуруме",
     in_stock: "В наличии",
     in_transit: "В пути",
@@ -281,6 +283,8 @@ const COPY = {
     done: "Tayyor",
     anonymous: "Bepul maslahatlar avtomatik ravishda shu brauzerga bog‘lanadi — akkaunt kerak emas.",
     consultantUnavailable: "Maslahatchi vaqtincha ishlamayapti. Bir necha soniyadan keyin qayta urinib ko‘ring.",
+    adviceDemandUnavailable: "Hozircha maslahat olish yuqori talab sababli vaqtincha mavjud emas.",
+    deepDemandUnavailable: "Hozircha batafsil solishtirish mijozlarga xizmat ko‘rsatishga bo‘lgan yuqori talab sababli vaqtincha mavjud emas.",
     in_showroom: "Shourumda",
     in_stock: "Mavjud",
     in_transit: "Yo‘lda",
@@ -872,14 +876,20 @@ export default function ComparePage() {
             ) : null}
 
             <div className={styles.aiButtons}>
-              <button type="button" onClick={() => void runAi("advice")} disabled={aiAction !== null || selectedCars.length < 2 || quota?.adviceRemaining === 0}>
-                <span><Sparkles />{aiAction === "advice" ? c.aiWorkingAdvice : c.advice}</span>
-                <small>{quota ? `${quota.adviceRemaining} ${c.remaining}` : `4 ${c.free}`}</small>
-              </button>
-              <button type="button" onClick={() => void runAi("deep")} disabled={aiAction !== null || selectedCars.length < 2 || quota?.deepRemaining === 0}>
-                <span><Search />{aiAction === "deep" ? c.aiWorkingDeep : c.deep}</span>
-                <small>{quota ? `${quota.deepRemaining} ${c.remaining}` : `4 ${c.free}`}</small>
-              </button>
+              <div className={styles.aiButtonGroup}>
+                <button type="button" disabled aria-disabled="true">
+                  <span><Sparkles />{c.advice}</span>
+                  <small>{language === "ru" ? "Недоступно" : "Mavjud emas"}</small>
+                </button>
+                <p className={styles.aiUnavailableNote}>{c.adviceDemandUnavailable}</p>
+              </div>
+              <div className={styles.aiButtonGroup}>
+                <button type="button" disabled aria-disabled="true">
+                  <span><Search />{c.deep}</span>
+                  <small>{language === "ru" ? "Недоступно" : "Mavjud emas"}</small>
+                </button>
+                <p className={styles.aiUnavailableNote}>{c.deepDemandUnavailable}</p>
+              </div>
             </div>
           </div>
 

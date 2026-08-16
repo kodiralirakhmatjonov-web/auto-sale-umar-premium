@@ -11,6 +11,7 @@ import {
   Menu,
   MessageCircle,
   Monitor,
+  Eye,
   Moon,
   Phone,
   Search,
@@ -65,6 +66,7 @@ interface CatalogCar {
   shortDescriptionRu: string;
   shortDescriptionUz: string;
   coverUrl: string | null;
+  weeklyViews: number;
   variants?: CatalogVariant[];
 }
 
@@ -966,6 +968,7 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
           </div>
         ) : null}
 
+        <div className={styles.viewCount}><Eye aria-hidden="true" /><span>{language === "ru" ? `За неделю · ${car.weeklyViews ?? 0}` : `Haftada · ${car.weeklyViews ?? 0}`}</span></div>
         <div className={styles.carPrice}><span>{language === "ru" ? "Цена" : "Narx"}</span><b>{formatPrice(car, language)}</b></div>
       </div>
     </article>
