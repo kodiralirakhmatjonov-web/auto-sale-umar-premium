@@ -53,54 +53,52 @@ interface ApiResponse {
 const COPY = {
   ru: {
     eyebrow: 'AUTO SALE UMAR · RAMADAN GIFT',
-    badge: 'Подарок клиентам Auto Sale Umar',
+    badge: 'Программа благодарности клиентам',
     back: 'Главная страница',
     bookVisit: 'Забронировать визит',
-    becomeParticipant: 'Стать участником',
+    becomeParticipant: 'Условия программы',
     orderCar: 'Заказать автомобиль',
     instagram: 'Instagram',
-    storyTitle: 'Подарок, в котором чувствуется уважение к клиенту.',
-    storyText: 'Ramadan Gift — это не лотерейный баннер, а премиальная программа благодарности клиентам Auto Sale Umar. Она подчёркивает отношение к тем, кто доверяет нам свой выбор.',
+    storyTitle: 'Ramadan Gift — благодарность, оформленная как отдельная программа.',
+    storyText: 'Ежегодная премиальная программа благодарности клиентам Auto Sale Umar. Участие определяется официальными условиями, а подарочный автомобиль представлен на этой странице.',
     rulesTitle: 'Как работает Ramadan Gift',
-    rule1: 'Каждый клиент, который в течение года приобрёл автомобиль у Auto Sale Umar на сумму от 88 000 USD, автоматически участвует в программе.',
-    rule2: 'В Рамадан один из клиентов получает подарочный Mercedes-Benz E-Class, оформленный как главная награда программы благодарности.',
-    rule3: 'На странице показан конкретный автомобиль-подарок, его комплектация, ориентир по рыночной цене и актуальная визуальная подача.',
+    rule1: 'Клиенты, выполнившие условия покупки в установленный период, участвуют в программе согласно официальным условиям Auto Sale Umar.',
+    rule2: 'В Рамадан один участник получает подарочный автомобиль, представленный на этой странице.',
+    rule3: 'Порядок участия и итог программы определяются официальными условиями Ramadan Gift.',
+    conditionLabel: 'Текущий порог участия',
     highlightsTitle: 'Детали подарочного автомобиля',
-    marketPrice: 'Рыночная цена',
-    minPurchase: 'Минимальная сумма покупки',
     trim: 'Комплектация',
     exterior: 'Цвет кузова',
     interior: 'Цвет салона',
     galleryTitle: 'Галерея автомобиля',
-    eligibilityTitle: 'Для тех, кто выбирает Auto Sale Umar всерьёз',
-    eligibilityText: 'Программа задумана как знак уважения к клиентам, которые в течение года приняли серьёзное решение и доверили нам покупку автомобиля. Один автомобиль. Один клиент. Наша благодарность за доверие.',
+    eligibilityTitle: 'Программа Auto Sale Umar',
+    eligibilityText: 'Один автомобиль. Один клиент. Благодарность за доверие. Актуальные условия участия и данные подарочного автомобиля публикуются на этой странице.',
     updated: 'Последнее обновление',
     fallbackDate: '—',
     noGift: 'Сейчас страница Ramadan Gift временно недоступна.',
   },
   uz: {
     eyebrow: 'AUTO SALE UMAR · RAMADAN GIFT',
-    badge: 'Mijozlarga yillik minnatdorchilik dasturi',
+    badge: 'Mijozlar uchun minnatdorchilik dasturi',
     back: 'Bosh sahifa',
     bookVisit: 'Tashrifni band qilish',
-    becomeParticipant: 'Ishtirokchi bo‘lish',
+    becomeParticipant: 'Dastur shartlari',
     orderCar: 'Avtomobil buyurtma qilish',
     instagram: 'Instagram',
-    storyTitle: 'Mijozga hurmat seziladigan sovg‘a.',
-    storyText: 'Ramadan Gift — bu oddiy lotereya banneri emas, balki Auto Sale Umar mijozlariga mo‘ljallangan premium minnatdorchilik dasturi. U bizga ishonib tanlov qilgan mijozlarga bo‘lgan munosabatni namoyon qiladi.',
+    storyTitle: 'Ramadan Gift — alohida dastur shaklidagi minnatdorchilik.',
+    storyText: 'Auto Sale Umar mijozlari uchun yillik premium minnatdorchilik dasturi. Ishtirok rasmiy shartlar asosida belgilanadi, sovg‘a avtomobil esa shu sahifada taqdim etiladi.',
     rulesTitle: 'Ramadan Gift qanday ishlaydi',
-    rule1: 'Bir yil davomida Auto Sale Umar’dan 88 000 USD dan boshlab avtomobil xarid qilgan har bir mijoz avtomatik ravishda dastur ishtirokchisiga aylanadi.',
-    rule2: 'Ramazon oyida mijozlardan biri dastur bosh sovg‘asi bo‘lgan Mercedes-Benz E-Class egasiga aylanadi.',
-    rule3: 'Sahifada aynan sovg‘a avtomobil, uning komplektatsiyasi, taxminiy bozor narxi va premium vizual taqdimoti ko‘rsatiladi.',
+    rule1: 'Belgilangan davrda xarid shartlarini bajargan mijozlar Auto Sale Umar rasmiy shartlariga muvofiq dasturda ishtirok etadi.',
+    rule2: 'Ramazon oyida bitta ishtirokchi shu sahifada taqdim etilgan sovg‘a avtomobil egasiga aylanadi.',
+    rule3: 'Ishtirok tartibi va dastur yakuni Ramadan Gift rasmiy shartlari bilan belgilanadi.',
+    conditionLabel: 'Amaldagi ishtirok chegarasi',
     highlightsTitle: 'Sovg‘a avtomobil tafsilotlari',
-    marketPrice: 'Bozor narxi',
-    minPurchase: 'Minimal xarid summasi',
     trim: 'Komplektatsiya',
     exterior: 'Kuzov rangi',
     interior: 'Salon rangi',
     galleryTitle: 'Avtomobil galereyasi',
-    eligibilityTitle: 'Auto Sale Umar’ni jiddiy tanlaganlar uchun',
-    eligibilityText: 'Dastur yil davomida muhim qaror qabul qilgan va avtomobil xaridini bizga ishonib topshirgan mijozlarga nisbatan hurmat ifodasi sifatida yaratilgan. Bitta avtomobil. Bitta mijoz. Ishonchingiz uchun minnatdorchiligimiz.',
+    eligibilityTitle: 'Auto Sale Umar dasturi',
+    eligibilityText: 'Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik. Ishtirokning amaldagi shartlari va sovg‘a avtomobil ma’lumotlari shu sahifada e’lon qilinadi.',
     updated: 'So‘nggi yangilanish',
     fallbackDate: '—',
     noGift: 'Hozircha Ramadan Gift sahifasi vaqtincha mavjud emas.',
@@ -229,16 +227,7 @@ export default function RamadanGiftPage() {
                   <a className={styles.secondaryButton} href={gift.instagramUrl || 'https://www.instagram.com/auto_sale_umar/'} target="_blank" rel="noreferrer"><Instagram />{c.instagram}</a>
                 </div>
 
-                <div className={styles.statsGrid}>
-                  <article>
-                    <small>{c.marketPrice}</small>
-                    <strong>{formatMoney(gift.marketPrice, gift.currency, language === 'ru' ? 'ru-RU' : 'uz-UZ')}</strong>
-                  </article>
-                  <article>
-                    <small>{c.minPurchase}</small>
-                    <strong>{formatMoney(gift.minPurchaseAmount, gift.currency, language === 'ru' ? 'ru-RU' : 'uz-UZ')}</strong>
-                  </article>
-                </div>
+
               </section>
             </div>
 
@@ -256,6 +245,10 @@ export default function RamadanGiftPage() {
                   <li>{c.rule2}</li>
                   <li>{c.rule3}</li>
                 </ol>
+                <div className={styles.conditionLine}>
+                  <span>{c.conditionLabel}</span>
+                  <strong>{formatMoney(gift.minPurchaseAmount, gift.currency, language === 'ru' ? 'ru-RU' : 'uz-UZ')}</strong>
+                </div>
               </article>
             </section>
 

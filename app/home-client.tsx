@@ -231,9 +231,9 @@ const COPY = {
     transitKicker: "В ПУТИ",
     transitTitle: "Следующее поступление.",
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
-    ramadanGiftKicker: "RAMADAN GIFT",
-    ramadanGiftTitle: "Премиальный подарок как знак уважения.",
-    ramadanGiftText: "Ramadan Gift от Auto Sale Umar — автомобиль в знак благодарности нашим клиентам. Один автомобиль. Один клиент. Благодарность за доверие.",
+    ramadanGiftKicker: "AUTO SALE UMAR · RAMADAN GIFT",
+    ramadanGiftTitle: "Auto Sale Umar Ramadan Gift",
+    ramadanGiftText: "Премиальная программа благодарности клиентам Auto Sale Umar. Один автомобиль. Один клиент. Благодарность за доверие.",
     ramadanGiftAction: "Открыть страницу",
     emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
@@ -287,9 +287,9 @@ const COPY = {
     telegram: "Telegram",
     whatsapp: "WhatsApp",
     call: "Позвонить",
-    itTeamTitle: "AutoSale Umar IT Team",
+    itTeamTitle: "Auto Sale Umar IT Team",
     itTeamFounder: "Основатель — Abdulaziz.developer",
-    itTeamSummary: "Разработка, дизайн и цифровые решения для Auto Sale Umar.",
+    itTeamSummary: "Разработка, дизайн и цифровые системы Auto Sale Umar.",
     itTeamAction: "Открыть страницу",
     footer: "Auto Sale Umar · Премиальный автомобильный шоурум · Ташкент",
     priceRequest: "Цена по запросу",
@@ -330,9 +330,9 @@ const COPY = {
     transitKicker: "YO‘LDA",
     transitTitle: "Keyingi kelish.",
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
-    ramadanGiftKicker: "RAMADAN GIFT",
-    ramadanGiftTitle: "Hurmat belgisi bo‘lgan premium sovg‘a.",
-    ramadanGiftText: "Auto Sale Umardan Ramadan Gift — mijozlarimizga minnatdorchilik ramzi bo‘lgan avtomobil. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
+    ramadanGiftKicker: "AUTO SALE UMAR · RAMADAN GIFT",
+    ramadanGiftTitle: "Auto Sale Umar Ramadan Gift",
+    ramadanGiftText: "Auto Sale Umar mijozlari uchun premium minnatdorchilik dasturi. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
     ramadanGiftAction: "Sahifani ochish",
     emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
@@ -386,9 +386,9 @@ const COPY = {
     telegram: "Telegram",
     whatsapp: "WhatsApp",
     call: "Qo‘ng‘iroq",
-    itTeamTitle: "AutoSale Umar IT Team",
+    itTeamTitle: "Auto Sale Umar IT Team",
     itTeamFounder: "Asoschi — Abdulaziz.developer",
-    itTeamSummary: "Auto Sale Umar uchun dasturlash, dizayn va raqamli yechimlar.",
+    itTeamSummary: "Auto Sale Umar uchun dasturlash, dizayn va raqamli tizimlar.",
     itTeamAction: "Sahifani ochish",
     footer: "Auto Sale Umar · Premium avtomobil shourumi · Toshkent",
     priceRequest: "Narx so‘rov bo‘yicha",
@@ -864,19 +864,26 @@ export default function HomeClient() {
         <small>Auto Sale Umar 2026 · All rights reserved.</small>
       </footer>
 
-      <section className={`${styles.section} ${styles.developerMiniSection}`} aria-label="AutoSale Umar IT Team">
+      <section className={`${styles.section} ${styles.developerMiniSection}`} aria-label="Auto Sale Umar IT Team">
         <a className={styles.developerMiniCard} href="/it-team/">
-          <div className={styles.developerMiniAvatarWrap}>
-            <img src="/homepage/abdulaziz-developer.jpg" alt="Abdulaziz.developer" className={styles.developerMiniAvatar} loading="lazy" />
+          <div className={styles.developerMiniProfile}>
+            <div className={styles.developerMiniAvatarWrap}>
+              <img src="/homepage/abdulaziz-developer.jpg" alt="Abdulaziz.developer" className={styles.developerMiniAvatar} loading="lazy" />
+            </div>
+            <div className={styles.developerMiniCopy}>
+              <span>IT TEAM</span>
+              <h3>{c.itTeamTitle}</h3>
+              <p>{c.itTeamFounder}</p>
+            </div>
+            <div className={styles.developerMiniArrow} aria-hidden="true">
+              <ChevronRight />
+            </div>
           </div>
-          <div className={styles.developerMiniCopy}>
-            <span>IT TEAM</span>
-            <h3>{c.itTeamTitle}</h3>
-            <p>{c.itTeamFounder}</p>
+          <div className={styles.developerMiniDivider} />
+          <div className={styles.developerMiniDetail}>
+            <span>DIGITAL EXPERIENCE</span>
             <small>{c.itTeamSummary}</small>
-          </div>
-          <div className={styles.developerMiniArrow}>
-            <ChevronRight />
+            <ChevronRight aria-hidden="true" />
           </div>
         </a>
       </section>
@@ -896,11 +903,6 @@ function RamadanGiftSection({ gift, language }: { gift: RamadanGiftPayload; lang
           <p className={styles.ramadanFeatureEyebrow}>{c.ramadanGiftKicker}</p>
           <h2>{c.ramadanGiftTitle}</h2>
           <p className={styles.ramadanFeatureText}>{c.ramadanGiftText}</p>
-
-          <div className={styles.ramadanFeatureIdentity}>
-            <strong>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</strong>
-            <span>{language === "ru" ? gift.shortPhraseRu : gift.shortPhraseUz}</span>
-          </div>
 
           <div className={styles.ramadanFeatureFooter}>
             <span className={styles.ramadanFeatureModel}>{gift.subtitleRu}</span>
