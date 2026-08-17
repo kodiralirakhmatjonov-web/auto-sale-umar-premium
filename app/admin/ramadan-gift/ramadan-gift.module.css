@@ -1,0 +1,177 @@
+.page{
+  min-height:100dvh;
+  background:linear-gradient(180deg,#f4f2ee 0%,#ece7df 100%);
+  color:#111214;
+}
+.page[data-theme="dark"]{
+  background:linear-gradient(180deg,#0e0e10 0%,#141313 100%);
+  color:#f5f3ef;
+}
+.shell{
+  width:min(1180px,calc(100% - 28px));
+  margin:0 auto;
+  padding:154px 0 72px;
+}
+.heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:24px;
+}
+.kicker{
+  margin:0 0 8px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.22em;
+  color:#7b6a57;
+}
+.heading h1{
+  margin:0;
+  font-size:42px;
+  line-height:1;
+  letter-spacing:-.05em;
+}
+.heading p{
+  max-width:780px;
+  margin:12px 0 0;
+  color:rgba(20,18,16,.68);
+  font-size:15px;
+  line-height:1.6;
+}
+.page[data-theme="dark"] .heading p{color:rgba(244,239,232,.72)}
+.topActions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.ghostButton,.saveButton,.previewLink,.uploadActions button,.deleteButton{
+  min-height:46px;
+  padding:0 18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border-radius:999px;
+  border:1px solid rgba(130,106,78,.22);
+  text-decoration:none;
+  font-size:14px;
+  font-weight:700;
+  transition:transform .18s ease,opacity .18s ease;
+}
+.ghostButton{background:rgba(255,255,255,.74);color:#231c16}
+.saveButton,.previewLink,.uploadActions button{
+  background:linear-gradient(135deg,#8f6a43 0%,#c49a69 100%);
+  color:#fff7ef;
+  box-shadow:0 14px 32px rgba(143,106,67,.22);
+}
+.deleteButton{background:#fff;color:#1b1917}
+.ghostButton:active,.saveButton:active,.previewLink:active,.uploadActions button:active,.deleteButton:active{transform:scale(.98)}
+.saveButton:disabled,.uploadActions button:disabled{opacity:.6;cursor:not-allowed}
+.error,.loadingCard{
+  margin-bottom:20px;
+  padding:16px 18px;
+  border-radius:22px;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(130,106,78,.18);
+}
+.error{color:#9c2f1d}
+.loadingCard{display:flex;align-items:center;gap:10px}
+.grid{
+  display:grid;
+  grid-template-columns:minmax(320px,380px) minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.previewPanel,.formPanel{
+  display:grid;
+  gap:18px;
+}
+.previewHero,.cardSection,.previewMeta{
+  border:1px solid rgba(130,106,78,.20);
+  background:rgba(255,255,255,.76);
+  box-shadow:0 24px 52px rgba(22,18,15,.08);
+}
+.page[data-theme="dark"] .previewHero,
+.page[data-theme="dark"] .cardSection,
+.page[data-theme="dark"] .previewMeta,
+.page[data-theme="dark"] .error,
+.page[data-theme="dark"] .loadingCard{
+  background:rgba(24,22,22,.88);
+  border-color:rgba(199,158,116,.18);
+  box-shadow:0 24px 58px rgba(0,0,0,.28);
+}
+.previewHero{
+  position:relative;
+  min-height:500px;
+  overflow:hidden;
+  border-radius:34px;
+}
+.previewHero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.previewOverlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,12,10,.18) 0%,rgba(14,12,11,.88) 78%)}
+.previewCopy{position:absolute;left:24px;right:24px;bottom:24px;display:grid;gap:8px;color:#fffdf8}
+.previewCopy span{font-size:11px;font-weight:800;letter-spacing:.18em;color:#d6b891}
+.previewCopy strong{font-size:14px;line-height:1.35}
+.previewCopy h2{margin:0;font-size:32px;line-height:1.02;letter-spacing:-.04em}
+.previewCopy p{margin:0;color:rgba(255,250,242,.82);font-size:14px;line-height:1.55}
+.previewMeta{
+  padding:18px;
+  border-radius:28px;
+  display:grid;
+  gap:16px;
+}
+.toggleRow{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:14px;font-weight:700}
+.toggleRow input{width:22px;height:22px;accent-color:#a77a4b}
+.priceRow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.priceRow div{padding:14px;border-radius:22px;background:rgba(165,124,78,.10)}
+.priceRow small{display:block;margin-bottom:8px;color:#8e775c;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.priceRow strong{font-size:17px;letter-spacing:-.03em}
+.cardSection{padding:20px;border-radius:30px}
+.cardSection h3{margin:0 0 16px;font-size:20px;letter-spacing:-.03em}
+.formGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.formGrid label,.full{display:grid;gap:7px}
+.formGrid label span{font-size:12px;font-weight:700;color:#7c6b58}
+.formGrid input,.formGrid textarea,.formGrid select{
+  width:100%;
+  border:1px solid rgba(130,106,78,.20);
+  border-radius:18px;
+  background:rgba(255,255,255,.88);
+  color:inherit;
+  font:inherit;
+  padding:13px 14px;
+  outline:none;
+}
+.page[data-theme="dark"] .formGrid input,
+.page[data-theme="dark"] .formGrid textarea,
+.page[data-theme="dark"] .formGrid select{background:rgba(34,31,30,.92);border-color:rgba(199,158,116,.18)}
+.formGrid textarea{resize:vertical;min-height:140px}
+.full{grid-column:1 / -1}
+.sectionHeadRow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.uploadActions{display:flex;gap:10px;flex-wrap:wrap}
+.smallNote{margin:0;color:#8c755a;font-size:13px}
+.mediaGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mediaCard{padding:10px;border-radius:24px;background:rgba(165,124,78,.08);display:grid;gap:10px}
+.mediaCard img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:18px}
+.mediaInfo{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:700;color:#6d5942}
+.emptyMedia{padding:18px;border-radius:22px;background:rgba(165,124,78,.08);color:#6e5b47;line-height:1.6}
+.previewEmpty{position:absolute;inset:0;display:grid;place-items:center;color:#d5bea4;background:linear-gradient(180deg,#211812 0%,#0f0c0a 100%)}
+.previewEmpty svg{width:52px;height:52px}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width: 980px){
+  .shell{padding-top:148px}
+  .grid{grid-template-columns:1fr}
+  .previewHero{min-height:420px}
+}
+@media (max-width: 720px){
+  .shell{width:min(100% - 18px,1000px);padding-bottom:48px}
+  .heading{flex-direction:column}
+  .heading h1{font-size:34px}
+  .topActions{width:100%;justify-content:stretch}
+  .topActions > *{flex:1 1 auto}
+  .formGrid{grid-template-columns:1fr}
+  .mediaGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .previewCopy h2{font-size:28px}
+}
+@media (max-width: 460px){
+  .mediaGrid{grid-template-columns:1fr}
+  .cardSection,.previewMeta{padding:16px}
+  .previewHero{border-radius:28px}
+}

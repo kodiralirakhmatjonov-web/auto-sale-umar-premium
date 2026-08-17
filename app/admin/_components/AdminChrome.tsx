@@ -7,7 +7,7 @@ import styles from "./admin-chrome.module.css";
 export type AdminLanguage = "ru" | "uz";
 export type AdminTheme = "light" | "dark";
 export type AdminRole = "super_admin" | "admin" | "sales_manager" | null;
-export type AdminSection = "staff" | "cars" | "brands" | "home" | "visits" | "requests";
+export type AdminSection = "staff" | "cars" | "brands" | "home" | "visits" | "requests" | "ramadan";
 
 interface AdminChromeProps {
   current: AdminSection;
@@ -27,6 +27,7 @@ const LABELS = {
     home: "Главная",
     visits: "Визиты",
     requests: "Запросы",
+    ramadan: "Ramadan Gift",
     settings: "Настройки",
     appearance: "Оформление",
     language: "Язык",
@@ -43,6 +44,7 @@ const LABELS = {
     home: "Bosh sahifa",
     visits: "Tashriflar",
     requests: "So‘rovlar",
+    ramadan: "Ramadan Gift",
     settings: "Sozlamalar",
     appearance: "Ko‘rinish",
     language: "Til",
@@ -61,6 +63,7 @@ const NAV: Array<{ id: AdminSection; href: string }> = [
   { id: "home", href: "/admin/home/" },
   { id: "visits", href: "/admin/visits/" },
   { id: "requests", href: "/admin/requests/" },
+  { id: "ramadan", href: "/admin/ramadan-gift/" },
 ];
 
 export default function AdminChrome({

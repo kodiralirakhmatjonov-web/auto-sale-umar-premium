@@ -1,0 +1,147 @@
+.page{
+  min-height:100dvh;
+  color:#161311;
+  background:
+    radial-gradient(circle at top left, rgba(189,139,82,.22), transparent 34%),
+    linear-gradient(180deg,#f4efe8 0%,#ece4db 100%);
+}
+.page[data-theme="dark"]{
+  color:#f6f0ea;
+  background:
+    radial-gradient(circle at top left, rgba(189,139,82,.16), transparent 34%),
+    linear-gradient(180deg,#0d0c0b 0%,#171311 100%);
+}
+.shell{
+  width:min(1180px,calc(100% - 24px));
+  margin:0 auto;
+  padding:118px 0 76px;
+}
+.loadingCard,.emptyCard{
+  padding:28px;
+  border-radius:28px;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(170,132,88,.18);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 24px 56px rgba(23,18,13,.08);
+}
+.page[data-theme="dark"] .loadingCard,
+.page[data-theme="dark"] .emptyCard{background:rgba(22,18,16,.9);border-color:rgba(199,158,116,.16);box-shadow:0 24px 58px rgba(0,0,0,.28)}
+.heroGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(360px,480px);
+  gap:18px;
+  align-items:stretch;
+}
+.heroVisual,.heroCard,.storyCard,.rulesCard,.detailCard,.gallerySection{
+  border:1px solid rgba(170,132,88,.18);
+  background:rgba(255,255,255,.78);
+  box-shadow:0 26px 58px rgba(20,16,12,.08);
+}
+.page[data-theme="dark"] .heroVisual,
+.page[data-theme="dark"] .heroCard,
+.page[data-theme="dark"] .storyCard,
+.page[data-theme="dark"] .rulesCard,
+.page[data-theme="dark"] .detailCard,
+.page[data-theme="dark"] .gallerySection{
+  background:rgba(22,18,16,.88);
+  border-color:rgba(199,158,116,.18);
+  box-shadow:0 26px 60px rgba(0,0,0,.28);
+}
+.heroVisual{
+  position:relative;
+  min-height:620px;
+  overflow:hidden;
+  border-radius:38px;
+}
+.heroVisual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.heroShade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,.82) 88%)}
+.heroCaption{position:absolute;left:26px;right:26px;bottom:24px;display:grid;gap:8px;color:#fffdf8}
+.heroCaption span{font-size:11px;font-weight:800;letter-spacing:.18em;color:#d4b28b;text-transform:uppercase}
+.heroCaption strong{font-size:30px;line-height:1.05;letter-spacing:-.04em}
+.heroCard{
+  padding:28px;
+  border-radius:38px;
+  display:grid;
+  align-content:start;
+  gap:18px;
+}
+.eyebrow{
+  margin:0;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.24em;
+  color:#9a7957;
+}
+.heroCard h1{margin:0;font-size:48px;line-height:.94;letter-spacing:-.06em}
+.lead{margin:0;font-size:19px;line-height:1.45;color:#513b25;font-weight:700}
+.page[data-theme="dark"] .lead{color:#e9c79c}
+.story{margin:0;font-size:15px;line-height:1.8;color:rgba(21,17,15,.72)}
+.page[data-theme="dark"] .story{color:rgba(246,241,236,.76)}
+.heroActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.primaryButton,.secondaryButton,.inlineActions a{
+  min-height:48px;
+  padding:0 18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:700;
+  text-decoration:none;
+  transition:transform .18s ease;
+}
+.primaryButton{background:linear-gradient(135deg,#8d6740 0%,#c39868 100%);color:#fff7ef;box-shadow:0 14px 32px rgba(143,106,67,.20)}
+.secondaryButton,.inlineActions a{background:rgba(165,124,78,.10);border:1px solid rgba(170,132,88,.16);color:inherit}
+.primaryButton:active,.secondaryButton:active,.inlineActions a:active,.thumbButton:active{transform:scale(.985)}
+.statsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.statsGrid article{padding:16px;border-radius:24px;background:rgba(165,124,78,.10)}
+.statsGrid small{display:block;margin-bottom:8px;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#907354}
+.statsGrid strong{font-size:20px;line-height:1.2;letter-spacing:-.04em}
+.storyGrid,.detailsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+.storyCard,.rulesCard,.detailCard,.gallerySection{padding:24px;border-radius:34px}
+.cardHead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.cardHead svg{width:20px;height:20px;color:#ab7f52}
+.cardHead h2{margin:0;font-size:24px;letter-spacing:-.04em}
+.storyCard p,.detailText{margin:0;font-size:15px;line-height:1.8;color:rgba(20,16,13,.74)}
+.page[data-theme="dark"] .storyCard p,
+.page[data-theme="dark"] .detailText{color:rgba(247,241,236,.78)}
+.notePill{margin-top:18px;padding:15px 17px;border-radius:22px;background:rgba(165,124,78,.10);display:flex;gap:10px;align-items:flex-start;line-height:1.7;color:#684e32}
+.page[data-theme="dark"] .notePill{color:#e6c79f}
+.rulesCard ol{margin:0;padding-left:22px;display:grid;gap:12px;line-height:1.7}
+.detailRows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.detailRows div{padding:15px;border-radius:22px;background:rgba(165,124,78,.10);display:grid;gap:7px}
+.detailRows span{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#917455}
+.detailRows strong{font-size:17px;line-height:1.4}
+.inlineActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.gallerySection{margin-top:18px}
+.galleryHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.galleryHead h2{margin:0;font-size:28px;letter-spacing:-.05em}
+.galleryHead p{margin:0;color:#806850}
+.thumbRail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.thumbButton{padding:0;border:0;background:transparent;border-radius:22px;overflow:hidden;box-shadow:0 0 0 1px rgba(170,132,88,.14) inset}
+.thumbButton[data-active="true"]{box-shadow:0 0 0 2px rgba(172,126,74,.9) inset,0 12px 22px rgba(172,126,74,.18)}
+.thumbButton img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-width: 1024px){
+  .heroGrid{grid-template-columns:1fr}
+  .heroVisual{min-height:520px}
+}
+@media (max-width: 760px){
+  .shell{width:min(100% - 16px,1000px);padding-bottom:42px}
+  .heroCard{padding:22px;border-radius:30px}
+  .heroVisual{min-height:440px;border-radius:30px}
+  .heroCard h1{font-size:38px}
+  .heroActions,.storyGrid,.detailsGrid,.detailRows,.thumbRail{grid-template-columns:1fr}
+  .statsGrid{grid-template-columns:1fr 1fr}
+  .storyCard,.rulesCard,.detailCard,.gallerySection{padding:20px;border-radius:28px}
+}
+@media (max-width: 520px){
+  .heroActions,.statsGrid,.detailRows{grid-template-columns:1fr}
+  .heroCaption strong{font-size:24px}
+  .galleryHead h2{font-size:24px}
+}

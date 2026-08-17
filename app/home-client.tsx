@@ -75,6 +75,45 @@ interface CatalogResponse {
   cars?: CatalogCar[];
 }
 
+interface RamadanGiftMedia {
+  id: number;
+  publicUrl: string;
+  photoGroup: "exterior" | "interior";
+  sortOrder: number;
+  isCover: boolean;
+}
+
+interface RamadanGiftPayload {
+  id: number | null;
+  slug: string;
+  isActive: boolean;
+  titleRu: string;
+  titleUz: string;
+  subtitleRu: string;
+  subtitleUz: string;
+  shortPhraseRu: string;
+  shortPhraseUz: string;
+  descriptionRu: string;
+  descriptionUz: string;
+  brand: string;
+  model: string;
+  year: number | null;
+  trim: string | null;
+  exteriorColor: string | null;
+  interiorColor: string | null;
+  minPurchaseAmount: number;
+  marketPrice: number | null;
+  currency: "USD" | "UZS" | "EUR";
+  instagramUrl: string | null;
+  orderHref: string | null;
+  media: RamadanGiftMedia[];
+}
+
+interface RamadanGiftResponse {
+  success?: boolean;
+  gift?: RamadanGiftPayload;
+}
+
 interface HomeMediaItem {
   key: string;
   url: string;
@@ -192,6 +231,10 @@ const COPY = {
     transitKicker: "В ПУТИ",
     transitTitle: "Следующее поступление.",
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
+    ramadanGiftKicker: "RAMADAN GIFT",
+    ramadanGiftTitle: "Премиальный подарок как знак уважения.",
+    ramadanGiftText: "Ежегодная программа благодарности клиентам Auto Sale Umar. Один автомобиль. Один клиент. Наша благодарность за доверие.",
+    ramadanGiftAction: "Открыть страницу",
     emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
     emptyTransit: "Сейчас опубликованных автомобилей в пути нет.",
@@ -287,6 +330,10 @@ const COPY = {
     transitKicker: "YO‘LDA",
     transitTitle: "Keyingi kelish.",
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
+    ramadanGiftKicker: "RAMADAN GIFT",
+    ramadanGiftTitle: "Hurmat belgisi bo‘lgan premium sovg‘a.",
+    ramadanGiftText: "Auto Sale Umar mijozlari uchun yillik minnatdorchilik dasturi. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
+    ramadanGiftAction: "Sahifani ochish",
     emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
     emptyTransit: "Hozir ommaviy katalogda yo‘ldagi avtomobil yo‘q.",
@@ -391,6 +438,7 @@ export default function HomeClient() {
   const [muted, setMuted] = useState(true);
   const [cars, setCars] = useState<CatalogCar[]>([]);
   const [videos, setVideos] = useState<HomeMediaItem[]>([]);
+  const [ramadanGift, setRamadanGift] = useState<RamadanGiftPayload | null>(null);
   const [brand, setBrand] = useState<string>("all");
   const [heroIndex, setHeroIndex] = useState(0);
   const heroRailRef = useRef<HTMLDivElement | null>(null);
@@ -454,10 +502,14 @@ export default function HomeClient() {
       fetch("/api/home-media", { cache: "no-store", headers: { Accept: "application/json" } })
         .then((response) => response.json() as Promise<HomeMediaResponse>)
         .catch(() => null),
-    ]).then(([catalog, media]) => {
+      fetch("/api/ramadan-gift", { cache: "no-store", headers: { Accept: "application/json" } })
+        .then((response) => response.json() as Promise<RamadanGiftResponse>)
+        .catch(() => null),
+    ]).then(([catalog, media, ramadan]) => {
       if (cancelled) return;
       if (catalog?.success && Array.isArray(catalog.cars)) setCars(catalog.cars);
       if (media?.success && Array.isArray(media.videos)) setVideos(media.videos);
+      if (ramadan?.success && ramadan.gift) setRamadanGift(ramadan.gift);
     });
     return () => { cancelled = true; };
   }, []);
@@ -661,6 +713,7 @@ export default function HomeClient() {
 
       <InventorySection id="showroom-cars" kicker={c.showroomCarsKicker} title={c.showroomCarsTitle} text={c.showroomCarsText} empty={c.emptyShowroom} cars={showroomCars} language={language} requestBrand={brand} catalogStatus="in_showroom" />
       <InventorySection id="stock" kicker={c.stockKicker} title={c.stockTitle} text={c.stockText} empty={c.emptyStock} cars={stockCars} language={language} requestBrand={brand} catalogStatus="available" />
+      {ramadanGift?.isActive ? <RamadanGiftSection gift={ramadanGift} language={language} /> : null}
       <InventorySection id="transit" kicker={c.transitKicker} title={c.transitTitle} text={c.transitText} empty={c.emptyTransit} cars={transitCars} language={language} requestBrand={brand} catalogStatus="in_transit" />
 
       <section className={`${styles.section} ${styles.comparePromoSection}`} id="compare">
@@ -828,6 +881,44 @@ export default function HomeClient() {
         </a>
       </section>
     </main>
+  );
+}
+
+function RamadanGiftSection({ gift, language }: { gift: RamadanGiftPayload; language: Language }) {
+  const c = COPY[language];
+  const cover = gift.media.find((item) => item.isCover) ?? gift.media[0] ?? null;
+  const locale = language === "ru" ? "ru-RU" : "uz-UZ";
+  const marketPrice = gift.marketPrice
+    ? new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(gift.marketPrice)
+    : null;
+  const minPurchase = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(gift.minPurchaseAmount);
+
+  return (
+    <section className={`${styles.section} ${styles.ramadanSection}`} id="ramadan-gift">
+      <a className={styles.ramadanCard} href="/ramadan-gift/">
+        <div className={styles.ramadanMedia}>
+          {cover ? <img src={cover.publicUrl} alt={language === "ru" ? gift.subtitleRu : gift.subtitleUz} loading="lazy" /> : null}
+          <div className={styles.ramadanMediaShade} />
+          <span className={styles.ramadanBadge}>{c.ramadanGiftKicker}</span>
+        </div>
+        <div className={styles.ramadanCopy}>
+          <div className={styles.ramadanHeading}>
+            <p className={styles.kicker}>{c.ramadanGiftKicker}</p>
+            <h2>{c.ramadanGiftTitle}</h2>
+            <p>{c.ramadanGiftText}</p>
+          </div>
+          <div className={styles.ramadanIdentity}>
+            <strong>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</strong>
+            <span>{language === "ru" ? gift.shortPhraseRu : gift.shortPhraseUz}</span>
+          </div>
+          <div className={styles.ramadanStats}>
+            <div><small>{language === "ru" ? "Рыночная цена" : "Bozor narxi"}</small><b>{marketPrice ? `${marketPrice} ${gift.currency === "USD" ? "$" : gift.currency === "EUR" ? "€" : "сум"}` : "—"}</b></div>
+            <div><small>{language === "ru" ? "Минимальная покупка" : "Minimal xarid"}</small><b>{`${minPurchase} ${gift.currency === "USD" ? "$" : gift.currency === "EUR" ? "€" : "сум"}`}</b></div>
+          </div>
+          <span className={styles.ramadanAction}>{c.ramadanGiftAction}<ChevronRight /></span>
+        </div>
+      </a>
+    </section>
   );
 }
 
