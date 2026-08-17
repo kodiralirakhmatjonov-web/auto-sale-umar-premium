@@ -233,7 +233,7 @@ const COPY = {
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
     ramadanGiftKicker: "RAMADAN GIFT",
     ramadanGiftTitle: "Премиальный подарок как знак уважения.",
-    ramadanGiftText: "Ежегодная программа благодарности клиентам Auto Sale Umar. Один автомобиль. Один клиент. Наша благодарность за доверие.",
+    ramadanGiftText: "Ramadan Gift от Auto Sale Umar — автомобиль в знак благодарности нашим клиентам. Один автомобиль. Один клиент. Благодарность за доверие.",
     ramadanGiftAction: "Открыть страницу",
     emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
@@ -332,7 +332,7 @@ const COPY = {
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
     ramadanGiftKicker: "RAMADAN GIFT",
     ramadanGiftTitle: "Hurmat belgisi bo‘lgan premium sovg‘a.",
-    ramadanGiftText: "Auto Sale Umar mijozlari uchun yillik minnatdorchilik dasturi. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
+    ramadanGiftText: "Auto Sale Umardan Ramadan Gift — mijozlarimizga minnatdorchilik ramzi bo‘lgan avtomobil. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
     ramadanGiftAction: "Sahifani ochish",
     emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
@@ -887,35 +887,30 @@ export default function HomeClient() {
 function RamadanGiftSection({ gift, language }: { gift: RamadanGiftPayload; language: Language }) {
   const c = COPY[language];
   const cover = gift.media.find((item) => item.isCover) ?? gift.media[0] ?? null;
-  const locale = language === "ru" ? "ru-RU" : "uz-UZ";
-  const marketPrice = gift.marketPrice
-    ? new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(gift.marketPrice)
-    : null;
-  const minPurchase = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(gift.minPurchaseAmount);
 
   return (
     <section className={`${styles.section} ${styles.ramadanSection}`} id="ramadan-gift">
-      <a className={styles.ramadanCard} href="/ramadan-gift/">
-        <div className={styles.ramadanMedia}>
-          {cover ? <img src={cover.publicUrl} alt={language === "ru" ? gift.subtitleRu : gift.subtitleUz} loading="lazy" /> : null}
-          <div className={styles.ramadanMediaShade} />
-          <span className={styles.ramadanBadge}>{c.ramadanGiftKicker}</span>
-        </div>
-        <div className={styles.ramadanCopy}>
-          <div className={styles.ramadanHeading}>
-            <p className={styles.kicker}>{c.ramadanGiftKicker}</p>
-            <h2>{c.ramadanGiftTitle}</h2>
-            <p>{c.ramadanGiftText}</p>
-          </div>
-          <div className={styles.ramadanIdentity}>
+      <a className={styles.ramadanFeature} href="/ramadan-gift/">
+        <div className={styles.ramadanFeatureBackdrop} />
+        <div className={styles.ramadanFeatureCopy}>
+          <p className={styles.ramadanFeatureEyebrow}>{c.ramadanGiftKicker}</p>
+          <h2>{c.ramadanGiftTitle}</h2>
+          <p className={styles.ramadanFeatureText}>{c.ramadanGiftText}</p>
+
+          <div className={styles.ramadanFeatureIdentity}>
             <strong>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</strong>
             <span>{language === "ru" ? gift.shortPhraseRu : gift.shortPhraseUz}</span>
           </div>
-          <div className={styles.ramadanStats}>
-            <div><small>{language === "ru" ? "Рыночная цена" : "Bozor narxi"}</small><b>{marketPrice ? `${marketPrice} ${gift.currency === "USD" ? "$" : gift.currency === "EUR" ? "€" : "сум"}` : "—"}</b></div>
-            <div><small>{language === "ru" ? "Минимальная покупка" : "Minimal xarid"}</small><b>{`${minPurchase} ${gift.currency === "USD" ? "$" : gift.currency === "EUR" ? "€" : "сум"}`}</b></div>
+
+          <div className={styles.ramadanFeatureFooter}>
+            <span className={styles.ramadanFeatureModel}>{gift.subtitleRu}</span>
+            <span className={styles.ramadanFeatureAction}>{c.ramadanGiftAction}<ChevronRight /></span>
           </div>
-          <span className={styles.ramadanAction}>{c.ramadanGiftAction}<ChevronRight /></span>
+        </div>
+
+        <div className={styles.ramadanFeatureVisual}>
+          <div className={styles.ramadanFeatureHalo} />
+          {cover ? <img src={cover.publicUrl} alt={language === "ru" ? gift.subtitleRu : gift.subtitleUz} loading="lazy" /> : null}
         </div>
       </a>
     </section>

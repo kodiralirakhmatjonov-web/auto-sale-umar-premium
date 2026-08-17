@@ -53,7 +53,7 @@ interface ApiResponse {
 const COPY = {
   ru: {
     eyebrow: 'AUTO SALE UMAR · RAMADAN GIFT',
-    badge: 'Ежегодная программа благодарности клиентам',
+    badge: 'Подарок клиентам Auto Sale Umar',
     back: 'Главная страница',
     bookVisit: 'Забронировать визит',
     becomeParticipant: 'Стать участником',

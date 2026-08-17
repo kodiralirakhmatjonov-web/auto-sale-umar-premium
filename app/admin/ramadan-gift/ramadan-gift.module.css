@@ -57,9 +57,9 @@
 }
 .ghostButton{background:rgba(255,255,255,.74);color:#231c16}
 .saveButton,.previewLink,.uploadActions button{
-  background:linear-gradient(135deg,#8f6a43 0%,#c49a69 100%);
-  color:#fff7ef;
-  box-shadow:0 14px 32px rgba(143,106,67,.22);
+  background:linear-gradient(135deg,#8b531f 0%,#c98636 48%,#efc170 100%);
+  color:#fff9f1;
+  box-shadow:0 16px 34px rgba(143,106,67,.24);
 }
 .deleteButton{background:#fff;color:#1b1917}
 .ghostButton:active,.saveButton:active,.previewLink:active,.uploadActions button:active,.deleteButton:active{transform:scale(.98)}
@@ -103,7 +103,7 @@
   overflow:hidden;
   border-radius:34px;
 }
-.previewHero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.previewHero img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:22px 22px 0;box-sizing:border-box;background:linear-gradient(180deg,#fffaf4 0%,#efe2d2 100%)}
 .previewOverlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,12,10,.18) 0%,rgba(14,12,11,.88) 78%)}
 .previewCopy{position:absolute;left:24px;right:24px;bottom:24px;display:grid;gap:8px;color:#fffdf8}
 .previewCopy span{font-size:11px;font-weight:800;letter-spacing:.18em;color:#d6b891}
@@ -147,7 +147,7 @@
 .smallNote{margin:0;color:#8c755a;font-size:13px}
 .mediaGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .mediaCard{padding:10px;border-radius:24px;background:rgba(165,124,78,.08);display:grid;gap:10px}
-.mediaCard img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:18px}
+.mediaCard img{width:100%;aspect-ratio:16/10;object-fit:contain;border-radius:18px;background:linear-gradient(180deg,#fffaf4 0%,#efe3d3 100%);padding:12px;box-sizing:border-box}
 .mediaInfo{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:700;color:#6d5942}
 .emptyMedia{padding:18px;border-radius:22px;background:rgba(165,124,78,.08);color:#6e5b47;line-height:1.6}
 .previewEmpty{position:absolute;inset:0;display:grid;place-items:center;color:#d5bea4;background:linear-gradient(180deg,#211812 0%,#0f0c0a 100%)}
