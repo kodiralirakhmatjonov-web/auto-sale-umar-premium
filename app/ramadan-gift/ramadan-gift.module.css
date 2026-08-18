@@ -1,18 +1,16 @@
 .page {
   min-height: 100dvh;
-  color: #18120f;
+  color: #fff7ef;
   background:
-    radial-gradient(circle at 12% 0%, rgba(192, 133, 67, .14), transparent 28%),
-    radial-gradient(circle at 90% 14%, rgba(228, 176, 108, .14), transparent 24%),
-    linear-gradient(180deg, #faf8f3 0%, #f3eee7 34%, #efe8df 100%);
+    radial-gradient(circle at 8% 0%, rgba(205, 118, 42, .16), transparent 26%),
+    radial-gradient(circle at 92% 10%, rgba(255, 163, 60, .14), transparent 24%),
+    radial-gradient(circle at 80% 78%, rgba(121, 60, 21, .22), transparent 28%),
+    linear-gradient(180deg, #020202 0%, #080808 22%, #110d0a 56%, #1a120d 100%);
 }
 
+.page[data-theme="light"],
 .page[data-theme="dark"] {
-  color: #f7f0e8;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(192, 133, 67, .16), transparent 28%),
-    radial-gradient(circle at 90% 14%, rgba(228, 176, 108, .10), transparent 24%),
-    linear-gradient(180deg, #0d0907 0%, #140f0c 40%, #19120e 100%);
+  color: #fff7ef;
 }
 
 .shell {
@@ -24,20 +22,14 @@
 .loadingCard,
 .emptyCard {
   padding: 28px;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, .88);
-  border: 1px solid rgba(170, 132, 88, .16);
+  border-radius: 32px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255, 213, 168, .10);
+  color: rgba(255, 241, 223, .88);
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 24px 56px rgba(23, 18, 13, .08);
-}
-
-.page[data-theme="dark"] .loadingCard,
-.page[data-theme="dark"] .emptyCard {
-  background: rgba(22, 18, 16, .9);
-  border-color: rgba(199, 158, 116, .16);
-  box-shadow: 0 24px 58px rgba(0, 0, 0, .28);
+  box-shadow: 0 30px 80px rgba(0,0,0,.28);
 }
 
 .heroStage {
@@ -60,65 +52,73 @@
 .detailCard,
 .gallerySection {
   position: relative;
-  border: 1px solid rgba(169, 118, 60, .16);
-  background: rgba(255, 255, 255, .92);
-  box-shadow: 0 28px 58px rgba(20, 16, 12, .07);
+  overflow: hidden;
+  border-radius: 40px;
+  border: 1px solid rgba(255, 213, 168, .10);
+  box-shadow: 0 32px 92px rgba(0,0,0,.34);
 }
 
-.page[data-theme="dark"] .heroVisual,
-.page[data-theme="dark"] .heroCard,
-.page[data-theme="dark"] .countdownSection,
-.page[data-theme="dark"] .storyCard,
-.page[data-theme="dark"] .rulesCard,
-.page[data-theme="dark"] .detailCard,
-.page[data-theme="dark"] .gallerySection {
-  background: rgba(24, 19, 16, .90);
-  border-color: rgba(207, 161, 106, .18);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, .30);
+.heroVisual::before,
+.heroCard::before,
+.countdownSection::before,
+.storyCard::before,
+.rulesCard::before,
+.detailCard::before,
+.gallerySection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 18%),
+    radial-gradient(circle at 90% 16%, rgba(255, 167, 67, .12), rgba(255, 167, 67, 0) 26%);
 }
 
 .heroVisual {
-  min-height: 700px;
-  overflow: hidden;
-  border-radius: 42px;
+  min-height: 720px;
   background:
-    radial-gradient(circle at 50% 14%, rgba(255, 226, 180, .84) 0%, rgba(255, 226, 180, .16) 32%, rgba(255, 226, 180, 0) 60%),
-    linear-gradient(180deg, #fffaf3 0%, #f3e4cf 100%);
+    radial-gradient(circle at 50% 18%, rgba(255, 172, 74, .20) 0%, rgba(255, 172, 74, 0) 32%),
+    radial-gradient(circle at 80% 80%, rgba(143, 70, 23, .26) 0%, rgba(143, 70, 23, 0) 34%),
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 100%);
 }
 
 .heroVisual img {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 46px 34px 110px;
-  box-sizing: border-box;
+  left: 50%;
+  top: 50%;
+  width: min(114%, 980px);
+  max-width: none;
+  height: auto;
   object-fit: contain;
-  object-position: center bottom;
+  object-position: center center;
+  transform: translate(-50%, -44%);
+  filter: drop-shadow(0 40px 50px rgba(0,0,0,.42));
 }
 
 .heroShade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(22, 12, 6, .02) 0%, rgba(22, 12, 6, .10) 60%, rgba(22, 12, 6, .38) 100%);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.10) 0%, rgba(0,0,0,.16) 64%, rgba(0,0,0,.44) 100%),
+    radial-gradient(circle at 50% 40%, rgba(255, 183, 83, .12) 0%, rgba(255, 183, 83, 0) 34%);
 }
 
 .heroVisualGlass,
 .heroVisualBottom {
   position: absolute;
-  left: 22px;
-  right: 22px;
+  left: 20px;
+  right: 20px;
   z-index: 2;
-  border: 1px solid rgba(102, 69, 35, .10);
-  background: rgba(255, 255, 255, .62);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  border: 1px solid rgba(255, 214, 170, .10);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .heroVisualGlass {
-  top: 22px;
-  max-width: min(420px, calc(100% - 44px));
+  top: 20px;
   width: fit-content;
+  max-width: min(420px, calc(100% - 40px));
   padding: 16px 18px;
   display: grid;
   gap: 8px;
@@ -126,7 +126,7 @@
 }
 
 .heroVisualGlass span {
-  color: rgba(97, 63, 30, .72);
+  color: rgba(255, 218, 179, .72);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .16em;
@@ -134,15 +134,14 @@
 }
 
 .heroVisualGlass strong {
-  color: #2d190d;
+  color: #fff7ef;
   font-size: clamp(20px, 2.2vw, 28px);
-  line-height: 1.05;
+  line-height: 1.08;
   letter-spacing: -.04em;
 }
 
 .heroVisualBottom {
-  bottom: 22px;
-  min-height: 76px;
+  bottom: 20px;
   padding: 16px 18px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -157,7 +156,7 @@
 }
 
 .heroVisualBottom small {
-  color: rgba(93, 60, 27, .64);
+  color: rgba(255, 216, 176, .60);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .16em;
@@ -166,31 +165,22 @@
 
 .heroVisualBottom strong {
   min-width: 0;
-  color: #2d190d;
-  font-size: 19px;
-  line-height: 1.18;
+  color: #fff8f0;
+  font-size: 18px;
+  line-height: 1.2;
   letter-spacing: -.04em;
   overflow-wrap: anywhere;
 }
 
 .heroCard {
   padding: 30px;
-  border-radius: 42px;
   display: grid;
   align-content: start;
   gap: 18px;
-  color: #fff8ef;
   background:
-    radial-gradient(circle at 88% 10%, rgba(255, 206, 146, .26) 0%, rgba(255, 206, 146, 0) 32%),
-    linear-gradient(145deg, #120a07 0%, #24140d 18%, #57331c 48%, #9a6130 76%, #cc9056 100%);
-  border-color: rgba(255, 225, 185, .20);
-  box-shadow: 0 32px 70px rgba(84, 48, 22, .24);
-}
-
-.page[data-theme="dark"] .heroCard {
-  background:
-    radial-gradient(circle at 88% 10%, rgba(255, 206, 146, .18) 0%, rgba(255, 206, 146, 0) 32%),
-    linear-gradient(145deg, #110906 0%, #1d110b 20%, #452814 48%, #86552c 74%, #b67840 100%);
+    radial-gradient(circle at 86% 12%, rgba(255, 169, 66, .18) 0%, rgba(255, 169, 66, 0) 28%),
+    radial-gradient(circle at 12% 86%, rgba(143, 70, 23, .22) 0%, rgba(143, 70, 23, 0) 32%),
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 100%);
 }
 
 .heroTopline {
@@ -206,7 +196,7 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .24em;
-  color: rgba(255, 225, 185, .84);
+  color: rgba(255, 220, 186, .82);
   text-transform: uppercase;
 }
 
@@ -217,12 +207,12 @@
   align-items: center;
   gap: 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 231, 199, .16);
-  background: rgba(255, 248, 238, .10);
+  border: 1px solid rgba(255, 213, 168, .10);
+  background: rgba(255,255,255,.04);
   color: #fff6eb;
   font-size: 11px;
   font-weight: 760;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
@@ -230,8 +220,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ffd8ad;
-  box-shadow: 0 0 0 0 rgba(255, 216, 173, .48);
+  background: #ffc986;
+  box-shadow: 0 0 0 0 rgba(255, 201, 134, .48);
   animation: pulse 1.9s ease-out infinite;
 }
 
@@ -243,10 +233,10 @@
 }
 
 .heroModel {
-  margin: -4px 0 0;
-  color: rgba(255, 237, 212, .96);
-  font-size: clamp(24px, 2.4vw, 34px);
-  line-height: 1.02;
+  margin: -2px 0 0;
+  color: rgba(255, 235, 210, .96);
+  font-size: clamp(24px, 2.3vw, 34px);
+  line-height: 1.04;
   font-weight: 780;
   letter-spacing: -.05em;
 }
@@ -262,8 +252,8 @@
 .story {
   margin: 0;
   font-size: 15px;
-  line-height: 1.82;
-  color: rgba(255, 245, 232, .78);
+  line-height: 1.8;
+  color: rgba(255, 242, 227, .74);
 }
 
 .heroActions {
@@ -285,19 +275,19 @@
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  transition: transform .18s ease, background-color .18s ease;
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease;
 }
 
 .primaryButton {
-  color: #5a3318;
-  background: linear-gradient(180deg, #fff8ef 0%, #f7ead8 100%);
-  box-shadow: 0 14px 32px rgba(255, 227, 189, .16);
+  color: #15100d;
+  background: linear-gradient(180deg, #ffd7a8 0%, #f0b26c 100%);
+  box-shadow: 0 16px 34px rgba(227, 144, 58, .18);
 }
 
 .secondaryButton,
 .inlineActions a {
-  background: rgba(255, 247, 236, .10);
-  border: 1px solid rgba(255, 229, 195, .18);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255, 213, 168, .10);
   color: #fff8ef;
 }
 
@@ -318,15 +308,15 @@
   min-width: 0;
   padding: 16px;
   border-radius: 24px;
-  background: rgba(255, 248, 238, .12);
-  border: 1px solid rgba(255, 228, 192, .16);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255, 213, 168, .10);
 }
 
 .metricGrid small {
   display: block;
   margin-bottom: 8px;
-  color: rgba(255, 221, 177, .84);
-  font-size: 11px;
+  color: rgba(255, 218, 179, .64);
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -343,20 +333,11 @@
 
 .countdownSection {
   padding: 24px;
-  border-radius: 34px;
   display: grid;
-  grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr);
-  gap: 18px;
-  align-items: center;
+  gap: 16px;
   background:
-    radial-gradient(circle at 90% 18%, rgba(230, 179, 114, .16) 0%, rgba(230, 179, 114, 0) 24%),
-    linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(250,245,238,.96) 100%);
-}
-
-.page[data-theme="dark"] .countdownSection {
-  background:
-    radial-gradient(circle at 90% 18%, rgba(230, 179, 114, .12) 0%, rgba(230, 179, 114, 0) 24%),
-    linear-gradient(180deg, rgba(27,21,18,.92) 0%, rgba(24,19,16,.96) 100%);
+    radial-gradient(circle at 90% 18%, rgba(255, 169, 66, .12) 0%, rgba(255, 169, 66, 0) 24%),
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 100%);
 }
 
 .countdownCopy {
@@ -365,15 +346,11 @@
 }
 
 .countdownCopy span {
-  color: #9a6a39;
+  color: rgba(255, 214, 170, .72);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .18em;
   text-transform: uppercase;
-}
-
-.page[data-theme="dark"] .countdownCopy span {
-  color: #dfb37d;
 }
 
 .countdownCopy h2 {
@@ -385,55 +362,52 @@
 
 .countdownCopy p {
   margin: 0;
-  color: rgba(50, 36, 24, .72);
+  color: rgba(255, 239, 222, .66);
   font-size: 15px;
   line-height: 1.65;
-}
-
-.page[data-theme="dark"] .countdownCopy p {
-  color: rgba(244, 236, 226, .72);
 }
 
 .countdownGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 0;
 }
 
 .countdownCard {
+  position: relative;
   min-width: 0;
-  min-height: 122px;
-  padding: 18px 14px;
+  min-height: 118px;
+  padding-right: 18px;
   display: grid;
-  align-content: center;
+  justify-items: start;
+  align-content: start;
   gap: 8px;
-  border-radius: 26px;
-  border: 1px solid rgba(171, 126, 74, .14);
-  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(248,241,232,.92));
-  text-align: center;
 }
 
-.page[data-theme="dark"] .countdownCard {
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-  border-color: rgba(171, 126, 74, .18);
-}
-
-.countdownCard strong {
-  font-size: clamp(30px, 3.2vw, 46px);
-  line-height: .92;
+.countdownCard:not(:last-child)::after {
+  content: ":";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: rgba(255,255,255,.92);
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: .84;
   letter-spacing: -.06em;
 }
 
-.countdownCard span {
-  color: #8e6c49;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .16em;
-  text-transform: uppercase;
+.countdownCard strong {
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: .84;
+  letter-spacing: -.08em;
+  font-variant-numeric: tabular-nums;
 }
 
-.page[data-theme="dark"] .countdownCard span {
-  color: #d8b38a;
+.countdownCard span {
+  color: rgba(255, 214, 170, .56);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .storyGrid,
@@ -449,7 +423,9 @@
 .detailCard,
 .gallerySection {
   padding: 24px;
-  border-radius: 34px;
+  background:
+    radial-gradient(circle at 86% 14%, rgba(255, 167, 67, .10) 0%, rgba(255, 167, 67, 0) 22%),
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 100%);
 }
 
 .cardHead {
@@ -462,7 +438,7 @@
 .cardHead svg {
   width: 20px;
   height: 20px;
-  color: #ab7f52;
+  color: #f0b26c;
 }
 
 .cardHead h2 {
@@ -472,40 +448,31 @@
 }
 
 .storyCard p,
-.detailText {
+.detailText,
+.rulesCard ol {
   margin: 0;
-  color: rgba(20, 16, 13, .74);
+  color: rgba(255, 242, 227, .74);
   font-size: 15px;
   line-height: 1.8;
-}
-
-.page[data-theme="dark"] .storyCard p,
-.page[data-theme="dark"] .detailText {
-  color: rgba(247, 241, 236, .78);
 }
 
 .notePill {
   margin-top: 18px;
   padding: 15px 17px;
   border-radius: 22px;
-  background: rgba(176, 123, 60, .10);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255, 213, 168, .10);
   display: flex;
   gap: 10px;
   align-items: flex-start;
   line-height: 1.7;
-  color: #684e32;
-}
-
-.page[data-theme="dark"] .notePill {
-  color: #e6c79f;
+  color: rgba(255, 236, 213, .82);
 }
 
 .rulesCard ol {
-  margin: 0;
   padding-left: 22px;
   display: grid;
   gap: 12px;
-  line-height: 1.8;
 }
 
 .detailRows {
@@ -517,14 +484,15 @@
 .detailRows div {
   padding: 15px;
   border-radius: 22px;
-  background: rgba(176, 123, 60, .08);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255, 213, 168, .10);
   display: grid;
   gap: 7px;
 }
 
 .detailRows span {
-  color: #917455;
-  font-size: 11px;
+  color: rgba(255, 214, 170, .58);
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -564,12 +532,8 @@
 
 .galleryHead p {
   margin: 0;
-  color: #806850;
+  color: rgba(255, 235, 210, .62);
   line-height: 1.55;
-}
-
-.page[data-theme="dark"] .galleryHead p {
-  color: rgba(230, 217, 199, .70);
 }
 
 .thumbRail {
@@ -581,15 +545,15 @@
 .thumbButton {
   padding: 0;
   border: 0;
-  background: #fff;
+  background: rgba(255,255,255,.04);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(170, 132, 88, .14) inset;
+  box-shadow: 0 0 0 1px rgba(255, 213, 168, .08) inset;
   transition: transform .18s ease, box-shadow .18s ease;
 }
 
 .thumbButton[data-active="true"] {
-  box-shadow: 0 0 0 2px rgba(172, 126, 74, .92) inset, 0 14px 24px rgba(172, 126, 74, .20);
+  box-shadow: 0 0 0 2px rgba(240, 178, 108, .92) inset, 0 14px 24px rgba(240, 178, 108, .16);
 }
 
 .thumbButton img {
@@ -608,19 +572,18 @@
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 216, 173, .48); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 216, 173, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 216, 173, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 201, 134, .48); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 201, 134, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 201, 134, 0); }
 }
 
 @media (max-width: 1024px) {
-  .heroGrid,
-  .countdownSection {
+  .heroGrid {
     grid-template-columns: 1fr;
   }
 
   .heroVisual {
-    min-height: 560px;
+    min-height: 540px;
   }
 }
 
@@ -641,11 +604,12 @@
   }
 
   .heroVisual {
-    min-height: 430px;
+    min-height: 420px;
   }
 
   .heroVisual img {
-    padding: 26px 18px 116px;
+    width: min(126%, 820px);
+    transform: translate(-50%, -42%);
   }
 
   .heroCard {
@@ -659,14 +623,24 @@
   .heroActions,
   .storyGrid,
   .detailsGrid,
-  .thumbRail {
+  .thumbRail,
+  .metricGrid,
+  .detailRows {
     grid-template-columns: 1fr;
   }
 
-  .metricGrid,
-  .detailRows,
   .countdownGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+
+  .countdownCard {
+    min-height: 96px;
+    padding-right: 0;
+  }
+
+  .countdownCard::after {
+    display: none;
   }
 
   .storyCard,
@@ -697,17 +671,6 @@
     padding: 12px 14px;
     grid-template-columns: 1fr;
     border-radius: 22px;
-  }
-
-  .heroActions,
-  .metricGrid,
-  .detailRows,
-  .countdownGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .countdownCard {
-    min-height: 104px;
   }
 
   .cardHead h2,

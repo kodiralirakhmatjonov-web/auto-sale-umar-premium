@@ -2958,38 +2958,40 @@
 }
 
 .ramadanSection{
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .ramadanFeature{
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 540px);
-  gap: 26px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 520px);
+  gap: 24px;
   align-items: stretch;
   overflow: hidden;
-  padding: 28px;
+  padding: 26px;
   border-radius: 42px;
   text-decoration: none;
-  color: #fffaf2;
+  color: #fff7ef;
   background:
-    radial-gradient(circle at 85% 18%, rgba(255, 209, 140, .36) 0%, rgba(255, 209, 140, 0) 34%),
-    radial-gradient(circle at 16% 18%, rgba(255, 245, 223, .16) 0%, rgba(255, 245, 223, 0) 24%),
-    linear-gradient(135deg, #120c08 0%, #2a170f 18%, #5b321a 46%, #9a602d 72%, #d19a5b 100%);
-  box-shadow: 0 38px 90px rgba(64, 31, 11, .30);
+    radial-gradient(circle at 88% 20%, rgba(255, 158, 44, .28) 0%, rgba(255, 158, 44, 0) 28%),
+    radial-gradient(circle at 70% 84%, rgba(214, 120, 41, .22) 0%, rgba(214, 120, 41, 0) 34%),
+    radial-gradient(circle at 16% 14%, rgba(255, 208, 120, .12) 0%, rgba(255, 208, 120, 0) 22%),
+    linear-gradient(135deg, #030303 0%, #090909 32%, #17110c 58%, #321b0e 78%, #5b3219 100%);
+  border: 1px solid rgba(255, 205, 145, .10);
+  box-shadow: 0 36px 90px rgba(0, 0, 0, .34);
   isolation: isolate;
-  transition: transform .26s var(--spring), box-shadow .26s ease;
+  transition: transform .24s var(--spring), box-shadow .24s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.ramadanFeature:active {
+.ramadanFeature:active{
   transform: scale(.992);
 }
 
-@media (hover:hover) and (pointer:fine) {
-  .ramadanFeature:hover {
+@media (hover:hover) and (pointer:fine){
+  .ramadanFeature:hover{
     transform: translateY(-2px);
-    box-shadow: 0 44px 100px rgba(64, 31, 11, .34);
+    box-shadow: 0 42px 100px rgba(0, 0, 0, .40);
   }
 }
 
@@ -2997,19 +2999,20 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(102deg, rgba(8, 5, 4, .56) 0%, rgba(8, 5, 4, .16) 44%, rgba(255, 236, 203, .06) 100%),
-    linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 22%);
+    linear-gradient(110deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 30%),
+    linear-gradient(180deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 24%),
+    radial-gradient(circle at 94% 16%, rgba(255, 177, 75, .16), rgba(255, 177, 75, 0) 32%);
   pointer-events: none;
 }
 
 .ramadanFeature::before{
   content: "";
   position: absolute;
-  inset: -18% auto auto -8%;
-  width: 44%;
+  inset: auto auto -24% -10%;
+  width: 42%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 225, 170, .22), rgba(255, 225, 170, 0) 68%);
+  background: radial-gradient(circle, rgba(182, 95, 34, .26), rgba(182, 95, 34, 0) 70%);
   filter: blur(18px);
   pointer-events: none;
 }
@@ -3019,12 +3022,12 @@
   position: absolute;
   inset: 1px;
   border-radius: 41px;
-  border: 1px solid rgba(255, 234, 204, .18);
+  border: 1px solid rgba(255, 228, 190, .06);
   pointer-events: none;
 }
 
 :global(html[data-asu-public-theme="dark"]) .ramadanFeature{
-  box-shadow: 0 40px 88px rgba(0,0,0,.42);
+  box-shadow: 0 38px 92px rgba(0,0,0,.48);
 }
 
 .ramadanFeatureCopy,
@@ -3035,8 +3038,8 @@
 
 .ramadanFeatureCopy{
   display: grid;
-  gap: 18px;
   align-content: center;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -3052,9 +3055,9 @@
   margin: 0;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: .24em;
+  letter-spacing: .26em;
   text-transform: uppercase;
-  color: rgba(255,233,203,.88);
+  color: rgba(255, 215, 172, .80);
 }
 
 .ramadanFeatureLive{
@@ -3064,13 +3067,12 @@
   align-items: center;
   gap: 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 234, 205, .14);
-  background: rgba(255, 245, 231, .10);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-  color: rgba(255,247,235,.92);
+  border: 1px solid rgba(255, 211, 162, .12);
+  background: rgba(255,255,255,.04);
+  color: rgba(255, 237, 215, .92);
   font-size: 11px;
   font-weight: 760;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
@@ -3078,55 +3080,66 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ffd7aa;
-  box-shadow: 0 0 0 0 rgba(255, 215, 170, .52);
+  background: #ffc986;
+  box-shadow: 0 0 0 0 rgba(255, 201, 134, .48);
   animation: ramadanPulse 1.9s ease-out infinite;
 }
 
 .ramadanFeatureCopy h2{
   margin: 0;
-  max-width: 720px;
-  font-size: clamp(38px, 5.2vw, 70px);
+  max-width: 700px;
+  font-size: clamp(38px, 5.4vw, 72px);
   line-height: .92;
-  letter-spacing: -.065em;
+  letter-spacing: -.068em;
   white-space: pre-line;
 }
 
 .ramadanFeatureText{
   margin: 0;
-  max-width: 620px;
+  max-width: 640px;
   font-size: 16px;
   line-height: 1.8;
-  color: rgba(255,246,233,.80);
+  color: rgba(255, 242, 227, .76);
 }
 
 .ramadanFeatureCountdown{
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 0;
+  align-items: start;
 }
 
 .ramadanFeatureCountdownItem{
+  position: relative;
   min-width: 0;
-  padding: 14px 14px 13px;
+  padding-right: 18px;
   display: grid;
+  justify-items: start;
   gap: 6px;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 235, 208, .12);
-  background: linear-gradient(180deg, rgba(255, 247, 235, .13), rgba(255, 247, 235, .06));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
 }
 
-.ramadanFeatureCountdownItem strong{
-  font-size: clamp(26px, 2.8vw, 38px);
-  line-height: .92;
+.ramadanFeatureCountdownItem:not(:last-child)::after{
+  content: ":";
+  position: absolute;
+  top: 2px;
+  right: 0;
+  color: rgba(255,255,255,.90);
+  font-size: clamp(40px, 5vw, 66px);
+  line-height: .86;
   letter-spacing: -.06em;
 }
 
+.ramadanFeatureCountdownItem strong{
+  font-size: clamp(40px, 5vw, 66px);
+  line-height: .86;
+  letter-spacing: -.075em;
+  font-variant-numeric: tabular-nums;
+}
+
 .ramadanFeatureCountdownItem span{
-  color: rgba(255, 236, 211, .74);
+  color: rgba(255, 226, 188, .64);
   font-size: 11px;
-  font-weight: 760;
+  font-weight: 700;
   letter-spacing: .14em;
   text-transform: uppercase;
 }
@@ -3139,16 +3152,19 @@
 
 .ramadanFeatureHighlightCard{
   min-width: 0;
-  padding: 16px 16px 15px;
+  padding: 16px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   border-radius: 24px;
-  border: 1px solid rgba(255, 234, 204, .12);
-  background: linear-gradient(180deg, rgba(255, 247, 236, .10), rgba(255, 247, 236, .04));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.025) 100%);
+  border: 1px solid rgba(255, 213, 168, .10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ramadanFeatureHighlightCard span{
-  color: rgba(255, 233, 203, .68);
+  color: rgba(255, 220, 182, .64);
   font-size: 10px;
   font-weight: 780;
   letter-spacing: .16em;
@@ -3157,7 +3173,7 @@
 
 .ramadanFeatureHighlightCard strong{
   min-width: 0;
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.18;
   letter-spacing: -.04em;
   overflow-wrap: anywhere;
@@ -3177,13 +3193,13 @@
   min-height: 42px;
   padding: 0 18px;
   border-radius: 999px;
-  background: rgba(255,243,226,.14);
-  box-shadow: 0 0 0 1px rgba(255,229,194,.18) inset;
+  background: rgba(255,255,255,.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 211, 162, .10);
   font-size: 12px;
   font-weight: 780;
   letter-spacing: .16em;
   text-transform: uppercase;
-  color: #fff2df;
+  color: rgba(255, 235, 210, .92);
 }
 
 .ramadanFeatureAction{
@@ -3197,98 +3213,96 @@
 
 .ramadanFeatureVisual{
   min-height: 420px;
-  padding: 24px;
+  padding: 18px;
   display: grid;
-  align-items: stretch;
-  border-radius: 36px;
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+  border-radius: 34px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 16%, rgba(255, 229, 183, .70) 0%, rgba(255, 229, 183, .16) 28%, rgba(255, 229, 183, 0) 62%),
-    linear-gradient(180deg, rgba(255,252,247,.98) 0%, rgba(241,225,204,.96) 100%);
-  box-shadow: inset 0 0 0 1px rgba(255,237,210,.62);
+    radial-gradient(circle at 50% 24%, rgba(255, 162, 58, .20) 0%, rgba(255, 162, 58, 0) 34%),
+    radial-gradient(circle at 80% 82%, rgba(170, 91, 29, .22) 0%, rgba(170, 91, 29, 0) 42%),
+    linear-gradient(180deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.02) 100%);
+  border: 1px solid rgba(255, 210, 155, .10);
 }
 
 .ramadanFeatureVisualBadge{
-  position: absolute;
-  top: 16px;
-  left: 16px;
   z-index: 2;
-  max-width: calc(100% - 32px);
-  min-height: 36px;
-  padding: 0 14px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 0 16px;
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  background: rgba(255,255,255,.78);
-  border: 1px solid rgba(125, 85, 41, .10);
-  color: #503017;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255, 211, 162, .12);
+  color: rgba(255, 234, 208, .92);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .14em;
   text-transform: uppercase;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ramadanFeatureHalo{
   position: absolute;
-  inset: 11% 14% auto;
+  inset: 18% 8% auto;
   height: 34%;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255,221,170,.88) 0%, rgba(255,221,170,0) 72%);
-  filter: blur(18px);
+  background: radial-gradient(circle, rgba(255, 167, 67, .36) 0%, rgba(255, 167, 67, 0) 72%);
+  filter: blur(30px);
   pointer-events: none;
 }
 
 .ramadanFeatureVisual img{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 28px 24px 72px;
-  box-sizing: border-box;
+  grid-row: 2;
+  align-self: center;
+  justify-self: center;
+  width: min(112%, 560px);
+  max-width: none;
+  height: auto;
   object-fit: contain;
-  object-position: center bottom;
+  object-position: center center;
+  filter: drop-shadow(0 30px 40px rgba(0,0,0,.42));
+  transform: translateY(6px);
 }
 
 .ramadanFeatureVisualMeta{
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
   z-index: 2;
-  min-height: 60px;
-  padding: 14px 16px;
+  min-height: 72px;
+  padding: 16px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
   border-radius: 24px;
-  background: rgba(255,255,255,.62);
-  border: 1px solid rgba(112, 77, 37, .12);
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255, 212, 162, .10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .ramadanFeatureVisualMeta span{
   min-width: 0;
-  color: rgba(58, 34, 15, .74);
-  font-size: 13px;
-  line-height: 1.45;
+  color: rgba(255, 227, 190, .74);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .ramadanFeatureVisualMeta strong{
   flex: 0 0 auto;
-  color: #2f1a0d;
-  font-size: 22px;
+  color: #fff9f1;
+  font-size: 28px;
   line-height: 1;
-  letter-spacing: -.04em;
+  letter-spacing: -.06em;
 }
 
 @keyframes ramadanPulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 215, 170, .52); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 215, 170, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 215, 170, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 201, 134, .48); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 201, 134, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 201, 134, 0); }
 }
 
 @media (max-width: 980px){
@@ -3299,7 +3313,7 @@
 
   .ramadanFeatureVisual{
     order: -1;
-    min-height: 320px;
+    min-height: 340px;
   }
 }
 
@@ -3313,25 +3327,23 @@
   .ramadanFeature::after{border-radius:31px}
   .ramadanFeatureCopy h2{font-size:40px}
   .ramadanFeatureText{font-size:15px;line-height:1.72}
-  .ramadanFeatureCountdown,
-  .ramadanFeatureHighlights{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ramadanFeatureHighlightCard:last-child{grid-column:1 / -1}
+  .ramadanFeatureCountdown{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+  .ramadanFeatureCountdownItem{padding-right:0}
+  .ramadanFeatureCountdownItem::after{display:none}
+  .ramadanFeatureHighlights{grid-template-columns:1fr}
   .ramadanFeatureVisual{
-    min-height: 300px;
+    min-height: 308px;
     padding: 16px;
     border-radius: 28px;
   }
-  .ramadanFeatureVisual img{padding:28px 18px 74px}
+  .ramadanFeatureVisual img{width:min(118%,460px)}
   .ramadanFeatureVisualMeta{
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-radius: 20px;
     flex-direction: column;
     align-items: flex-start;
   }
-  .ramadanFeatureVisualMeta strong{font-size:20px}
+  .ramadanFeatureVisualMeta strong{font-size:24px}
 }
 
 @media (max-width: 520px){
@@ -3339,10 +3351,6 @@
   .ramadanFeatureFooter,
   .ramadanFeatureVisualMeta{
     align-items: flex-start;
-  }
-
-  .ramadanFeatureCountdown{
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ramadanFeatureHighlightCard strong{
