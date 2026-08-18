@@ -6,12 +6,12 @@ import {
   CalendarDays,
   CarFront,
   ChevronRight,
+  Eye,
   Instagram,
   MapPin,
   Menu,
   MessageCircle,
   Monitor,
-  Eye,
   Moon,
   Phone,
   Search,
@@ -231,10 +231,20 @@ const COPY = {
     transitKicker: "В ПУТИ",
     transitTitle: "Следующее поступление.",
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
-    ramadanGiftKicker: "AUTO SALE UMAR · RAMADAN GIFT",
-    ramadanGiftTitle: "Auto Sale Umar Ramadan Gift",
-    ramadanGiftText: "Премиальная программа благодарности клиентам Auto Sale Umar. Один автомобиль. Один клиент. Благодарность за доверие.",
-    ramadanGiftAction: "Открыть страницу",
+    ramadanGiftKicker: "RAMADAN GIFT",
+    ramadanGiftTitle: `Auto Sale Umar
+Ramadan Gift`,
+    ramadanGiftText: "Ежегодная премиальная программа благодарности для клиентов Auto Sale Umar. Подарочный Mercedes-Benz E-Class, выразительная подача и один победитель в следующем Рамадане.",
+    ramadanGiftAction: "Открыть программу",
+    ramadanGiftCountdown: "До следующего Рамадана",
+    ramadanGiftDays: "дней",
+    ramadanGiftHours: "часов",
+    ramadanGiftMinutes: "минут",
+    ramadanGiftSeconds: "секунд",
+    ramadanGiftPrizeLabel: "Подарочный автомобиль",
+    ramadanGiftEntryLabel: "Участие от",
+    ramadanGiftValueLabel: "Ориентир по стоимости",
+    ramadanGiftFooterLabel: "Премиальная программа благодарности",
     emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
     emptyTransit: "Сейчас опубликованных автомобилей в пути нет.",
@@ -287,9 +297,9 @@ const COPY = {
     telegram: "Telegram",
     whatsapp: "WhatsApp",
     call: "Позвонить",
-    itTeamTitle: "Auto Sale Umar IT Team",
+    itTeamTitle: "AutoSale Umar IT Team",
     itTeamFounder: "Основатель — Abdulaziz.developer",
-    itTeamSummary: "Разработка, дизайн и цифровые системы Auto Sale Umar.",
+    itTeamSummary: "Разработка, дизайн и цифровые решения для Auto Sale Umar.",
     itTeamAction: "Открыть страницу",
     footer: "Auto Sale Umar · Премиальный автомобильный шоурум · Ташкент",
     priceRequest: "Цена по запросу",
@@ -330,10 +340,20 @@ const COPY = {
     transitKicker: "YO‘LDA",
     transitTitle: "Keyingi kelish.",
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
-    ramadanGiftKicker: "AUTO SALE UMAR · RAMADAN GIFT",
-    ramadanGiftTitle: "Auto Sale Umar Ramadan Gift",
-    ramadanGiftText: "Auto Sale Umar mijozlari uchun premium minnatdorchilik dasturi. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
-    ramadanGiftAction: "Sahifani ochish",
+    ramadanGiftKicker: "RAMADAN GIFT",
+    ramadanGiftTitle: `Auto Sale Umar
+Ramadan Gift`,
+    ramadanGiftText: "Auto Sale Umar mijozlari uchun yillik premium minnatdorchilik dasturi. Sovg‘a Mercedes-Benz E-Class, kuchli taqdimot va kelasi Ramazonda bitta g‘olib.",
+    ramadanGiftAction: "Dasturni ochish",
+    ramadanGiftCountdown: "Keyingi Ramazongacha",
+    ramadanGiftDays: "kun",
+    ramadanGiftHours: "soat",
+    ramadanGiftMinutes: "daqiqa",
+    ramadanGiftSeconds: "soniya",
+    ramadanGiftPrizeLabel: "Sovg‘a avtomobil",
+    ramadanGiftEntryLabel: "Ishtirok boshlanishi",
+    ramadanGiftValueLabel: "Taxminiy qiymat",
+    ramadanGiftFooterLabel: "Premium minnatdorchilik dasturi",
     emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
     emptyTransit: "Hozir ommaviy katalogda yo‘ldagi avtomobil yo‘q.",
@@ -386,9 +406,9 @@ const COPY = {
     telegram: "Telegram",
     whatsapp: "WhatsApp",
     call: "Qo‘ng‘iroq",
-    itTeamTitle: "Auto Sale Umar IT Team",
+    itTeamTitle: "AutoSale Umar IT Team",
     itTeamFounder: "Asoschi — Abdulaziz.developer",
-    itTeamSummary: "Auto Sale Umar uchun dasturlash, dizayn va raqamli tizimlar.",
+    itTeamSummary: "Auto Sale Umar uchun dasturlash, dizayn va raqamli yechimlar.",
     itTeamAction: "Sahifani ochish",
     footer: "Auto Sale Umar · Premium avtomobil shourumi · Toshkent",
     priceRequest: "Narx so‘rov bo‘yicha",
@@ -402,6 +422,49 @@ const COPY = {
 } as const;
 
 const YANDEX_MAPS_URL = "https://yandex.ru/maps/org/auto_sale_umar/98317002086?si=y1pjpr56py0hyc8ar2j2cw1t40";
+
+const RAMADAN_START_DATES = [
+  "2027-02-09T00:00:00+05:00",
+  "2028-01-29T00:00:00+05:00",
+  "2029-01-17T00:00:00+05:00",
+  "2030-01-06T00:00:00+05:00",
+] as const;
+
+type CountdownPart = {
+  key: "days" | "hours" | "minutes" | "seconds";
+  value: string;
+};
+
+function getNextRamadanStart(now = new Date()): Date {
+  for (const candidate of RAMADAN_START_DATES) {
+    const parsed = new Date(candidate);
+    if (parsed.getTime() > now.getTime()) return parsed;
+  }
+  return new Date(RAMADAN_START_DATES[RAMADAN_START_DATES.length - 1]);
+}
+
+function getCountdownParts(target: Date, now = new Date()): CountdownPart[] {
+  const diff = Math.max(0, target.getTime() - now.getTime());
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [
+    { key: "days", value: String(days).padStart(2, "0") },
+    { key: "hours", value: String(hours).padStart(2, "0") },
+    { key: "minutes", value: String(minutes).padStart(2, "0") },
+    { key: "seconds", value: String(seconds).padStart(2, "0") },
+  ];
+}
+
+function formatCurrency(value: number | null, currency: "USD" | "UZS" | "EUR", language: Language): string {
+  if (value == null) return "—";
+  const amount = new Intl.NumberFormat(language === "ru" ? "ru-RU" : "uz-UZ", { maximumFractionDigits: 0 }).format(value);
+  if (currency === "USD") return `${amount} $`;
+  if (currency === "EUR") return `${amount} €`;
+  return `${amount} сум`;
+}
 
 function formatPrice(car: CatalogCar, language: Language): string {
   if (car.priceOnRequest || car.price == null) return COPY[language].priceRequest;
@@ -864,26 +927,19 @@ export default function HomeClient() {
         <small>Auto Sale Umar 2026 · All rights reserved.</small>
       </footer>
 
-      <section className={`${styles.section} ${styles.developerMiniSection}`} aria-label="Auto Sale Umar IT Team">
+      <section className={`${styles.section} ${styles.developerMiniSection}`} aria-label="AutoSale Umar IT Team">
         <a className={styles.developerMiniCard} href="/it-team/">
-          <div className={styles.developerMiniProfile}>
-            <div className={styles.developerMiniAvatarWrap}>
-              <img src="/homepage/abdulaziz-developer.jpg" alt="Abdulaziz.developer" className={styles.developerMiniAvatar} loading="lazy" />
-            </div>
-            <div className={styles.developerMiniCopy}>
-              <span>IT TEAM</span>
-              <h3>{c.itTeamTitle}</h3>
-              <p>{c.itTeamFounder}</p>
-            </div>
-            <div className={styles.developerMiniArrow} aria-hidden="true">
-              <ChevronRight />
-            </div>
+          <div className={styles.developerMiniAvatarWrap}>
+            <img src="/homepage/abdulaziz-developer.jpg" alt="Abdulaziz.developer" className={styles.developerMiniAvatar} loading="lazy" />
           </div>
-          <div className={styles.developerMiniDivider} />
-          <div className={styles.developerMiniDetail}>
-            <span>DIGITAL EXPERIENCE</span>
+          <div className={styles.developerMiniCopy}>
+            <span>IT TEAM</span>
+            <h3>{c.itTeamTitle}</h3>
+            <p>{c.itTeamFounder}</p>
             <small>{c.itTeamSummary}</small>
-            <ChevronRight aria-hidden="true" />
+          </div>
+          <div className={styles.developerMiniArrow}>
+            <ChevronRight />
           </div>
         </a>
       </section>
@@ -894,25 +950,75 @@ export default function HomeClient() {
 function RamadanGiftSection({ gift, language }: { gift: RamadanGiftPayload; language: Language }) {
   const c = COPY[language];
   const cover = gift.media.find((item) => item.isCover) ?? gift.media[0] ?? null;
+  const [countdown, setCountdown] = useState<CountdownPart[]>(() => getCountdownParts(getNextRamadanStart()));
+
+  useEffect(() => {
+    const target = getNextRamadanStart();
+    const updateCountdown = () => setCountdown(getCountdownParts(target));
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const countdownLabels: Record<CountdownPart["key"], string> = {
+    days: c.ramadanGiftDays,
+    hours: c.ramadanGiftHours,
+    minutes: c.ramadanGiftMinutes,
+    seconds: c.ramadanGiftSeconds,
+  };
 
   return (
     <section className={`${styles.section} ${styles.ramadanSection}`} id="ramadan-gift">
       <a className={styles.ramadanFeature} href="/ramadan-gift/">
         <div className={styles.ramadanFeatureBackdrop} />
+
         <div className={styles.ramadanFeatureCopy}>
-          <p className={styles.ramadanFeatureEyebrow}>{c.ramadanGiftKicker}</p>
+          <div className={styles.ramadanFeatureTopline}>
+            <p className={styles.ramadanFeatureEyebrow}>{c.ramadanGiftKicker}</p>
+            <span className={styles.ramadanFeatureLive}><span />{c.ramadanGiftCountdown}</span>
+          </div>
+
           <h2>{c.ramadanGiftTitle}</h2>
           <p className={styles.ramadanFeatureText}>{c.ramadanGiftText}</p>
 
+          <div className={styles.ramadanFeatureCountdown} aria-label={c.ramadanGiftCountdown}>
+            {countdown.map((item) => (
+              <div key={item.key} className={styles.ramadanFeatureCountdownItem}>
+                <strong>{item.value}</strong>
+                <span>{countdownLabels[item.key]}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.ramadanFeatureHighlights}>
+            <article className={styles.ramadanFeatureHighlightCard}>
+              <span>{c.ramadanGiftPrizeLabel}</span>
+              <strong>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</strong>
+            </article>
+            <article className={styles.ramadanFeatureHighlightCard}>
+              <span>{c.ramadanGiftEntryLabel}</span>
+              <strong>{formatCurrency(gift.minPurchaseAmount, gift.currency, language)}</strong>
+            </article>
+            <article className={styles.ramadanFeatureHighlightCard}>
+              <span>{c.ramadanGiftValueLabel}</span>
+              <strong>{formatCurrency(gift.marketPrice, gift.currency, language)}</strong>
+            </article>
+          </div>
+
           <div className={styles.ramadanFeatureFooter}>
-            <span className={styles.ramadanFeatureModel}>{gift.subtitleRu}</span>
+            <span className={styles.ramadanFeatureModel}>{c.ramadanGiftFooterLabel}</span>
             <span className={styles.ramadanFeatureAction}>{c.ramadanGiftAction}<ChevronRight /></span>
           </div>
         </div>
 
         <div className={styles.ramadanFeatureVisual}>
+          <div className={styles.ramadanFeatureVisualBadge}>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</div>
           <div className={styles.ramadanFeatureHalo} />
           {cover ? <img src={cover.publicUrl} alt={language === "ru" ? gift.subtitleRu : gift.subtitleUz} loading="lazy" /> : null}
+          <div className={styles.ramadanFeatureVisualMeta}>
+            <span>{language === "ru" ? gift.shortPhraseRu : gift.shortPhraseUz}</span>
+            <strong>{formatCurrency(gift.marketPrice, gift.currency, language)}</strong>
+          </div>
         </div>
       </a>
     </section>
