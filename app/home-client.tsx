@@ -6,12 +6,12 @@ import {
   CalendarDays,
   CarFront,
   ChevronRight,
-  Eye,
   Instagram,
   MapPin,
   Menu,
   MessageCircle,
   Monitor,
+  Eye,
   Moon,
   Phone,
   Search,
@@ -200,6 +200,37 @@ const SHOWROOM_STORIES = [
   },
 ] as const;
 
+const DIGITAL_EXPERIENCE_MEDIA = [
+  {
+    image: "/homepage/digital-ecosystem-display.png",
+    ruTitle: "Главная витрина",
+    ruText: "Премиальная подача Auto Sale Umar на большом экране.",
+    uzTitle: "Asosiy vitrina",
+    uzText: "Auto Sale Umar’ning katta ekrandagi premium taqdimoti.",
+  },
+  {
+    image: "/homepage/digital-ecosystem-tablet.png",
+    ruTitle: "Приложение и iPad",
+    ruText: "Каталог и мобильный интерфейс работают как единая система.",
+    uzTitle: "Ilova va iPad",
+    uzText: "Katalog va mobil interfeys yagona tizim sifatida ishlaydi.",
+  },
+  {
+    image: "/homepage/digital-ecosystem-laptop.png",
+    ruTitle: "Каталог на ноутбуке",
+    ruText: "Фильтры, карточки и поиск автомобиля доступны в веб-версии.",
+    uzTitle: "Noutbukdagi katalog",
+    uzText: "Filtrlar, kartalar va qidiruv veb-versiyada ishlaydi.",
+  },
+  {
+    image: "/homepage/digital-ecosystem-stage.png",
+    ruTitle: "Единая презентация",
+    ruText: "Сайт, приложение и визуальная подача работают в одном стиле.",
+    uzTitle: "Yagona taqdimot",
+    uzText: "Sayt, ilova va vizual taqdimot bir uslubda ishlaydi.",
+  },
+] as const;
+
 const COPY = {
   ru: {
     menu: "Меню",
@@ -232,19 +263,9 @@ const COPY = {
     transitTitle: "Следующее поступление.",
     transitText: "Следите за автомобилями, которые уже направляются в шоурум.",
     ramadanGiftKicker: "RAMADAN GIFT",
-    ramadanGiftTitle: `Auto Sale Umar
-Ramadan Gift`,
-    ramadanGiftText: "Ежегодная премиальная программа благодарности для клиентов Auto Sale Umar. Подарочный Mercedes-Benz E-Class, выразительная подача и один победитель в следующем Рамадане.",
-    ramadanGiftAction: "Открыть программу",
-    ramadanGiftCountdown: "До следующего Рамадана",
-    ramadanGiftDays: "дней",
-    ramadanGiftHours: "часов",
-    ramadanGiftMinutes: "минут",
-    ramadanGiftSeconds: "секунд",
-    ramadanGiftPrizeLabel: "Подарочный автомобиль",
-    ramadanGiftEntryLabel: "Участие от",
-    ramadanGiftValueLabel: "Ориентир по стоимости",
-    ramadanGiftFooterLabel: "Премиальная программа благодарности",
+    ramadanGiftTitle: "Премиальный подарок как знак уважения.",
+    ramadanGiftText: "Ramadan Gift от Auto Sale Umar — автомобиль в знак благодарности нашим клиентам. Один автомобиль. Один клиент. Благодарность за доверие.",
+    ramadanGiftAction: "Открыть страницу",
     emptyShowroom: "Сейчас опубликованных автомобилей в шоуруме нет.",
     emptyStock: "Сейчас опубликованных автомобилей в наличии нет.",
     emptyTransit: "Сейчас опубликованных автомобилей в пути нет.",
@@ -290,6 +311,17 @@ Ramadan Gift`,
     exportStep3: "До передачи ключей",
     exportStep3d: "Сопровождаем логистику и держим клиента в курсе до прибытия автомобиля.",
     exportNote: "Страна и маршрут поставки зависят от выбранного автомобиля, комплектации и условий конкретного рынка.",
+    digitalKicker: "ЭКОСИСТЕМА AUTO SALE UMAR",
+    digitalTitle: "Сайт и приложение работают как одна система.",
+    digitalText: "Auto Sale Umar развивает собственную цифровую экосистему: сайт, мобильный интерфейс, каталог и карточки автомобилей связаны в единую логику. Это даёт клиенту более понятный путь выбора, а команде — единый цифровой контур работы.",
+    digitalFeature1: "Единая база автомобилей",
+    digitalFeature1d: "Каталог, статусы, цены и карточки автомобилей синхронно работают в одном цифровом контуре.",
+    digitalFeature2: "Сайт и мобильный интерфейс",
+    digitalFeature2d: "Клиент может смотреть автомобили, фильтровать каталог и отправлять запрос из удобного устройства.",
+    digitalFeature3: "Премиальная подача",
+    digitalFeature3d: "Экосистема поддерживает единый стиль Auto Sale Umar — от презентации до выбора конкретного автомобиля.",
+    digitalPrimaryAction: "Открыть каталог",
+    digitalSecondaryAction: "Оставить запрос",
     contactsKicker: "КОНТАКТЫ",
     contactsTitle: "Продолжим там, где удобно вам.",
     contactsText: "Instagram остаётся главным каналом обзоров. Для консультации можно написать или позвонить напрямую.",
@@ -341,19 +373,9 @@ Ramadan Gift`,
     transitTitle: "Keyingi kelish.",
     transitText: "Shourumga yo‘l olgan avtomobillarni kuzating.",
     ramadanGiftKicker: "RAMADAN GIFT",
-    ramadanGiftTitle: `Auto Sale Umar
-Ramadan Gift`,
-    ramadanGiftText: "Auto Sale Umar mijozlari uchun yillik premium minnatdorchilik dasturi. Sovg‘a Mercedes-Benz E-Class, kuchli taqdimot va kelasi Ramazonda bitta g‘olib.",
-    ramadanGiftAction: "Dasturni ochish",
-    ramadanGiftCountdown: "Keyingi Ramazongacha",
-    ramadanGiftDays: "kun",
-    ramadanGiftHours: "soat",
-    ramadanGiftMinutes: "daqiqa",
-    ramadanGiftSeconds: "soniya",
-    ramadanGiftPrizeLabel: "Sovg‘a avtomobil",
-    ramadanGiftEntryLabel: "Ishtirok boshlanishi",
-    ramadanGiftValueLabel: "Taxminiy qiymat",
-    ramadanGiftFooterLabel: "Premium minnatdorchilik dasturi",
+    ramadanGiftTitle: "Hurmat belgisi bo‘lgan premium sovg‘a.",
+    ramadanGiftText: "Auto Sale Umardan Ramadan Gift — mijozlarimizga minnatdorchilik ramzi bo‘lgan avtomobil. Bitta avtomobil. Bitta mijoz. Ishonch uchun minnatdorchilik.",
+    ramadanGiftAction: "Sahifani ochish",
     emptyShowroom: "Hozir shourumda ommaviy katalogga chiqarilgan avtomobil yo‘q.",
     emptyStock: "Hozir ommaviy katalogda mavjud avtomobil yo‘q.",
     emptyTransit: "Hozir ommaviy katalogda yo‘ldagi avtomobil yo‘q.",
@@ -399,6 +421,17 @@ Ramadan Gift`,
     exportStep3: "Kalit topshirilgunga qadar",
     exportStep3d: "Logistikani kuzatamiz va avtomobil yetib kelguniga qadar mijozni xabardor qilamiz.",
     exportNote: "Mamlakat va yetkazib berish yo‘li tanlangan avtomobil, komplektatsiya va bozor shartlariga bog‘liq.",
+    digitalKicker: "AUTO SALE UMAR EKOTIZIMI",
+    digitalTitle: "Sayt va ilova bitta tizim sifatida ishlaydi.",
+    digitalText: "Auto Sale Umar o‘zining raqamli ekotizimini rivojlantirmoqda: sayt, mobil interfeys, katalog va avtomobil kartalari yagona mantiqda ishlaydi. Bu mijoz uchun tanlov yo‘lini aniqroq, jamoa uchun esa ish jarayonini yaxlit qiladi.",
+    digitalFeature1: "Yagona avtomobil bazasi",
+    digitalFeature1d: "Katalog, statuslar, narxlar va avtomobil kartalari bitta raqamli kontur ichida ishlaydi.",
+    digitalFeature2: "Sayt va mobil interfeys",
+    digitalFeature2d: "Mijoz avtomobillarni ko‘rishi, katalogni filtrlashi va so‘rov yuborishi mumkin — qulay qurilmadan.",
+    digitalFeature3: "Premium taqdimot",
+    digitalFeature3d: "Ekotizim Auto Sale Umar’ning yagona uslubini ta’minlaydi — taqdimotdan aniq avtomobil tanlovigacha.",
+    digitalPrimaryAction: "Katalogni ochish",
+    digitalSecondaryAction: "So‘rov qoldirish",
     contactsKicker: "KONTAKTLAR",
     contactsTitle: "Sizga qulay joyda davom etamiz.",
     contactsText: "Instagram asosiy avtomobil sharhlari kanali bo‘lib qoladi. Maslahat uchun yozish yoki qo‘ng‘iroq qilish mumkin.",
@@ -422,49 +455,6 @@ Ramadan Gift`,
 } as const;
 
 const YANDEX_MAPS_URL = "https://yandex.ru/maps/org/auto_sale_umar/98317002086?si=y1pjpr56py0hyc8ar2j2cw1t40";
-
-const RAMADAN_START_DATES = [
-  "2027-02-09T00:00:00+05:00",
-  "2028-01-29T00:00:00+05:00",
-  "2029-01-17T00:00:00+05:00",
-  "2030-01-06T00:00:00+05:00",
-] as const;
-
-type CountdownPart = {
-  key: "days" | "hours" | "minutes" | "seconds";
-  value: string;
-};
-
-function getNextRamadanStart(now = new Date()): Date {
-  for (const candidate of RAMADAN_START_DATES) {
-    const parsed = new Date(candidate);
-    if (parsed.getTime() > now.getTime()) return parsed;
-  }
-  return new Date(RAMADAN_START_DATES[RAMADAN_START_DATES.length - 1]);
-}
-
-function getCountdownParts(target: Date, now = new Date()): CountdownPart[] {
-  const diff = Math.max(0, target.getTime() - now.getTime());
-  const totalSeconds = Math.floor(diff / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return [
-    { key: "days", value: String(days).padStart(2, "0") },
-    { key: "hours", value: String(hours).padStart(2, "0") },
-    { key: "minutes", value: String(minutes).padStart(2, "0") },
-    { key: "seconds", value: String(seconds).padStart(2, "0") },
-  ];
-}
-
-function formatCurrency(value: number | null, currency: "USD" | "UZS" | "EUR", language: Language): string {
-  if (value == null) return "—";
-  const amount = new Intl.NumberFormat(language === "ru" ? "ru-RU" : "uz-UZ", { maximumFractionDigits: 0 }).format(value);
-  if (currency === "USD") return `${amount} $`;
-  if (currency === "EUR") return `${amount} €`;
-  return `${amount} сум`;
-}
 
 function formatPrice(car: CatalogCar, language: Language): string {
   if (car.priceOnRequest || car.price == null) return COPY[language].priceRequest;
@@ -886,6 +876,8 @@ export default function HomeClient() {
         </div>
       </section>
 
+      <DigitalExperienceSection language={language} />
+
       <section className={`${styles.section} ${styles.contactsSection}`} id="contacts">
         <SectionHeading kicker={c.contactsKicker} title={c.contactsTitle} text={c.contactsText} />
         <div className={styles.contactGrid}>
@@ -947,78 +939,99 @@ export default function HomeClient() {
   );
 }
 
+function DigitalExperienceSection({ language }: { language: Language }) {
+  const c = COPY[language];
+  const features = [
+    { icon: <Monitor aria-hidden="true" />, title: c.digitalFeature1, text: c.digitalFeature1d },
+    { icon: <Search aria-hidden="true" />, title: c.digitalFeature2, text: c.digitalFeature2d },
+    { icon: <Sparkles aria-hidden="true" />, title: c.digitalFeature3, text: c.digitalFeature3d },
+  ];
+
+  return (
+    <section className={`${styles.section} ${styles.digitalSection}`} id="ecosystem">
+      <div className={styles.digitalExperienceCard}>
+        <div className={styles.digitalExperienceCopy}>
+          <p className={styles.kicker}>{c.digitalKicker}</p>
+          <h2>{c.digitalTitle}</h2>
+          <p className={styles.digitalExperienceText}>{c.digitalText}</p>
+
+          <div className={styles.digitalExperiencePills}>
+            <span>{language === "ru" ? "Сайт" : "Sayt"}</span>
+            <span>{language === "ru" ? "Приложение" : "Ilova"}</span>
+            <span>{language === "ru" ? "Единая система" : "Yagona tizim"}</span>
+          </div>
+
+          <div className={styles.digitalFeatureGrid}>
+            {features.map((item) => (
+              <article className={styles.digitalFeatureCard} key={item.title}>
+                <div className={styles.digitalFeatureIcon}>{item.icon}</div>
+                <div className={styles.digitalFeatureCopy}>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.digitalExperienceActions}>
+            <a className={styles.digitalPrimaryAction} href="/cars/">{c.digitalPrimaryAction}<ChevronRight /></a>
+            <a className={styles.digitalSecondaryAction} href="/request-car/">{c.digitalSecondaryAction}</a>
+          </div>
+        </div>
+
+        <div className={styles.digitalExperienceVisual}>
+          <figure className={`${styles.digitalShot} ${styles.digitalShotPrimary}`}>
+            <img src={DIGITAL_EXPERIENCE_MEDIA[0].image} alt={language === "ru" ? DIGITAL_EXPERIENCE_MEDIA[0].ruTitle : DIGITAL_EXPERIENCE_MEDIA[0].uzTitle} loading="lazy" />
+            <figcaption>
+              <strong>{language === "ru" ? DIGITAL_EXPERIENCE_MEDIA[0].ruTitle : DIGITAL_EXPERIENCE_MEDIA[0].uzTitle}</strong>
+              <span>{language === "ru" ? DIGITAL_EXPERIENCE_MEDIA[0].ruText : DIGITAL_EXPERIENCE_MEDIA[0].uzText}</span>
+            </figcaption>
+          </figure>
+
+          <div className={styles.digitalShotRail}>
+            {DIGITAL_EXPERIENCE_MEDIA.slice(1).map((item) => (
+              <figure className={styles.digitalShot} key={item.image}>
+                <img src={item.image} alt={language === "ru" ? item.ruTitle : item.uzTitle} loading="lazy" />
+                <figcaption>
+                  <strong>{language === "ru" ? item.ruTitle : item.uzTitle}</strong>
+                  <span>{language === "ru" ? item.ruText : item.uzText}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function RamadanGiftSection({ gift, language }: { gift: RamadanGiftPayload; language: Language }) {
   const c = COPY[language];
   const cover = gift.media.find((item) => item.isCover) ?? gift.media[0] ?? null;
-  const [countdown, setCountdown] = useState<CountdownPart[]>(() => getCountdownParts(getNextRamadanStart()));
-
-  useEffect(() => {
-    const target = getNextRamadanStart();
-    const updateCountdown = () => setCountdown(getCountdownParts(target));
-    updateCountdown();
-    const timer = window.setInterval(updateCountdown, 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const countdownLabels: Record<CountdownPart["key"], string> = {
-    days: c.ramadanGiftDays,
-    hours: c.ramadanGiftHours,
-    minutes: c.ramadanGiftMinutes,
-    seconds: c.ramadanGiftSeconds,
-  };
 
   return (
     <section className={`${styles.section} ${styles.ramadanSection}`} id="ramadan-gift">
       <a className={styles.ramadanFeature} href="/ramadan-gift/">
         <div className={styles.ramadanFeatureBackdrop} />
-
         <div className={styles.ramadanFeatureCopy}>
-          <div className={styles.ramadanFeatureTopline}>
-            <p className={styles.ramadanFeatureEyebrow}>{c.ramadanGiftKicker}</p>
-            <span className={styles.ramadanFeatureLive}><span />{c.ramadanGiftCountdown}</span>
-          </div>
-
+          <p className={styles.ramadanFeatureEyebrow}>{c.ramadanGiftKicker}</p>
           <h2>{c.ramadanGiftTitle}</h2>
           <p className={styles.ramadanFeatureText}>{c.ramadanGiftText}</p>
 
-          <div className={styles.ramadanFeatureCountdown} aria-label={c.ramadanGiftCountdown}>
-            {countdown.map((item) => (
-              <div key={item.key} className={styles.ramadanFeatureCountdownItem}>
-                <strong>{item.value}</strong>
-                <span>{countdownLabels[item.key]}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className={styles.ramadanFeatureHighlights}>
-            <article className={styles.ramadanFeatureHighlightCard}>
-              <span>{c.ramadanGiftPrizeLabel}</span>
-              <strong>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</strong>
-            </article>
-            <article className={styles.ramadanFeatureHighlightCard}>
-              <span>{c.ramadanGiftEntryLabel}</span>
-              <strong>{formatCurrency(gift.minPurchaseAmount, gift.currency, language)}</strong>
-            </article>
-            <article className={styles.ramadanFeatureHighlightCard}>
-              <span>{c.ramadanGiftValueLabel}</span>
-              <strong>{formatCurrency(gift.marketPrice, gift.currency, language)}</strong>
-            </article>
+          <div className={styles.ramadanFeatureIdentity}>
+            <strong>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</strong>
+            <span>{language === "ru" ? gift.shortPhraseRu : gift.shortPhraseUz}</span>
           </div>
 
           <div className={styles.ramadanFeatureFooter}>
-            <span className={styles.ramadanFeatureModel}>{c.ramadanGiftFooterLabel}</span>
+            <span className={styles.ramadanFeatureModel}>{gift.subtitleRu}</span>
             <span className={styles.ramadanFeatureAction}>{c.ramadanGiftAction}<ChevronRight /></span>
           </div>
         </div>
 
         <div className={styles.ramadanFeatureVisual}>
-          <div className={styles.ramadanFeatureVisualBadge}>{language === "ru" ? gift.subtitleRu : gift.subtitleUz}</div>
           <div className={styles.ramadanFeatureHalo} />
           {cover ? <img src={cover.publicUrl} alt={language === "ru" ? gift.subtitleRu : gift.subtitleUz} loading="lazy" /> : null}
-          <div className={styles.ramadanFeatureVisualMeta}>
-            <span>{language === "ru" ? gift.shortPhraseRu : gift.shortPhraseUz}</span>
-            <strong>{formatCurrency(gift.marketPrice, gift.currency, language)}</strong>
-          </div>
         </div>
       </a>
     </section>
