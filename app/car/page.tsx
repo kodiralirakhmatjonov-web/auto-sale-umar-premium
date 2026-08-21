@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Gauge,
   Heart,
-  Eye,
   Instagram,
   MessageCircle,
   Share2,
@@ -143,7 +142,6 @@ const COPY = {
     instagram: "Смотреть обзор в Instagram",
     compare: "Сравнить автомобиль",
     share: "Поделиться автомобилем",
-    weeklyViews: "На этой неделе посмотрели",
     favoriteAdd: "Добавить в избранное",
     favoriteRemove: "Убрать из избранного",
     priceRequest: "Цена по запросу",
@@ -196,7 +194,6 @@ const COPY = {
     instagram: "Instagram sharhini ko‘rish",
     compare: "Avtomobilni solishtirish",
     share: "Avtomobilni ulashish",
-    weeklyViews: "Bu hafta ko‘rildi",
     favoriteAdd: "Sevimlilarga qo‘shish",
     favoriteRemove: "Sevimlilardan olib tashlash",
     priceRequest: "Narx so‘rov bo‘yicha",
@@ -329,7 +326,6 @@ export default function CarPage() {
   const [favorite, setFavorite] = useState(false);
   const [coverIndex, setCoverIndex] = useState(0);
   const [brandCovers, setBrandCovers] = useState<BrandCoverItem[]>([]);
-  const [weeklyViews, setWeeklyViews] = useState(0);
   const photoRailRef = useRef<HTMLDivElement | null>(null);
   const coverRailRef = useRef<HTMLDivElement | null>(null);
   const recordedViewSlugRef = useRef<string | null>(null);
@@ -352,7 +348,6 @@ export default function CarPage() {
       .then((nextCar) => {
         if (cancelled) return;
         setCar(nextCar);
-        setWeeklyViews(nextCar.weeklyViews ?? 0);
         setVariantIndex(0);
         setPhotoIndex(0);
         setLoading(false);
@@ -379,12 +374,7 @@ export default function CarPage() {
       method: "POST",
       headers: { "content-type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ slug: car.slug }),
-    })
-      .then(async (response) => {
-        const body = await response.json().catch(() => null) as { success?: boolean; weeklyViews?: number } | null;
-        if (response.ok && body?.success && typeof body.weeklyViews === "number") setWeeklyViews(body.weeklyViews);
-      })
-      .catch(() => undefined);
+    }).catch(() => undefined);
   }, [car?.slug]);
 
   useEffect(() => {
@@ -563,7 +553,6 @@ export default function CarPage() {
           <div className={styles.heroStatusRow}>
             <span className={styles.statusPill} data-status={car.status}>{statusLabel(car.status, language)}</span>
             <strong>{formatPrice(car, language)}</strong>
-            <span className={styles.heroViews}><Eye aria-hidden="true" />{c.weeklyViews}: {weeklyViews}</span>
           </div>
           {shortDescription ? <p>{shortDescription}</p> : null}
           <div className={styles.heroActions}>

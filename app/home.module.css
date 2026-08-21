@@ -2939,23 +2939,6 @@
 }
 
 /* Weekly public interest signal. */
-.viewCount {
-  margin-top: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--muted-2);
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 760;
-  letter-spacing: .02em;
-}
-.viewCount svg { width: 15px; height: 15px; stroke-width: 1.8; }
-
-@media (max-width: 720px) {
-  .viewCount { margin-top: 11px; font-size: 11px; }
-  .viewCount svg { width: 14px; height: 14px; }
-}
 
 .ramadanSection{
   margin-top:8px;
@@ -3130,50 +3113,31 @@
   .ramadanFeatureVisual img{padding:14px 18px 0}
 }
 
-/* ===== p039 digital ecosystem ===== */
+/* ===== p040 digital ecosystem carousel ===== */
 .digitalSection {
   padding-top: 8px;
+  overflow: visible;
 }
 
 .digitalExperienceCard {
-  position: relative;
-  overflow: hidden;
   padding: clamp(22px, 3vw, 34px);
   display: grid;
-  grid-template-columns: minmax(0, .96fr) minmax(0, 1.1fr);
-  gap: clamp(18px, 2.6vw, 30px);
-  border-radius: 40px;
+  gap: 24px;
+  overflow: visible;
   border: 1px solid rgba(17, 24, 39, .06);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(255,255,255,.92), rgba(255,255,255,0) 28%),
-    linear-gradient(180deg, #ffffff 0%, #fbfbfa 100%);
+  border-radius: 40px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfa 100%);
   box-shadow: 0 32px 90px rgba(17, 24, 39, .08);
-}
-
-.digitalExperienceCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(244, 248, 255, .8), transparent 26%),
-    linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0) 22%);
-}
-
-.digitalExperienceCopy,
-.digitalExperienceVisual {
-  position: relative;
-  z-index: 1;
 }
 
 .digitalExperienceCopy {
   display: grid;
-  align-content: start;
-  gap: 18px;
+  gap: 16px;
 }
 
 .digitalExperienceCopy h2 {
   margin: 0;
+  max-width: 900px;
   color: #0a0d12;
   font-size: clamp(34px, 4.1vw, 58px);
   line-height: .96;
@@ -3183,86 +3147,96 @@
 
 .digitalExperienceText {
   margin: 0;
-  max-width: 620px;
-  color: rgba(11, 16, 24, .72);
+  max-width: 820px;
+  color: rgba(11, 16, 24, .70);
   font-size: 16px;
-  line-height: 1.78;
+  line-height: 1.74;
 }
 
 .digitalExperiencePills {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 9px;
 }
 
 .digitalExperiencePills span {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 34px;
+  padding: 0 13px;
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
   border: 1px solid rgba(17, 24, 39, .08);
-  background: rgba(250, 250, 249, .92);
-  color: rgba(11, 16, 24, .72);
-  font-size: 12px;
+  background: #f7f7f5;
+  color: rgba(11, 16, 24, .70);
+  font-size: 11px;
   font-weight: 760;
   letter-spacing: .08em;
   text-transform: uppercase;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
 }
 
-.digitalFeatureGrid {
-  display: grid;
-  gap: 12px;
+.digitalCarousel {
+  width: 100%;
+  padding: 2px 2px 14px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
 }
 
-.digitalFeatureCard {
-  min-width: 0;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  border-radius: 26px;
-  border: 1px solid rgba(17, 24, 39, .06);
-  background: linear-gradient(180deg, rgba(250, 250, 249, .98), rgba(246, 247, 249, .92));
-  box-shadow: 0 14px 36px rgba(17, 24, 39, .05);
+.digitalCarousel::-webkit-scrollbar {
+  display: none;
 }
 
-.digitalFeatureIcon {
-  width: 50px;
-  height: 50px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  background: #0f131a;
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-}
-
-.digitalFeatureIcon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.digitalFeatureCopy {
-  min-width: 0;
-  display: grid;
-  gap: 5px;
-}
-
-.digitalFeatureCopy h3 {
+.digitalCarouselCard {
+  flex: 0 0 min(78vw, 520px);
   margin: 0;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  border: 1px solid rgba(17, 24, 39, .07);
+  border-radius: 32px;
+  background: #fff;
+  box-shadow: 0 18px 52px rgba(17, 24, 39, .08);
+}
+
+.digitalCarouselImage {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #f2f3f5;
+}
+
+.digitalCarouselImage img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.digitalCarouselCard figcaption {
+  min-height: 104px;
+  padding: 17px 18px 18px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.digitalCarouselCard strong {
   color: #0b1018;
-  font-size: 18px;
+  font-size: 19px;
   line-height: 1.18;
   letter-spacing: -.03em;
 }
 
-.digitalFeatureCopy p {
-  margin: 0;
-  color: rgba(11, 16, 24, .68);
+.digitalCarouselCard span {
+  color: rgba(11, 16, 24, .62);
   font-size: 14px;
-  line-height: 1.62;
+  line-height: 1.55;
 }
 
 .digitalExperienceActions {
@@ -3289,83 +3263,26 @@
 .digitalPrimaryAction {
   color: #fff;
   background: #0f131a;
-  box-shadow: 0 20px 48px rgba(15, 19, 26, .18);
+  box-shadow: 0 18px 42px rgba(15, 19, 26, .16);
 }
 
 .digitalSecondaryAction {
   color: #0f131a;
   background: #fff;
   border: 1px solid rgba(17, 24, 39, .08);
-  box-shadow: 0 14px 36px rgba(17, 24, 39, .06);
 }
 
 .digitalPrimaryAction:active,
 .digitalSecondaryAction:active,
-.digitalShot:active {
+.digitalCarouselCard:active {
   transform: scale(.985);
-}
-
-.digitalExperienceVisual {
-  display: grid;
-  gap: 14px;
-}
-
-.digitalShot,
-.digitalShotPrimary {
-  margin: 0;
-  overflow: hidden;
-  border-radius: 30px;
-  border: 1px solid rgba(17, 24, 39, .06);
-  background: linear-gradient(180deg, #fdfdfc 0%, #f3f4f6 100%);
-  box-shadow: 0 18px 52px rgba(17, 24, 39, .08);
-}
-
-.digitalShot img,
-.digitalShotPrimary img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.digitalShotPrimary figcaption,
-.digitalShot figcaption {
-  padding: 14px 16px 16px;
-  display: grid;
-  gap: 4px;
-}
-
-.digitalShotPrimary strong,
-.digitalShot strong {
-  color: #0b1018;
-  font-size: 16px;
-  line-height: 1.2;
-  letter-spacing: -.02em;
-}
-
-.digitalShotPrimary span,
-.digitalShot span {
-  color: rgba(11, 16, 24, .62);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.digitalShotRail {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-@media (max-width: 1100px) {
-  .digitalExperienceCard {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 760px) {
   .digitalExperienceCard {
     padding: 20px 16px;
+    gap: 20px;
     border-radius: 32px;
-    gap: 18px;
   }
 
   .digitalExperienceCopy h2 {
@@ -3374,22 +3291,35 @@
 
   .digitalExperienceText {
     font-size: 15px;
-    line-height: 1.7;
+    line-height: 1.68;
   }
 
-  .digitalFeatureGrid,
-  .digitalShotRail {
-    grid-template-columns: 1fr;
+  .digitalCarousel {
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scroll-padding-left: 16px;
+    gap: 12px;
   }
 
-  .digitalShot,
-  .digitalShotPrimary {
-    border-radius: 24px;
+  .digitalCarouselCard {
+    flex-basis: min(82vw, 360px);
+    border-radius: 26px;
   }
 
-  .digitalFeatureCard {
-    padding: 14px;
-    border-radius: 22px;
+  .digitalCarouselCard:first-child {
+    margin-left: 0;
+  }
+
+  .digitalCarouselImage {
+    aspect-ratio: 4 / 3;
+  }
+
+  .digitalCarouselCard figcaption {
+    min-height: 98px;
+    padding: 15px 16px 17px;
   }
 
   .digitalExperienceActions {

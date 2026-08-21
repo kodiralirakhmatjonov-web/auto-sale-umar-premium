@@ -383,22 +383,3 @@
   .catalogGrid[data-layout="two"] .statusPill { max-width: calc(100% - 54px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .catalogGrid[data-layout="two"] .engine { display: none; }
 }
-
-/* Weekly public interest signal. */
-.viewCount {
-  margin-top: 13px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--muted-2);
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 740;
-}
-.viewCount svg { width: 15px; height: 15px; stroke-width: 1.8; }
-
-@media (max-width: 720px) {
-  .viewCount { margin-top: 10px; gap: 5px; font-size: 10px; }
-  .viewCount svg { width: 13px; height: 13px; }
-  .catalogGrid[data-layout="one"] .viewCount { font-size: 11px; }
-}

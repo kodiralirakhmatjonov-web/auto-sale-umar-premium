@@ -11,7 +11,6 @@ import {
   Menu,
   MessageCircle,
   Monitor,
-  Eye,
   Moon,
   Phone,
   Search,
@@ -941,11 +940,6 @@ export default function HomeClient() {
 
 function DigitalExperienceSection({ language }: { language: Language }) {
   const c = COPY[language];
-  const features = [
-    { icon: <Monitor aria-hidden="true" />, title: c.digitalFeature1, text: c.digitalFeature1d },
-    { icon: <Search aria-hidden="true" />, title: c.digitalFeature2, text: c.digitalFeature2d },
-    { icon: <Sparkles aria-hidden="true" />, title: c.digitalFeature3, text: c.digitalFeature3d },
-  ];
 
   return (
     <section className={`${styles.section} ${styles.digitalSection}`} id="ecosystem">
@@ -960,45 +954,25 @@ function DigitalExperienceSection({ language }: { language: Language }) {
             <span>{language === "ru" ? "Приложение" : "Ilova"}</span>
             <span>{language === "ru" ? "Единая система" : "Yagona tizim"}</span>
           </div>
-
-          <div className={styles.digitalFeatureGrid}>
-            {features.map((item) => (
-              <article className={styles.digitalFeatureCard} key={item.title}>
-                <div className={styles.digitalFeatureIcon}>{item.icon}</div>
-                <div className={styles.digitalFeatureCopy}>
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <div className={styles.digitalExperienceActions}>
-            <a className={styles.digitalPrimaryAction} href="/cars/">{c.digitalPrimaryAction}<ChevronRight /></a>
-            <a className={styles.digitalSecondaryAction} href="/request-car/">{c.digitalSecondaryAction}</a>
-          </div>
         </div>
 
-        <div className={styles.digitalExperienceVisual}>
-          <figure className={`${styles.digitalShot} ${styles.digitalShotPrimary}`}>
-            <img src={DIGITAL_EXPERIENCE_MEDIA[0].image} alt={language === "ru" ? DIGITAL_EXPERIENCE_MEDIA[0].ruTitle : DIGITAL_EXPERIENCE_MEDIA[0].uzTitle} loading="lazy" />
-            <figcaption>
-              <strong>{language === "ru" ? DIGITAL_EXPERIENCE_MEDIA[0].ruTitle : DIGITAL_EXPERIENCE_MEDIA[0].uzTitle}</strong>
-              <span>{language === "ru" ? DIGITAL_EXPERIENCE_MEDIA[0].ruText : DIGITAL_EXPERIENCE_MEDIA[0].uzText}</span>
-            </figcaption>
-          </figure>
-
-          <div className={styles.digitalShotRail}>
-            {DIGITAL_EXPERIENCE_MEDIA.slice(1).map((item) => (
-              <figure className={styles.digitalShot} key={item.image}>
+        <div className={styles.digitalCarousel}>
+          {DIGITAL_EXPERIENCE_MEDIA.map((item) => (
+            <figure className={styles.digitalCarouselCard} key={item.image}>
+              <div className={styles.digitalCarouselImage}>
                 <img src={item.image} alt={language === "ru" ? item.ruTitle : item.uzTitle} loading="lazy" />
-                <figcaption>
-                  <strong>{language === "ru" ? item.ruTitle : item.uzTitle}</strong>
-                  <span>{language === "ru" ? item.ruText : item.uzText}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+              </div>
+              <figcaption>
+                <strong>{language === "ru" ? item.ruTitle : item.uzTitle}</strong>
+                <span>{language === "ru" ? item.ruText : item.uzText}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <div className={styles.digitalExperienceActions}>
+          <a className={styles.digitalPrimaryAction} href="/cars/">{c.digitalPrimaryAction}<ChevronRight /></a>
+          <a className={styles.digitalSecondaryAction} href="/request-car/">{c.digitalSecondaryAction}</a>
         </div>
       </div>
     </section>
@@ -1200,7 +1174,6 @@ function PublicCarCard({ car, language }: { car: CatalogCar; language: Language 
           </div>
         ) : null}
 
-        <div className={styles.viewCount}><Eye aria-hidden="true" /><span>{language === "ru" ? `За неделю · ${car.weeklyViews ?? 0}` : `Haftada · ${car.weeklyViews ?? 0}`}</span></div>
         <div className={styles.carPrice}><span>{language === "ru" ? "Цена" : "Narx"}</span><b>{formatPrice(car, language)}</b></div>
       </div>
     </article>
